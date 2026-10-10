@@ -19,6 +19,7 @@ from vllm.utils.platform_utils import num_compute_units
 
 _TRITON_TABLE_CACHE: dict[tuple[torch.device], tuple[torch.Tensor, torch.Tensor]] = {}
 _TRITON_BUFFER_CACHE: dict[tuple[torch.device, torch.dtype, int], torch.Tensor] = {}
+_DENSE_REFERENCE_CHUNK_SHAPES: set[tuple[torch.device, torch.dtype, int, int]] = set()
 
 
 def _use_sm70_topk_topp_8_warps(
@@ -1362,14 +1363,53 @@ def apply_top_k_top_p_triton(
         # operand. Reuse one ordered row index for logits, parameters and the
         # final scatter without changing the reference's vocabulary tie order.
         reference_indices = reference_rows.nonzero(as_tuple=True)[0]
-        reference_logits = apply_top_k_top_p_pytorch(
-            original_logits.index_select(0, reference_indices),
-            k.index_select(0, reference_indices) if k is not None else None,
-            p.index_select(0, reference_indices) if p is not None else None,
+        shape_key = (
+            original_logits.device,
+            original_logits.dtype,
+            original_logits.shape[1],
+            reference_indices.numel(),
         )
-        if mask_value != float("-inf"):
-            reference_logits.masked_fill_(torch.isneginf(reference_logits), mask_value)
-        logits.index_copy_(0, reference_indices, reference_logits)
+        use_chunks = shape_key in _DENSE_REFERENCE_CHUNK_SHAPES
+        if not use_chunks:
+            try:
+                reference_logits = apply_top_k_top_p_pytorch(
+                    original_logits.index_select(0, reference_indices),
+                    k.index_select(0, reference_indices) if k is not None else None,
+                    p.index_select(0, reference_indices) if p is not None else None,
+                )
+            except torch.cuda.OutOfMemoryError:
+                use_chunks = True
+            # Leave the exception handler before allocating the smaller chunks,
+            # so its traceback no longer retains the failed dense operands.
+            if use_chunks:
+                _DENSE_REFERENCE_CHUNK_SHAPES.add(shape_key)
+            else:
+                if mask_value != float("-inf"):
+                    reference_logits.masked_fill_(
+                        torch.isneginf(reference_logits), mask_value
+                    )
+                logits.index_copy_(0, reference_indices, reference_logits)
+        if use_chunks:
+            # Reuse the proven two-row fallback only for a shape that failed.
+            # Padding an odd tail preserves the multi-row cumulative scan;
+            # an originally singleton reference set keeps its singleton scan.
+            for start in range(0, reference_indices.numel(), 2):
+                chunk = reference_indices[start : start + 2]
+                valid = chunk.numel()
+                if valid == 1 and reference_indices.numel() > 1:
+                    chunk = torch.cat((chunk, reference_indices[:1]))
+                reference_logits = apply_top_k_top_p_pytorch(
+                    original_logits.index_select(0, chunk),
+                    k.index_select(0, chunk) if k is not None else None,
+                    p.index_select(0, chunk) if p is not None else None,
+                    rowwise_sort=True,
+                )
+                if mask_value != float("-inf"):
+                    reference_logits.masked_fill_(
+                        torch.isneginf(reference_logits), mask_value
+                    )
+                logits.index_copy_(0, chunk[:valid], reference_logits[:valid])
+                del reference_logits
     return logits
 
 

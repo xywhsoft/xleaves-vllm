@@ -1,0 +1,11 @@
+{
+  "status": "stoch468_actual_plan_and_live_gpu_owner_rejection_passed",
+  "negative_reason": "Active optimization job pp445: 1142712",
+  "driver_sha256": "1accd43d7cee435c990442c45fc3ec215a184070deaae955ff87fc9b47acfc32",
+  "wrapper_sha256": "be49f2c369cf9ae292ceac9ae77b611bd5c45f3003458b77679c2f6607cc26fc",
+  "model_requests_sent": 0,
+  "torch_imported": false,
+  "gpu_work": false,
+  "serving_source_mutation": false,
+  "throughput_measurement": false
+}

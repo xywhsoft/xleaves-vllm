@@ -1190,6 +1190,7 @@ class GGUFLMHeadMethod(GGUFEmbeddingMethod):
         calibration = {
             (int(WeightType.Q4_K), (62080, 2880)): (2, 16),
             (int(WeightType.Q6_K), (62080, 2100)): (1, 20),
+            (int(WeightType.Q6_K), (124160, 1680)): (2, 32),
         }.get((weight_type, tuple(raw.shape)))
         minimum_m, maximum_m = calibration or (2, 16)
         reason = None

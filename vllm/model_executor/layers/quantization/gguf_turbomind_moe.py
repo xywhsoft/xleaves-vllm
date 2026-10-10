@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Canonical expert banks and graph-compatible GGUF routing."""
 
+import os
 from dataclasses import asdict
 from typing import Any
 
@@ -21,6 +22,10 @@ from vllm.model_executor.kernels.gguf import (
     raw_grouped_gate_up_capabilities,
     select_lattice_grouped_capability,
     small_grouped_vector_capabilities,
+)
+from vllm.model_executor.layers.fused_moe.sm70_compact_groups import (
+    compact_affine_projection,
+    compact_groups,
 )
 from vllm.model_executor.layers.fused_moe.sm70_small_routing import (
     SM70_SMALL_ROUTING,
@@ -594,10 +599,28 @@ class GGUFTurboMindMoEMethod(GGUFNativeMoEMethod):
         self.small_routing = bool(
             self.native_enabled
             and self.params_dtype == torch.float16
-            and self.num_experts == 512
-            and self.hidden_size == 2560
+            and SM70_SMALL_ROUTING.supports_geometry(self.hidden_size, self.num_experts)
             and layer.ep_size == 1
         )
+        self.ornith_compact = bool(
+            self.small_routing
+            and self.hidden_size == 2048
+            and self.intermediate_size == 256
+            and self.num_experts == 256
+            and all(bank.family == GGUFDecoderFamily.AFFINE for bank in banks.values())
+            and os.getenv("VLLM_SM70_MOE_COMPACT_GROUPS", "0") == "1"
+        )
+        if self.ornith_compact:
+            pointers = torch.stack(
+                [
+                    pointer
+                    for shard in ("w1", "w3", "w2")
+                    for pointer in (banks[shard].weight_ptrs, banks[shard].stat_ptrs)
+                ]
+            ).view(6, self.num_experts, 16)
+            layer.register_buffer(
+                "gguf_compact_pointer_banks", pointers, persistent=False
+            )
         gate, up = banks["w1"], banks["w3"]
         self.raw_gate_up = bool(
             layer.ep_size == 1
@@ -682,7 +705,7 @@ class GGUFTurboMindMoEMethod(GGUFNativeMoEMethod):
                 "enabled": self.small_routing,
                 "reason": None
                 if self.small_routing
-                else "requires_fp16_512_experts_hidden2560_without_ep",
+                else "requires_fp16_qualified_expert_geometry_without_ep",
                 "outside_m_band": "legacy_alignment_and_fp32_weighted_sum",
             },
             "projections": {
@@ -759,7 +782,16 @@ class GGUFTurboMindMoEMethod(GGUFNativeMoEMethod):
             offsets = torch.searchsorted(sorted_ids, boundaries).to(torch.int32)
             routed = x[torch.div(order, top_k, rounding_mode="floor")].contiguous()
         bank = layer.gguf_expert_banks
-        if self.raw_gate_up and layer.expert_map is None:
+        use_compact = (
+            self.ornith_compact and small_routing and routed.shape[0] < self.num_experts
+        )
+        if use_compact:
+            offsets, pointers = compact_groups(
+                offsets, layer.gguf_compact_pointer_banks, routed.shape[0]
+            )
+            gate = compact_affine_projection(bank["w1"], routed, offsets, pointers, 0)
+            up = compact_affine_projection(bank["w3"], routed, offsets, pointers, 2)
+        elif self.raw_gate_up and layer.expert_map is None:
             gate_bank, up_bank = bank["w1"], bank["w3"]
             gate, up = torch.ops.vllm.gguf_expert_gate_up(
                 routed,
@@ -783,7 +815,16 @@ class GGUFTurboMindMoEMethod(GGUFNativeMoEMethod):
             gate = bank["w1"](routed, offsets, sorted_ids)
             up = bank["w3"](routed, offsets, sorted_ids)
         hidden = torch.nn.functional.silu(gate) * up
-        down = bank["w2"](hidden.contiguous(), offsets, sorted_ids)
+        # Their kernels are ordered on the current stream; these inputs
+        # are no longer needed before the down projection allocates.
+        del routed, gate, up
+        if use_compact:
+            down = compact_affine_projection(
+                bank["w2"], hidden.contiguous(), offsets, pointers, 4
+            )
+        else:
+            down = bank["w2"](hidden.contiguous(), offsets, sorted_ids)
+        del hidden
         if small_routing:
             return torch.ops.vllm.sm70_small_expert_unroute(down, inverse, topk_weights)
         restored = down[order.argsort()].view(tokens, top_k, self.hidden_size)

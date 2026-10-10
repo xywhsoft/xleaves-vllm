@@ -1,0 +1,1194 @@
+{
+  "status": "exact_layer229_completed_paired_comparison",
+  "utc": "2026-10-09T01:43:48Z",
+  "baseline": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/llama_exact_layer216.jsonl",
+    "sha256": "66c751c11c69a30bc9e34758be87789983bc0b3c3b61560d198f5760e1cf4c6c"
+  },
+  "input_proof": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/exact-layer215-input-proof.json",
+    "sha256": "42e95b5ba635f3ba6028103c89bd11fe57336426fc053070ac4f10366d104525"
+  },
+  "comparisons": [
+    {
+      "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c160_kv17716740096_b1024_full16_none_graph2048_adaptive393",
+      "profile": {
+        "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-adaptive416-0-final.json",
+        "sha256": "5bda6a4ce279232c3cc5f49b99a4e1443e13e2016a13a2f6395c89de4fa0d43d"
+      },
+      "validation": {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c160_kv17716740096_b1024_full16_none_graph2048_adaptive393",
+        "minimum_full_contexts": 16,
+        "max_context_per_request": 240128,
+        "verified_files": 136,
+        "source_coverage": {
+          "changed_files": 49,
+          "unbound_source": [],
+          "mismatched_source": [],
+          "source_matches": true
+        },
+        "verified_mixed_active_sequences": 160,
+        "verified_full_contexts": 16,
+        "uncached_full_context_concurrency": 16
+      },
+      "locality": {
+        "enabled": false,
+        "scope": "Measured command has noNUMA binding; no workerlocality claim."
+      },
+      "groups": [
+        {
+          "kind": "cohort",
+          "concurrency": 1,
+          "repeats": 2,
+          "measurements": {
+            "aggregate_common_decode_tps": {
+              "layer": {
+                "mean": 97.35088037999009,
+                "minimum": 97.27932247137204,
+                "maximum": 97.42243828860813,
+                "samples": [
+                  97.27932247137204,
+                  97.42243828860813
+                ]
+              },
+              "optimized": {
+                "mean": 69.33066505110304,
+                "minimum": 69.32988163927554,
+                "maximum": 69.33144846293054,
+                "samples": [
+                  69.33144846293054,
+                  69.32988163927554
+                ]
+              },
+              "ratio": 0.7121729642349856,
+              "change_pct": -28.782703576501444
+            },
+            "average_common_decode_request_tps": {
+              "layer": {
+                "mean": 97.35088037999009,
+                "minimum": 97.27932247137204,
+                "maximum": 97.42243828860813,
+                "samples": [
+                  97.27932247137204,
+                  97.42243828860813
+                ]
+              },
+              "optimized": {
+                "mean": 69.33066505110304,
+                "minimum": 69.32988163927554,
+                "maximum": 69.33144846293054,
+                "samples": [
+                  69.33144846293054,
+                  69.32988163927554
+                ]
+              },
+              "ratio": 0.7121729642349856,
+              "change_pct": -28.782703576501444
+            },
+            "aggregate_e2e_output_tps": {
+              "layer": {
+                "mean": 88.11009843546779,
+                "minimum": 88.10556639917225,
+                "maximum": 88.11463047176333,
+                "samples": [
+                  88.10556639917225,
+                  88.11463047176333
+                ]
+              },
+              "optimized": {
+                "mean": 67.7227503024521,
+                "minimum": 67.70783372440678,
+                "maximum": 67.73766688049741,
+                "samples": [
+                  67.73766688049741,
+                  67.70783372440678
+                ]
+              },
+              "ratio": 0.7686150793720032,
+              "change_pct": -23.138492062799678
+            },
+            "average_e2e_request_tps": {
+              "layer": {
+                "mean": 88.11009843546779,
+                "minimum": 88.10556639917225,
+                "maximum": 88.11463047176333,
+                "samples": [
+                  88.10556639917225,
+                  88.11463047176333
+                ]
+              },
+              "optimized": {
+                "mean": 67.7227503024521,
+                "minimum": 67.70783372440678,
+                "maximum": 67.73766688049741,
+                "samples": [
+                  67.73766688049741,
+                  67.70783372440678
+                ]
+              },
+              "ratio": 0.7686150793720032,
+              "change_pct": -23.138492062799678
+            },
+            "median_request_decode_tps": {
+              "layer": {
+                "mean": 97.35088037999009,
+                "minimum": 97.27932247137204,
+                "maximum": 97.42243828860813,
+                "samples": [
+                  97.27932247137204,
+                  97.42243828860813
+                ]
+              },
+              "optimized": {
+                "mean": 69.33066505110304,
+                "minimum": 69.32988163927554,
+                "maximum": 69.33144846293054,
+                "samples": [
+                  69.33144846293054,
+                  69.32988163927554
+                ]
+              },
+              "ratio": 0.7121729642349856,
+              "change_pct": -28.782703576501444
+            },
+            "median_ttft_s": {
+              "layer": {
+                "mean": 1.1123882494866848,
+                "minimum": 1.1052148649469018,
+                "maximum": 1.1195616340264678,
+                "samples": [
+                  1.1052148649469018,
+                  1.1195616340264678
+                ]
+              },
+              "optimized": {
+                "mean": 0.36427965527400374,
+                "minimum": 0.36115350760519505,
+                "maximum": 0.36740580294281244,
+                "samples": [
+                  0.36115350760519505,
+                  0.36740580294281244
+                ]
+              },
+              "ratio": 0.3274752816223129,
+              "change_pct": -67.25247183776871
+            }
+          },
+          "exact_input_token_arrays_matched": true
+        },
+        {
+          "kind": "cohort",
+          "concurrency": 16,
+          "repeats": 2,
+          "measurements": {
+            "aggregate_common_decode_tps": {
+              "layer": {
+                "mean": 261.9228721291157,
+                "minimum": 261.63359282542035,
+                "maximum": 262.2121514328111,
+                "samples": [
+                  262.2121514328111,
+                  261.63359282542035
+                ]
+              },
+              "optimized": {
+                "mean": 675.6199702622935,
+                "minimum": 671.1059503898354,
+                "maximum": 680.1339901347517,
+                "samples": [
+                  671.1059503898354,
+                  680.1339901347517
+                ]
+              },
+              "ratio": 2.579461521517084,
+              "change_pct": 157.9461521517084
+            },
+            "average_common_decode_request_tps": {
+              "layer": {
+                "mean": 16.370179508069732,
+                "minimum": 16.352099551588772,
+                "maximum": 16.388259464550693,
+                "samples": [
+                  16.388259464550693,
+                  16.352099551588772
+                ]
+              },
+              "optimized": {
+                "mean": 42.22624814139334,
+                "minimum": 41.94412189936471,
+                "maximum": 42.50837438342198,
+                "samples": [
+                  41.94412189936471,
+                  42.50837438342198
+                ]
+              },
+              "ratio": 2.579461521517084,
+              "change_pct": 157.9461521517084
+            },
+            "aggregate_e2e_output_tps": {
+              "layer": {
+                "mean": 203.0212313555058,
+                "minimum": 202.7001958866597,
+                "maximum": 203.34226682435184,
+                "samples": [
+                  203.34226682435184,
+                  202.7001958866597
+                ]
+              },
+              "optimized": {
+                "mean": 608.2176469485901,
+                "minimum": 580.2939210148957,
+                "maximum": 636.1413728822846,
+                "samples": [
+                  580.2939210148957,
+                  636.1413728822846
+                ]
+              },
+              "ratio": 2.9958327160549736,
+              "change_pct": 199.58327160549737
+            },
+            "average_e2e_request_tps": {
+              "layer": {
+                "mean": 12.688826959719112,
+                "minimum": 12.668762242916232,
+                "maximum": 12.70889167652199,
+                "samples": [
+                  12.70889167652199,
+                  12.668762242916232
+                ]
+              },
+              "optimized": {
+                "mean": 38.01360293428688,
+                "minimum": 36.26837006343098,
+                "maximum": 39.75883580514279,
+                "samples": [
+                  36.26837006343098,
+                  39.75883580514279
+                ]
+              },
+              "ratio": 2.9958327160549736,
+              "change_pct": 199.58327160549737
+            },
+            "median_request_decode_tps": {
+              "layer": {
+                "mean": 14.977733721784976,
+                "minimum": 14.958018131146494,
+                "maximum": 14.997449312423456,
+                "samples": [
+                  14.997449312423456,
+                  14.958018131146494
+                ]
+              },
+              "optimized": {
+                "mean": 40.90194215452847,
+                "minimum": 39.98557771521102,
+                "maximum": 41.81830659384592,
+                "samples": [
+                  39.98557771521102,
+                  41.81830659384592
+                ]
+              },
+              "ratio": 2.7308498678299356,
+              "change_pct": 173.08498678299355
+            },
+            "median_ttft_s": {
+              "layer": {
+                "mean": 12.210306154447608,
+                "minimum": 12.173250337364152,
+                "maximum": 12.247361971531063,
+                "samples": [
+                  12.173250337364152,
+                  12.247361971531063
+                ]
+              },
+              "optimized": {
+                "mean": 1.715987226809375,
+                "minimum": 1.255383352516219,
+                "maximum": 2.176591101102531,
+                "samples": [
+                  2.176591101102531,
+                  1.255383352516219
+                ]
+              },
+              "ratio": 0.14053597060580877,
+              "change_pct": -85.94640293941912
+            }
+          },
+          "exact_input_token_arrays_matched": true
+        },
+        {
+          "kind": "independent_resident_cohort",
+          "concurrency": 1,
+          "repeats": 2,
+          "measurements": {
+            "aggregate_common_decode_tps": {
+              "layer": {
+                "mean": 26.97757502405996,
+                "minimum": 26.976452449216495,
+                "maximum": 26.978697598903423,
+                "samples": [
+                  26.976452449216495,
+                  26.978697598903423
+                ]
+              },
+              "optimized": {
+                "mean": 59.56897561022861,
+                "minimum": 59.53917443738634,
+                "maximum": 59.59877678307088,
+                "samples": [
+                  59.53917443738634,
+                  59.59877678307088
+                ]
+              },
+              "ratio": 2.2080922972914356,
+              "change_pct": 120.80922972914357
+            },
+            "average_common_decode_request_tps": {
+              "layer": {
+                "mean": 26.97757502405996,
+                "minimum": 26.976452449216495,
+                "maximum": 26.978697598903423,
+                "samples": [
+                  26.976452449216495,
+                  26.978697598903423
+                ]
+              },
+              "optimized": {
+                "mean": 59.56897561022861,
+                "minimum": 59.53917443738634,
+                "maximum": 59.59877678307088,
+                "samples": [
+                  59.53917443738634,
+                  59.59877678307088
+                ]
+              },
+              "ratio": 2.2080922972914356,
+              "change_pct": 120.80922972914357
+            },
+            "aggregate_e2e_output_tps": {
+              "layer": {
+                "mean": 21.443484688371164,
+                "minimum": 21.439301698983996,
+                "maximum": 21.447667677758332,
+                "samples": [
+                  21.439301698983996,
+                  21.447667677758332
+                ]
+              },
+              "optimized": {
+                "mean": 53.48734246265369,
+                "minimum": 53.41690400682755,
+                "maximum": 53.557780918479835,
+                "samples": [
+                  53.41690400682755,
+                  53.557780918479835
+                ]
+              },
+              "ratio": 2.4943400403414824,
+              "change_pct": 149.43400403414824
+            },
+            "average_e2e_request_tps": {
+              "layer": {
+                "mean": 21.443484688371164,
+                "minimum": 21.439301698983996,
+                "maximum": 21.447667677758332,
+                "samples": [
+                  21.439301698983996,
+                  21.447667677758332
+                ]
+              },
+              "optimized": {
+                "mean": 53.48734246265369,
+                "minimum": 53.41690400682755,
+                "maximum": 53.557780918479835,
+                "samples": [
+                  53.41690400682755,
+                  53.557780918479835
+                ]
+              },
+              "ratio": 2.4943400403414824,
+              "change_pct": 149.43400403414824
+            },
+            "median_request_decode_tps": {
+              "layer": {
+                "mean": 26.97757502405996,
+                "minimum": 26.976452449216495,
+                "maximum": 26.978697598903423,
+                "samples": [
+                  26.976452449216495,
+                  26.978697598903423
+                ]
+              },
+              "optimized": {
+                "mean": 59.56897561022861,
+                "minimum": 59.53917443738634,
+                "maximum": 59.59877678307088,
+                "samples": [
+                  59.53917443738634,
+                  59.59877678307088
+                ]
+              },
+              "ratio": 2.2080922972914356,
+              "change_pct": 120.80922972914357
+            },
+            "median_ttft_s": {
+              "layer": {
+                "mean": 9.793644614284858,
+                "minimum": 9.785609894432127,
+                "maximum": 9.801679334137589,
+                "samples": [
+                  9.801679334137589,
+                  9.785609894432127
+                ]
+              },
+              "optimized": {
+                "mean": 1.9682030291296542,
+                "minimum": 1.9516871580854058,
+                "maximum": 1.9847189001739025,
+                "samples": [
+                  1.9847189001739025,
+                  1.9516871580854058
+                ]
+              },
+              "ratio": 0.20096737288780764,
+              "change_pct": -79.90326271121924
+            }
+          },
+          "exact_input_token_arrays_matched": true
+        },
+        {
+          "kind": "independent_resident_cohort",
+          "concurrency": 16,
+          "repeats": 2,
+          "measurements": {
+            "aggregate_common_decode_tps": {
+              "layer": {
+                "mean": 40.4551401878867,
+                "minimum": 40.45183245892051,
+                "maximum": 40.45844791685288,
+                "samples": [
+                  40.45183245892051,
+                  40.45844791685288
+                ]
+              },
+              "optimized": {
+                "mean": 247.51495108734306,
+                "minimum": 242.5170636504235,
+                "maximum": 252.51283852426263,
+                "samples": [
+                  252.51283852426263,
+                  242.5170636504235
+                ]
+              },
+              "ratio": 6.11825715935735,
+              "change_pct": 511.82571593573505
+            },
+            "average_common_decode_request_tps": {
+              "layer": {
+                "mean": 2.5284462617429186,
+                "minimum": 2.5282395286825317,
+                "maximum": 2.528652994803305,
+                "samples": [
+                  2.5282395286825317,
+                  2.528652994803305
+                ]
+              },
+              "optimized": {
+                "mean": 15.469684442958942,
+                "minimum": 15.157316478151468,
+                "maximum": 15.782052407766415,
+                "samples": [
+                  15.782052407766415,
+                  15.157316478151468
+                ]
+              },
+              "ratio": 6.11825715935735,
+              "change_pct": 511.82571593573505
+            },
+            "aggregate_e2e_output_tps": {
+              "layer": {
+                "mean": 28.967919066703608,
+                "minimum": 28.954588509035958,
+                "maximum": 28.981249624371262,
+                "samples": [
+                  28.981249624371262,
+                  28.954588509035958
+                ]
+              },
+              "optimized": {
+                "mean": 176.4801720286104,
+                "minimum": 173.61150456499615,
+                "maximum": 179.34883949222464,
+                "samples": [
+                  179.34883949222464,
+                  173.61150456499615
+                ]
+              },
+              "ratio": 6.092262672449288,
+              "change_pct": 509.2262672449288
+            },
+            "average_e2e_request_tps": {
+              "layer": {
+                "mean": 1.8104949416689755,
+                "minimum": 1.8096617818147473,
+                "maximum": 1.811328101523204,
+                "samples": [
+                  1.811328101523204,
+                  1.8096617818147473
+                ]
+              },
+              "optimized": {
+                "mean": 11.03001075178815,
+                "minimum": 10.85071903531226,
+                "maximum": 11.20930246826404,
+                "samples": [
+                  11.20930246826404,
+                  10.85071903531226
+                ]
+              },
+              "ratio": 6.092262672449288,
+              "change_pct": 509.2262672449288
+            },
+            "median_request_decode_tps": {
+              "layer": {
+                "mean": 2.186917953593856,
+                "minimum": 2.1830129874845943,
+                "maximum": 2.190822919703118,
+                "samples": [
+                  2.190822919703118,
+                  2.1830129874845943
+                ]
+              },
+              "optimized": {
+                "mean": 13.274603784450367,
+                "minimum": 13.023374982429715,
+                "maximum": 13.525832586471019,
+                "samples": [
+                  13.525832586471019,
+                  13.023374982429715
+                ]
+              },
+              "ratio": 6.070005398527019,
+              "change_pct": 507.0005398527019
+            },
+            "median_ttft_s": {
+              "layer": {
+                "mean": 93.33722902846057,
+                "minimum": 92.82068057637662,
+                "maximum": 93.85377748054452,
+                "samples": [
+                  93.85377748054452,
+                  92.82068057637662
+                ]
+              },
+              "optimized": {
+                "mean": 15.510780360433273,
+                "minimum": 15.457846828037873,
+                "maximum": 15.563713892828673,
+                "samples": [
+                  15.457846828037873,
+                  15.563713892828673
+                ]
+              },
+              "ratio": 0.16617999614820037,
+              "change_pct": -83.38200038517996
+            }
+          },
+          "exact_input_token_arrays_matched": true
+        }
+      ]
+    },
+    {
+      "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c26_kv18522046464_b2048_full26_full_guard210_adaptive393",
+      "profile": {
+        "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-adaptive416-1-final.json",
+        "sha256": "9a628ef4496bf6ede3a9f5ae759b9fd802b07ff419aaaf824f2e796ff4e9b0f1"
+      },
+      "validation": {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c26_kv18522046464_b2048_full26_full_guard210_adaptive393",
+        "minimum_full_contexts": 26,
+        "max_context_per_request": 240128,
+        "verified_files": 136,
+        "source_coverage": {
+          "changed_files": 49,
+          "unbound_source": [],
+          "mismatched_source": [],
+          "source_matches": true
+        },
+        "verified_mixed_active_sequences": 26,
+        "verified_full_contexts": 26,
+        "uncached_full_context_concurrency": 16
+      },
+      "locality": {
+        "enabled": false,
+        "scope": "Measured command has noNUMA binding; no workerlocality claim."
+      },
+      "groups": [
+        {
+          "kind": "cohort",
+          "concurrency": 1,
+          "repeats": 2,
+          "measurements": {
+            "aggregate_common_decode_tps": {
+              "layer": {
+                "mean": 97.35088037999009,
+                "minimum": 97.27932247137204,
+                "maximum": 97.42243828860813,
+                "samples": [
+                  97.27932247137204,
+                  97.42243828860813
+                ]
+              },
+              "optimized": {
+                "mean": 69.11690600504149,
+                "minimum": 69.10516148609332,
+                "maximum": 69.12865052398965,
+                "samples": [
+                  69.10516148609332,
+                  69.12865052398965
+                ]
+              },
+              "ratio": 0.7099772054988839,
+              "change_pct": -29.00227945011161
+            },
+            "average_common_decode_request_tps": {
+              "layer": {
+                "mean": 97.35088037999009,
+                "minimum": 97.27932247137204,
+                "maximum": 97.42243828860813,
+                "samples": [
+                  97.27932247137204,
+                  97.42243828860813
+                ]
+              },
+              "optimized": {
+                "mean": 69.11690600504149,
+                "minimum": 69.10516148609332,
+                "maximum": 69.12865052398965,
+                "samples": [
+                  69.10516148609332,
+                  69.12865052398965
+                ]
+              },
+              "ratio": 0.7099772054988839,
+              "change_pct": -29.00227945011161
+            },
+            "aggregate_e2e_output_tps": {
+              "layer": {
+                "mean": 88.11009843546779,
+                "minimum": 88.10556639917225,
+                "maximum": 88.11463047176333,
+                "samples": [
+                  88.10556639917225,
+                  88.11463047176333
+                ]
+              },
+              "optimized": {
+                "mean": 67.47997031501944,
+                "minimum": 67.47255053364466,
+                "maximum": 67.48739009639422,
+                "samples": [
+                  67.47255053364466,
+                  67.48739009639422
+                ]
+              },
+              "ratio": 0.7658596632307937,
+              "change_pct": -23.41403367692063
+            },
+            "average_e2e_request_tps": {
+              "layer": {
+                "mean": 88.11009843546779,
+                "minimum": 88.10556639917225,
+                "maximum": 88.11463047176333,
+                "samples": [
+                  88.10556639917225,
+                  88.11463047176333
+                ]
+              },
+              "optimized": {
+                "mean": 67.47997031501944,
+                "minimum": 67.47255053364466,
+                "maximum": 67.48739009639422,
+                "samples": [
+                  67.47255053364466,
+                  67.48739009639422
+                ]
+              },
+              "ratio": 0.7658596632307937,
+              "change_pct": -23.41403367692063
+            },
+            "median_request_decode_tps": {
+              "layer": {
+                "mean": 97.35088037999009,
+                "minimum": 97.27932247137204,
+                "maximum": 97.42243828860813,
+                "samples": [
+                  97.27932247137204,
+                  97.42243828860813
+                ]
+              },
+              "optimized": {
+                "mean": 69.11690600504149,
+                "minimum": 69.10516148609332,
+                "maximum": 69.12865052398965,
+                "samples": [
+                  69.10516148609332,
+                  69.12865052398965
+                ]
+              },
+              "ratio": 0.7099772054988839,
+              "change_pct": -29.00227945011161
+            },
+            "median_ttft_s": {
+              "layer": {
+                "mean": 1.1123882494866848,
+                "minimum": 1.1052148649469018,
+                "maximum": 1.1195616340264678,
+                "samples": [
+                  1.1052148649469018,
+                  1.1195616340264678
+                ]
+              },
+              "optimized": {
+                "mean": 0.3731154464185238,
+                "minimum": 0.3722815071232617,
+                "maximum": 0.3739493857137859,
+                "samples": [
+                  0.3722815071232617,
+                  0.3739493857137859
+                ]
+              },
+              "ratio": 0.33541836367895755,
+              "change_pct": -66.45816363210425
+            }
+          },
+          "exact_input_token_arrays_matched": true
+        },
+        {
+          "kind": "cohort",
+          "concurrency": 16,
+          "repeats": 2,
+          "measurements": {
+            "aggregate_common_decode_tps": {
+              "layer": {
+                "mean": 261.9228721291157,
+                "minimum": 261.63359282542035,
+                "maximum": 262.2121514328111,
+                "samples": [
+                  262.2121514328111,
+                  261.63359282542035
+                ]
+              },
+              "optimized": {
+                "mean": 683.605025838962,
+                "minimum": 683.5059421942192,
+                "maximum": 683.7041094837048,
+                "samples": [
+                  683.7041094837048,
+                  683.5059421942192
+                ]
+              },
+              "ratio": 2.6099478074674467,
+              "change_pct": 160.99478074674468
+            },
+            "average_common_decode_request_tps": {
+              "layer": {
+                "mean": 16.370179508069732,
+                "minimum": 16.352099551588772,
+                "maximum": 16.388259464550693,
+                "samples": [
+                  16.388259464550693,
+                  16.352099551588772
+                ]
+              },
+              "optimized": {
+                "mean": 42.725314114935124,
+                "minimum": 42.7191213871387,
+                "maximum": 42.73150684273155,
+                "samples": [
+                  42.73150684273155,
+                  42.7191213871387
+                ]
+              },
+              "ratio": 2.6099478074674467,
+              "change_pct": 160.99478074674468
+            },
+            "aggregate_e2e_output_tps": {
+              "layer": {
+                "mean": 203.0212313555058,
+                "minimum": 202.7001958866597,
+                "maximum": 203.34226682435184,
+                "samples": [
+                  203.34226682435184,
+                  202.7001958866597
+                ]
+              },
+              "optimized": {
+                "mean": 587.6061769887555,
+                "minimum": 586.8136864007449,
+                "maximum": 588.398667576766,
+                "samples": [
+                  586.8136864007449,
+                  588.398667576766
+                ]
+              },
+              "ratio": 2.894308999435689,
+              "change_pct": 189.4308999435689
+            },
+            "average_e2e_request_tps": {
+              "layer": {
+                "mean": 12.688826959719112,
+                "minimum": 12.668762242916232,
+                "maximum": 12.70889167652199,
+                "samples": [
+                  12.70889167652199,
+                  12.668762242916232
+                ]
+              },
+              "optimized": {
+                "mean": 36.72538606179722,
+                "minimum": 36.67585540004656,
+                "maximum": 36.774916723547875,
+                "samples": [
+                  36.67585540004656,
+                  36.774916723547875
+                ]
+              },
+              "ratio": 2.894308999435689,
+              "change_pct": 189.4308999435689
+            },
+            "median_request_decode_tps": {
+              "layer": {
+                "mean": 14.977733721784976,
+                "minimum": 14.958018131146494,
+                "maximum": 14.997449312423456,
+                "samples": [
+                  14.997449312423456,
+                  14.958018131146494
+                ]
+              },
+              "optimized": {
+                "mean": 40.44933107618981,
+                "minimum": 40.05415328124755,
+                "maximum": 40.844508871132064,
+                "samples": [
+                  40.05415328124755,
+                  40.844508871132064
+                ]
+              },
+              "ratio": 2.700630938401357,
+              "change_pct": 170.0630938401357
+            },
+            "median_ttft_s": {
+              "layer": {
+                "mean": 12.210306154447608,
+                "minimum": 12.173250337364152,
+                "maximum": 12.247361971531063,
+                "samples": [
+                  12.173250337364152,
+                  12.247361971531063
+                ]
+              },
+              "optimized": {
+                "mean": 2.1712716636247933,
+                "minimum": 2.158150055911392,
+                "maximum": 2.1843932713381946,
+                "samples": [
+                  2.1843932713381946,
+                  2.158150055911392
+                ]
+              },
+              "ratio": 0.1778228683343789,
+              "change_pct": -82.2177131665621
+            }
+          },
+          "exact_input_token_arrays_matched": true
+        },
+        {
+          "kind": "independent_resident_cohort",
+          "concurrency": 1,
+          "repeats": 2,
+          "measurements": {
+            "aggregate_common_decode_tps": {
+              "layer": {
+                "mean": 26.97757502405996,
+                "minimum": 26.976452449216495,
+                "maximum": 26.978697598903423,
+                "samples": [
+                  26.976452449216495,
+                  26.978697598903423
+                ]
+              },
+              "optimized": {
+                "mean": 59.47544560145633,
+                "minimum": 59.45312371585146,
+                "maximum": 59.49776748706119,
+                "samples": [
+                  59.45312371585146,
+                  59.49776748706119
+                ]
+              },
+              "ratio": 2.2046253433977343,
+              "change_pct": 120.46253433977343
+            },
+            "average_common_decode_request_tps": {
+              "layer": {
+                "mean": 26.97757502405996,
+                "minimum": 26.976452449216495,
+                "maximum": 26.978697598903423,
+                "samples": [
+                  26.976452449216495,
+                  26.978697598903423
+                ]
+              },
+              "optimized": {
+                "mean": 59.47544560145633,
+                "minimum": 59.45312371585146,
+                "maximum": 59.49776748706119,
+                "samples": [
+                  59.45312371585146,
+                  59.49776748706119
+                ]
+              },
+              "ratio": 2.2046253433977343,
+              "change_pct": 120.46253433977343
+            },
+            "aggregate_e2e_output_tps": {
+              "layer": {
+                "mean": 21.443484688371164,
+                "minimum": 21.439301698983996,
+                "maximum": 21.447667677758332,
+                "samples": [
+                  21.439301698983996,
+                  21.447667677758332
+                ]
+              },
+              "optimized": {
+                "mean": 53.471937659413484,
+                "minimum": 53.46434499673617,
+                "maximum": 53.4795303220908,
+                "samples": [
+                  53.46434499673617,
+                  53.4795303220908
+                ]
+              },
+              "ratio": 2.4936216494892456,
+              "change_pct": 149.36216494892454
+            },
+            "average_e2e_request_tps": {
+              "layer": {
+                "mean": 21.443484688371164,
+                "minimum": 21.439301698983996,
+                "maximum": 21.447667677758332,
+                "samples": [
+                  21.439301698983996,
+                  21.447667677758332
+                ]
+              },
+              "optimized": {
+                "mean": 53.471937659413484,
+                "minimum": 53.46434499673617,
+                "maximum": 53.4795303220908,
+                "samples": [
+                  53.46434499673617,
+                  53.4795303220908
+                ]
+              },
+              "ratio": 2.4936216494892456,
+              "change_pct": 149.36216494892454
+            },
+            "median_request_decode_tps": {
+              "layer": {
+                "mean": 26.97757502405996,
+                "minimum": 26.976452449216495,
+                "maximum": 26.978697598903423,
+                "samples": [
+                  26.976452449216495,
+                  26.978697598903423
+                ]
+              },
+              "optimized": {
+                "mean": 59.47544560145633,
+                "minimum": 59.45312371585146,
+                "maximum": 59.49776748706119,
+                "samples": [
+                  59.45312371585146,
+                  59.49776748706119
+                ]
+              },
+              "ratio": 2.2046253433977343,
+              "change_pct": 120.46253433977343
+            },
+            "median_ttft_s": {
+              "layer": {
+                "mean": 9.793644614284858,
+                "minimum": 9.785609894432127,
+                "maximum": 9.801679334137589,
+                "samples": [
+                  9.801679334137589,
+                  9.785609894432127
+                ]
+              },
+              "optimized": {
+                "mean": 1.9467035920824856,
+                "minimum": 1.9429326029494405,
+                "maximum": 1.9504745812155306,
+                "samples": [
+                  1.9429326029494405,
+                  1.9504745812155306
+                ]
+              },
+              "ratio": 0.1987721291461867,
+              "change_pct": -80.12278708538133
+            }
+          },
+          "exact_input_token_arrays_matched": true
+        },
+        {
+          "kind": "independent_resident_cohort",
+          "concurrency": 16,
+          "repeats": 2,
+          "measurements": {
+            "aggregate_common_decode_tps": {
+              "layer": {
+                "mean": 40.4551401878867,
+                "minimum": 40.45183245892051,
+                "maximum": 40.45844791685288,
+                "samples": [
+                  40.45183245892051,
+                  40.45844791685288
+                ]
+              },
+              "optimized": {
+                "mean": 248.91720137791208,
+                "minimum": 246.3327698516502,
+                "maximum": 251.50163290417393,
+                "samples": [
+                  251.50163290417393,
+                  246.3327698516502
+                ]
+              },
+              "ratio": 6.152919016517071,
+              "change_pct": 515.2919016517071
+            },
+            "average_common_decode_request_tps": {
+              "layer": {
+                "mean": 2.5284462617429186,
+                "minimum": 2.5282395286825317,
+                "maximum": 2.528652994803305,
+                "samples": [
+                  2.5282395286825317,
+                  2.528652994803305
+                ]
+              },
+              "optimized": {
+                "mean": 15.557325086119505,
+                "minimum": 15.395798115728137,
+                "maximum": 15.71885205651087,
+                "samples": [
+                  15.71885205651087,
+                  15.395798115728137
+                ]
+              },
+              "ratio": 6.152919016517071,
+              "change_pct": 515.2919016517071
+            },
+            "aggregate_e2e_output_tps": {
+              "layer": {
+                "mean": 28.967919066703608,
+                "minimum": 28.954588509035958,
+                "maximum": 28.981249624371262,
+                "samples": [
+                  28.981249624371262,
+                  28.954588509035958
+                ]
+              },
+              "optimized": {
+                "mean": 180.10427798755254,
+                "minimum": 175.16902885658402,
+                "maximum": 185.03952711852105,
+                "samples": [
+                  185.03952711852105,
+                  175.16902885658402
+                ]
+              },
+              "ratio": 6.217370242330197,
+              "change_pct": 521.7370242330196
+            },
+            "average_e2e_request_tps": {
+              "layer": {
+                "mean": 1.8104949416689755,
+                "minimum": 1.8096617818147473,
+                "maximum": 1.811328101523204,
+                "samples": [
+                  1.811328101523204,
+                  1.8096617818147473
+                ]
+              },
+              "optimized": {
+                "mean": 11.256517374222033,
+                "minimum": 10.948064303536501,
+                "maximum": 11.564970444907566,
+                "samples": [
+                  11.564970444907566,
+                  10.948064303536501
+                ]
+              },
+              "ratio": 6.217370242330197,
+              "change_pct": 521.7370242330196
+            },
+            "median_request_decode_tps": {
+              "layer": {
+                "mean": 2.186917953593856,
+                "minimum": 2.1830129874845943,
+                "maximum": 2.190822919703118,
+                "samples": [
+                  2.190822919703118,
+                  2.1830129874845943
+                ]
+              },
+              "optimized": {
+                "mean": 13.491448870767963,
+                "minimum": 13.22728560392753,
+                "maximum": 13.755612137608395,
+                "samples": [
+                  13.755612137608395,
+                  13.22728560392753
+                ]
+              },
+              "ratio": 6.1691609639935905,
+              "change_pct": 516.916096399359
+            },
+            "median_ttft_s": {
+              "layer": {
+                "mean": 93.33722902846057,
+                "minimum": 92.82068057637662,
+                "maximum": 93.85377748054452,
+                "samples": [
+                  93.85377748054452,
+                  92.82068057637662
+                ]
+              },
+              "optimized": {
+                "mean": 14.926975266891532,
+                "minimum": 13.91995345032774,
+                "maximum": 15.933997083455324,
+                "samples": [
+                  13.91995345032774,
+                  15.933997083455324
+                ]
+              },
+              "ratio": 0.15992520264705917,
+              "change_pct": -84.00747973529408
+            }
+          },
+          "exact_input_token_arrays_matched": true
+        }
+      ]
+    }
+  ],
+  "script_sha256": "64537b36532e9cf89a8da43b3be1d18003e8ab62d190850f4457d49c8b2ac7b6",
+  "model_requests_sent": 0,
+  "source_mutation": false,
+  "scope": "Same input token arrays, concurrency, greedy 1024-output policy and cached236944 long context. Warm long excludes initial prefill. Common-window decode and complete-wall output TPS differ. Different backend quantization is permitted and documented by source profiles; this is not a bit-identical weight/output comparison. Two repeats do not establish statistical significance. Selected candidate source must match current audited source."
+}

@@ -20,6 +20,7 @@ import functools
 import json
 import math
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, ClassVar
 
@@ -50,12 +51,16 @@ from vllm.v1.attention.backends.fa_utils import (
     is_flash_attn_varlen_func_available,
 )
 from vllm.v1.attention.backends.flash_attn_v100 import (
+    flash_v100_dense_continuation_prefill,
     flash_v100_dense_prefill,
     flash_v100_dense_prefill_available,
     flash_v100_turboquant_decode,
     flash_v100_turboquant_decode_available,
 )
 from vllm.v1.attention.backends.utils import split_decodes_and_prefills
+from vllm.v1.attention.ops.sm70_ornith_h8_prefill import (
+    reserve_h8_prefill_workspace,
+)
 from vllm.v1.attention.ops.triton_prefill_attention import context_attention_fwd
 from vllm.v1.attention.ops.triton_turboquant_decode import (
     _tq_full_dequant_kv,
@@ -88,6 +93,21 @@ _tq_continuation_workspace_reserved_bytes = 0
 # kernel can read them efficiently. This avoids O(cached_len) dequant work
 # per continuation, eliminating the O(N²/chunk_size) collapse at long context.
 _CONTINUATION_DECODE_THRESHOLD = 128
+
+
+def _flash_v100_decode_split_count(
+    max_seq_capacity: int, configured_splits: int
+) -> int:
+    """Cover the static block table with native tiles of at most 1024 tokens.
+
+    Use shapes rather than sequence-length tensor reads so capture/replay
+    share the same launch grid without introducing a device synchronization.
+    Preserve larger user budgets; round automatic growth to a power of two.
+    """
+    if max_seq_capacity <= 0 or configured_splits <= 0:
+        raise ValueError("Sequence capacity and split count must be positive")
+    required = (max_seq_capacity + 1023) // 1024
+    return max(configured_splits, 1 << (required - 1).bit_length())
 
 
 def _flash_attn_varlen_supported_on_device() -> bool:
@@ -406,6 +426,64 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
             and os.getenv("VLLM_SM70_TURBOQUANT_FLASH_V100_DECODE", "1") != "0"
             and flash_v100_turboquant_decode_available()
         )
+        capability = current_platform.get_device_capability()
+        self.use_adaptive_sm70_tq_decode = (
+            self.use_flash_v100_tq_decode
+            and head_size == 256
+            and cfg.key_mse_bits == 4
+            and cfg.effective_value_quant_bits == 4
+            and cfg.norm_correction
+            and capability is not None
+            and (capability.major, capability.minor) == (7, 0)
+            and os.getenv("VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS", "0") == "1"
+        )
+        if self.use_adaptive_sm70_tq_decode:
+            from vllm.v1.attention.ops.turboquant_sm70 import load_adaptive_turboquant
+
+            load_adaptive_turboquant()
+            logger.info("TURBOQUANT SM70 adaptive packed-cache partitions enabled.")
+        self.use_sm70_gqa_tq_decode = (
+            self.use_flash_v100_tq_decode
+            and head_size == 256
+            and cfg.key_mse_bits == 4
+            and cfg.effective_value_quant_bits == 4
+            and cfg.norm_correction
+            and self.num_heads == 8 * self.num_kv_heads
+            and capability is not None
+            and (capability.major, capability.minor) == (7, 0)
+            and os.getenv("VLLM_SM70_TURBOQUANT_GQA_TC", "0") == "1"
+        )
+        if self.use_sm70_gqa_tq_decode:
+            logger.info("TURBOQUANT SM70 grouped-query decode enabled.")
+            self._sm70_gqa_tile = int(os.getenv("VLLM_SM70_TURBOQUANT_GQA_TILE", "16"))
+            self._sm70_gqa_warps = int(os.getenv("VLLM_SM70_TURBOQUANT_GQA_WARPS", "8"))
+            if self._sm70_gqa_tile not in (16, 32, 64) or self._sm70_gqa_warps not in (
+                4,
+                8,
+            ):
+                raise ValueError(
+                    "Unsupported SM70 TurboQuant GQA tile/warp configuration"
+                )
+
+        self.use_cached_sm70_keyscale = (
+            os.getenv("VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE", "0") == "1"
+        )
+        if self.use_cached_sm70_keyscale:
+            if not self.use_sm70_gqa_tq_decode or self.num_kv_heads not in (1, 2):
+                raise ValueError(
+                    "Cached key scale requires SM70 H8 GQA with one or two KV heads"
+                )
+            if self.num_kv_heads == 2:
+                from vllm.v1.attention.ops.turboquant_sm70_gqa import _load_gqa_native
+
+                library = os.getenv("VLLM_SM70_TURBOQUANT_GQA_LIBRARY", "")
+                if (
+                    not library
+                    or getattr(_load_gqa_native(library), "max_cache_heads", 1) < 2
+                ):
+                    raise ValueError(
+                        "Two KV heads require a qualified multi-KV native library"
+                    )
 
         # Fixed NUM_KV_SPLITS (grid dims must be constant for cudagraph,
         # and benchmarks show no regression vs dynamic in eager mode).
@@ -422,6 +500,21 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
             )
 
     def _reserve_continuation_prefill_workspace(self) -> None:
+        # Account for persistent H8 scratch before profiling the available KV budget.
+        if (
+            self.use_flash_v100_dense_prefill
+            and self.head_size == 256
+            and self.num_heads == 8
+            and self.num_kv_heads == 1
+            and os.getenv("VLLM_SM70_ORNITH_H8_PREFILL", "0") == "1"
+        ):
+            reserve_h8_prefill_workspace(
+                torch.empty(
+                    0,
+                    device=torch.accelerator.current_device_index(),
+                    dtype=torch.float16,
+                )
+            )
         if not is_workspace_manager_initialized():
             return
         if os.getenv("VLLM_SM70_TURBOQUANT_RESERVE_WORKSPACE", "1") == "0":
@@ -1005,6 +1098,12 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
             value_quant_bits=self.tq_config.effective_value_quant_bits,
             key_fp8=self.tq_config.key_fp8,
         )
+        if self.use_cached_sm70_keyscale:
+            from vllm.v1.attention.ops.turboquant_sm70_gqa import (
+                populate_cached_keyscale,
+            )
+
+            populate_cached_keyscale(kv_cache, slot_mapping, layer._tq_centroids)
 
     # ------------------------------------------------------------------ #
     #  Prefill: SDPA on raw Q/K/V with causal mask                        #
@@ -1180,7 +1279,12 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
                 # avoid O(cached_len) full-dequant per continuation.
                 # For large continuations, fall back to _continuation_prefill.
                 cached_len = seq_len - q_len
-                if q_len <= _CONTINUATION_DECODE_THRESHOLD:
+                padded_continuation = (
+                    self.use_flash_v100_dense_prefill
+                    and q_len > 1
+                    and os.getenv("VLLM_SM70_ORNITH_PADDED_PREFILL", "0") == "1"
+                )
+                if q_len <= _CONTINUATION_DECODE_THRESHOLD and not padded_continuation:
                     # Fast path: treat each query as a decode request
                     # with incremental seq_lens for causal masking.
                     # Graph-safe: derive per-row seq_lens from the GPU-resident
@@ -1328,15 +1432,24 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
         # Concatenate cached + current chunk K/V (match query dtype)
         # Pre-allocate full K/V buffer, copy into slices (no cat alloc)
         qdtype = query.dtype
-        k_full = torch.empty(seq_len, Hk, D, dtype=qdtype, device=device)
-        v_full = torch.empty(seq_len, Hk, D, dtype=qdtype, device=device)
+        reuse_padding = (
+            self.use_flash_v100_dense_prefill
+            and not self.use_flash_attn_prefill
+            and (Hq, Hk, D) == (8, 1, 256)
+            and qdtype == torch.float16
+            and os.getenv("VLLM_SM70_ORNITH_REUSE_PADDED_KV", "0") == "1"
+        )
+        storage_len = seq_len + (-seq_len) % 32 if reuse_padding else seq_len
+        k_storage = torch.empty(storage_len, Hk, D, dtype=qdtype, device=device)
+        v_storage = torch.empty(storage_len, Hk, D, dtype=qdtype, device=device)
+        k_full, v_full = k_storage[:seq_len], v_storage[:seq_len]
         k_full[:cached_len] = k_cached_trim.to(qdtype)
         k_full[cached_len:] = key_chunk
         v_full[:cached_len] = v_cached_trim.to(qdtype)
         v_full[cached_len:] = val_chunk
 
         # Attention: q_len queries attending to seq_len K/V with causal mask
-        if self.use_flash_attn_prefill:
+        if self.use_flash_attn_prefill or self.use_flash_v100_dense_prefill:
             # Reuse pre-allocated cu_seqlens (avoid host→device transfer)
             if not hasattr(self, "_cu_2_q"):
                 self._cu_2_q = torch.zeros(2, device=device, dtype=torch.int32)
@@ -1346,6 +1459,16 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
             self._cu_2_k[1:2] = seq_len
             cu_seqlens_q = self._cu_2_q
             cu_seqlens_k = self._cu_2_k
+            if not self.use_flash_attn_prefill:
+                return flash_v100_dense_continuation_prefill(
+                    query,
+                    k_full,
+                    v_full,
+                    self.scale,
+                    cu_seqlens_q,
+                    cu_seqlens_k,
+                    padded_kv=(k_storage, v_storage) if reuse_padding else None,
+                )
             return self._flash_attn_varlen(
                 q=query,
                 k=k_full,
@@ -1393,18 +1516,29 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
         # Falls back to kernel-internal allocation if workspace unavailable.
         B = query.shape[0]
         D = self.head_size
+        if self.use_flash_v100_tq_decode:
+            self.max_num_kv_splits = _flash_v100_decode_split_count(
+                attn_metadata.block_table.shape[1] * kv_cache.shape[1],
+                self.max_num_kv_splits,
+            )
         S = self.max_num_kv_splits
         Hq = self.num_heads
         mid_o_buf = output_buf = lse_buf = None
         if is_workspace_manager_initialized():
-            # output_buf in query dtype — matches the in-kernel fp16 cast in stage2.
-            mid_o_buf, output_buf, lse_buf = (
-                current_workspace_manager().get_simultaneous(
-                    ((B, Hq, S, D + 1), torch.float32),
+            if self.use_flash_v100_tq_decode:
+                # Native Flash-V100 owns its partition workspace. Reserving
+                # Triton's mid_o/lse here duplicates unused scratch memory.
+                (output_buf,) = current_workspace_manager().get_simultaneous(
                     ((B, Hq, D), query.dtype),
-                    ((B, Hq), torch.float32),
                 )
-            )
+            else:
+                mid_o_buf, output_buf, lse_buf = (
+                    current_workspace_manager().get_simultaneous(
+                        ((B, Hq, S, D + 1), torch.float32),
+                        ((B, Hq, D), query.dtype),
+                        ((B, Hq), torch.float32),
+                    )
+                )
 
         if self.use_flash_v100_tq_decode:
             global _logged_flash_v100_tq_decode
@@ -1425,7 +1559,29 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
                     self.tq_config.effective_value_quant_bits,
                 )
                 _logged_flash_v100_tq_decode = True
-            result = flash_v100_turboquant_decode(
+            decode_op: Callable[..., torch.Tensor] = flash_v100_turboquant_decode
+            decode_format: dict[str, Any] = dict(
+                mse_bits=self.tq_config.key_mse_bits,
+                value_quant_bits=self.tq_config.effective_value_quant_bits,
+                norm_correction=self.tq_config.norm_correction,
+            )
+            if self.use_sm70_gqa_tq_decode:
+                from vllm.v1.attention.ops.turboquant_sm70_gqa import (
+                    gqa_turboquant_decode,
+                )
+
+                decode_op = gqa_turboquant_decode
+                decode_format = dict(
+                    tile=self._sm70_gqa_tile, warps=self._sm70_gqa_warps
+                )
+            elif self.use_adaptive_sm70_tq_decode:
+                from vllm.v1.attention.ops.turboquant_sm70 import (
+                    adaptive_turboquant_decode,
+                )
+
+                decode_op = adaptive_turboquant_decode
+                decode_format = {}
+            result = decode_op(
                 q_rot=q_rot,
                 kv_cache=kv_cache,
                 output=output_buf,
@@ -1433,10 +1589,8 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
                 seq_lens=attn_metadata.seq_lens,
                 centroids=centroids,
                 softmax_scale=self.scale,
-                mse_bits=self.tq_config.key_mse_bits,
-                value_quant_bits=self.tq_config.effective_value_quant_bits,
-                norm_correction=self.tq_config.norm_correction,
                 num_kv_splits=self.max_num_kv_splits,
+                **decode_format,
             )
             self._maybe_compare_flash_v100_decode(
                 flash_out=result,

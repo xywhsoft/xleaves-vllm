@@ -1,0 +1,1789 @@
+diff --git a/docs/configuration/env_var_reference.md b/docs/configuration/env_var_reference.md
+index df7bd68..a89c5db 100644
+--- a/docs/configuration/env_var_reference.md
++++ b/docs/configuration/env_var_reference.md
+@@ -250,6 +250,8 @@ This is the user reference. Internal tuning, diagnostics and compatibility alias
+ | `VLLM_SM70_FLASH_ATTN_V100` | configuration | Selects Flash-V100 attention automatically on V100. Default on to use the qualified SM70 backend. Set 0 only to diagnose backend selection; prefer the engine attention\_backend option when choosing a backend. | True | True | None | FlashAttentionV100Backend |
+ | `VLLM_SM70_FUSED_SIGMOID_MIXED_QKV` | configuration | Fuses sigmoid and multiply for supported mixed-QKV layouts without changing FP32 recurrent state. Default on after #703 quality qualification. Set 0 to diagnose the separate epilogue. | True | True; operator dtype, geometry, numerical policy and native availability checks still apply. | None | SM70 runtime/kernel policy, Flash-Next qualified batch |
+ | `VLLM_SM70_MOE_ADD_ALLREDUCE` | experimental | Fuses shared and routed MoE outputs with TP all-reduce. Default enabled by the qualified Qwen4Exp policy, otherwise off. Set 0 to compare separate addition and communication when investigating MoE overlap. | False | False; configuration may replace the unset default under the automatic conditions below. | vllm/config/vllm.py:\_apply\_sm70\_qwen38\_decode\_defaults sets '1' when name not in os.environ; automatic defaults apply only when the environment override is absent. | SM70 collectives |
++| `VLLM_SM70_MOE_COMPACT_GROUPS` | experimental | Use only active Ornith experts in small grouped projections. Disabled by default; enable for the qualified H2048/inter256/E256 SM70 workload. | '0' | '0' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_MOE_STREAM_UNROUTE` | experimental | Accumulate weighted expert output in token order without the large FP32 gathered temporary. Disabled by default; enable for qualified FP16 Ornith routing. | '0' | '0' | None | sm70\_ornith\_throughput |
+ | `VLLM_SM70_MTP_HC_BATCH` | configuration | Enables qualified M5/M10 HC projection and gather kernels with the existing FP16 split-K boundaries. Default on after #703 qualification. Set 0 to recover HC packed weights when QWEN38\_BATCH\_FASTPATH is also 0 (330 MiB per Flash-Next TP4 target rank). | True | True; operator dtype, geometry, numerical policy and native availability checks still apply. | None | MTP verifier, Flash-Next qualified batch |
+ | `VLLM_SM70_MTP_HC_COOPERATIVE` | configuration | Combines admitted HC projection and gather phases with cooperative barriers. Default on after #703 quality and complete- round qualification. Set 0 to compare the separate-phase implementation when diagnosing HC performance. | True | True; operator dtype, geometry, numerical policy and native availability checks still apply. | None | MTP verifier, Flash-Next qualified batch |
+ | `VLLM_SM70_MTP_HC_FULL_UNROLL` | configuration | Selects the qualified fully unrolled cooperative HC schedule. Default on after #703 complete-round qualification. Set 0 to compare the partial-unroll schedule when diagnosing performance. | True | True; operator dtype, geometry, numerical policy and native availability checks still apply. | None | MTP verifier, Flash-Next qualified batch |
+@@ -260,6 +262,10 @@ This is the user reference. Internal tuning, diagnostics and compatibility alias
+ | `VLLM_SM70_MTP_SHARED_BATCH` | configuration | Enables exact M5/M10 shared-expert projection and SiLU fusion. Default on after #703 qualification. Set 0 to recover packed shared-expert copies (76.5625 MiB per Flash-Next TP4 target rank). | True | True; operator dtype, geometry, numerical policy and native availability checks still apply. | None | MTP verifier, Flash-Next qualified batch |
+ | `VLLM_SM70_MTP_SPLIT_DRAFT_CUDAGRAPHS` | configuration | Separates MTP draft and verifier graph sizes so single-token draft graphs remain available. Default enabled by the qualified Qwen4Exp MTP engine policy, otherwise off. Set 0 only to diagnose graph capture; speculative width is configured through speculative\_config. | False | False | None | MTP verifier |
+ | `VLLM_SM70_NVFP4_MOE_GROUPED_MTP5` | configuration | Reuses expert grouping for the qualified NVFP4 MTP5 route without changing W13 split order. Default on after #703 quality and complete-round qualification. Set 0 to compare the direct expert dispatch. | True | True; operator dtype, geometry, numerical policy and native availability checks still apply. | None | TurboMind NVFP4, Flash-Next qualified batch |
++| `VLLM_SM70_ORNITH_H8_PREFILL` | experimental | Use the eight-head continuation specialization. Disabled by default; enable with its qualified native library and workspace preallocation. | '0' | '0' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY` | experimental | Path to the qualified H8 or H8k4 native prefill library. Empty by default because the route is opt-in; set after building the matching checked-in source. | '' | '' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_ORNITH_PADDED_PREFILL` | experimental | Pad rectangular cached-prefix attention to native tile boundaries. Disabled by default; enable only for qualified SM70 H8/H1 D256 causal continuation. | '0' | '0' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_ORNITH_PREFILL_PREALLOCATE` | experimental | Count persistent continuation scratch during GPU memory profiling before sizing KV storage. Disabled by default; enable with the Ornith continuation route to preserve the physical context capacity budget. | '0' | '0' | None | sm70\_ornith\_throughput |
+ | `VLLM_SM70_QSA_MTP_TOPK` | configuration | Enables the qualified M5/M10 QSA top-k compaction while retaining the original scorer. Default on after #703 qualification. Set 0 to compare full-row top-k when diagnosing selector output. | True | True; operator dtype, geometry, numerical policy and native availability checks still apply. | None | QSA sparse attention/indexer, Flash-Next qualified batch |
+ | `VLLM_SM70_QWEN38_BATCH_FASTPATH` | configuration | Enables the qualified small-batch dense, GDN and TP4 HC routes. Default on after #704 quality and throughput qualification. Set 0 to trade speed for KV capacity; Flash-Next TP4 packed copies add up to 1055.625 MiB per rank. | True | True; operator dtype, geometry, numerical policy and native availability checks still apply. | None | SM70 runtime/kernel policy, Flash-Next qualified batch |
+ | `VLLM_SM70_QWEN38_FP16_GEMV` | configuration | Selects checkpoint-FP16 SM70 row GEMV for supported Qwen4Exp projections. Default enabled by the engine policy after capability admission; the standalone getter is off. Set 0 to compare the ordinary linear method when investigating a projection regression. | False | False; configuration may replace the unset default under the automatic conditions below. | vllm/config/vllm.py:\_apply\_sm70\_qwen38\_decode\_defaults sets '1' when name not in os.environ; automatic defaults apply only when the environment override is absent. | SM70 FP16 linear |
+@@ -271,6 +277,13 @@ This is the user reference. Internal tuning, diagnostics and compatibility alias
+ | `VLLM_SM70_REQUIRE_PROFILE_ACCELERATION` | debug | Requires the release profile acceleration selfcheck to pass at startup. Default off so other models and diagnostic fallbacks can start. Set 1 when validating the declared release profile; it does not certify that requests hit every kernel. | False | False | None | SM70 runtime/kernel policy |
+ | `VLLM_SM70_RMSNORM_GATED_EXACT` | configuration | Uses native FP32 gated RMSNorm for supported SM70 layouts. Default on after #703/#704 quality qualification to preserve arithmetic across compiled graph contexts. Other models remain off until qualified. Set 0 only to diagnose the original normalization route. | False | False at the compatibility getter; resolved per engine to True for qualified Flash-Next ordinary/MTP configurations. Operator dtype, geometry, numerical policy and native availability checks still apply. | Flash-Next ordinary decode or MTP quality qualification | SM70 runtime/kernel policy, Flash-Next qualified batch |
+ | `VLLM_SM70_TP4_PUSH_ALLREDUCE` | configuration | Controls the qualified SM70 TP4 push all-reduce. Default on for supported topology, payload and graph layouts; per-engine GLM policy may disable it. Set 0 to isolate collective transport when investigating correctness or latency. | True | True; configuration may replace the unset default under the automatic conditions below. | vllm/config/vllm.py:\_configure\_sm70\_glm5\_dflash\_tp4\_push\_allreduce sets '0' when env\_name not in os.environ; automatic defaults apply only when the environment override is absent. | SM70 collectives |
++| `VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY` | experimental | Path to the qualified adaptive packed-cache decoder. Empty by default; override only with a rebuilt compatible extension. | '' | '' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS` | experimental | Adapt active packed-cache partitions to context length. Disabled by default; enable for the qualified SM70 D256 K4/V4 NC decoder. | '0' | '0' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE` | experimental | Append the canonical FP32 key correction to unchanged K4/V4 bytes in a 268-byte record. Disabled by default; enable only with the compatible qualified SM70 H8/H1 decoder. | '0' | '0' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_TURBOQUANT_GQA_LIBRARY` | experimental | Path to the qualified native grouped-query decoder. None selects the Triton fallback; cached FP32 key correction requires its matching native extension. | None | None | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_TURBOQUANT_GQA_TC` | experimental | Share packed KV unpacking between eight query heads and use Volta tensor cores. Disabled by default pending numerical and quality qualification for each supported model shape. | '0' | '0' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_TURBOQUANT_GQA_TILE` | experimental | Tile of the experimental Triton grouped-query fallback. Defaults to 16; native extensions select their own fixed qualified tile. | '16' | '16' | None | sm70\_ornith\_throughput |
++| `VLLM_SM70_TURBOQUANT_GQA_WARPS` | experimental | Warp count of the experimental Triton grouped-query fallback. Defaults to 8; native extensions select their own fixed qualified warp count. | '8' | '8' | None | sm70\_ornith\_throughput |
+ | `VLLM_SPARSE_INDEXER_MAX_LOGITS_MB` | tuning | Maximum size (in MB) for logits tensor in sparse MLA indexer prefill chunks. Bounds the [M, N] float32 logits tensor to prevent CUDA OOM. Default: 512 MB | 512 | 512 | None | No SM70 path association |
+ | `VLLM_SPEC_DEBUG_CORRUPTION` | debug | Speculative-decoding diagnostic: debug corruption. The consumer locations and unset defaults are listed below. | False | False | None | No SM70 path association |
+ | `VLLM_SPEC_DUMP_ALIGNMENT` | debug | 0.0.3 speculative/MTP diagnostics. These are default-off and must not change sampling or model outputs. | False | False | None | No SM70 path association |
+diff --git a/flash_qla/ops/gated_delta_rule/chunk/hopper/fused_fwd.py b/flash_qla/ops/gated_delta_rule/chunk/hopper/fused_fwd.py
+index e7d1f7a..7faf993 100644
+--- a/flash_qla/ops/gated_delta_rule/chunk/hopper/fused_fwd.py
++++ b/flash_qla/ops/gated_delta_rule/chunk/hopper/fused_fwd.py
+@@ -592,6 +592,9 @@ def tilelang_fused_chunk_gdr_fwd_sm70(
+         b_shape = (batch_size, num_tokens, H)
+         h_shape = (batch_size, num_chunks, H, DK, DV)
+     h0_batch = state_cache_size if indexed_state else batch_size
++    # Hybrid Mamba pages contain convolution state and padding between SSM rows.
++    h0_page_stride = T.dynamic("state_cache_stride") if indexed_state else H * DK * DV
++    h0_strides = (h0_page_stride, DK * DV, DV, 1)
+     h0_shape = (h0_batch, H, DK, DV)
+     ht_shape = (raw_batch_size, H, DK, DV)
+ 
+@@ -603,7 +606,7 @@ def tilelang_fused_chunk_gdr_fwd_sm70(
+         a: T.Tensor(a_shape, dtype=qkva_dtype),
+         g: T.Tensor(g_shape, dtype=g_dtype),
+         b: T.Tensor(b_shape, dtype=b_dtype),
+-        h0: T.Tensor(h0_shape, dtype=h0_dtype),
++        h0: T.StridedTensor(h0_shape, strides=h0_strides, dtype=h0_dtype),
+         cu_seqlens: T.Tensor([batch_size + 1], dtype=seqlen_dtype),
+         chunk_offsets: T.Tensor([batch_size + 1], dtype=seqlen_dtype),
+         cp_seq_map: T.Tensor([batch_size], dtype=seqlen_dtype),
+@@ -1014,9 +1017,22 @@ def fused_gdr_fwd(
+         raw_cu_seqlens = torch.empty(
+             (real_batch_size + 1,), dtype=seqlen_dtype, device=k.device
+         )
+-        final_state = torch.empty(
+-            (real_batch_size, H, K, V), dtype=torch.float32, device=k.device
+-        )
++        if (
++            indexed_state
++            and initial_state.dtype == torch.float32
++            and initial_state.stride()[1:] == (K * V, V, 1)
++            and initial_state.stride(0) >= H * K * V
++            and initial_state.shape[0] >= real_batch_size
++        ):
++            # Indexed SM70 writes h0 directly; the ht argument is never accessed.
++            # Keep its expected shape and dtype without another state allocation.
++            final_state = initial_state.as_strided(
++                (real_batch_size, H, K, V), (H * K * V, K * V, V, 1)
++            )
++        else:
++            final_state = torch.empty(
++                (real_batch_size, H, K, V), dtype=torch.float32, device=k.device
++            )
+     else:
+         final_state = torch.empty(
+             (raw_cu_seqlens.shape[0] - 1, H, K, V), dtype=torch.float32, device=k.device
+diff --git a/vllm/envs.py b/vllm/envs.py
+index e82f38c..9ed4803 100755
+--- a/vllm/envs.py
++++ b/vllm/envs.py
+@@ -15,6 +15,20 @@ from typing import TYPE_CHECKING, Any, Literal, cast
+ from vllm.envs_metadata import env_var
+ 
+ if TYPE_CHECKING:
++    VLLM_SM70_ORNITH_REUSE_PADDED_KV: str = "0"
++    VLLM_SM70_MOE_COMPACT_GROUPS: str | None = "0"
++    VLLM_SM70_MOE_STREAM_UNROUTE: str | None = "0"
++    VLLM_SM70_ORNITH_PADDED_PREFILL: str | None = "0"
++    VLLM_SM70_ORNITH_H8_PREFILL: str | None = "0"
++    VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY: str | None = ""
++    VLLM_SM70_ORNITH_PREFILL_PREALLOCATE: str | None = "0"
++    VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE: str | None = "0"
++    VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS: str | None = "0"
++    VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY: str | None = ""
++    VLLM_SM70_TURBOQUANT_GQA_TC: str | None = "0"
++    VLLM_SM70_TURBOQUANT_GQA_TILE: str | None = "16"
++    VLLM_SM70_TURBOQUANT_GQA_WARPS: str | None = "8"
++    VLLM_SM70_TURBOQUANT_GQA_LIBRARY: str | None = None
+     VLLM_SM70_DEBUG: set[str] = set()
+     VLLM_SM70_E4M3_LONG_ATTENTION: str | None = None
+     VLLM_CPU_CI_ENV: str | None = None
+@@ -1345,6 +1359,200 @@ def _resolve_rust_frontend_path() -> str | None:
+ 
+ 
+ environment_variables: dict[str, Callable[[], Any]] = {
++    "VLLM_SM70_ORNITH_REUSE_PADDED_KV": env_var(
++        lambda: os.getenv("VLLM_SM70_ORNITH_REUSE_PADDED_KV", "0"),
++        description=(
++            "Reuse aligned K/V prefix backing storage in the SM70 Ornith "
++            "continuation route. Disabled by default; the H8/H1 FP16 route requires "
++            "numerical, memory and serving qualification."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=False,
++    ),
++    "VLLM_SM70_MOE_COMPACT_GROUPS": env_var(
++        lambda: os.getenv("VLLM_SM70_MOE_COMPACT_GROUPS", "0"),
++        description=(
++            "Use only active Ornith experts in small grouped projections. "
++            "Disabled by default; enable for the qualified H2048/inter256/E256 "
++            "SM70 workload."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_MOE_STREAM_UNROUTE": env_var(
++        lambda: os.getenv("VLLM_SM70_MOE_STREAM_UNROUTE", "0"),
++        description=(
++            "Accumulate weighted expert output in token order without the large "
++            "FP32 gathered temporary. Disabled by default; enable for qualified "
++            "FP16 Ornith routing."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_ORNITH_PADDED_PREFILL": env_var(
++        lambda: os.getenv("VLLM_SM70_ORNITH_PADDED_PREFILL", "0"),
++        description=(
++            "Pad rectangular cached-prefix attention to native tile boundaries. "
++            "Disabled by default; enable only for qualified SM70 H8/H1 D256 "
++            "causal continuation."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_ORNITH_H8_PREFILL": env_var(
++        lambda: os.getenv("VLLM_SM70_ORNITH_H8_PREFILL", "0"),
++        description=(
++            "Use the eight-head continuation specialization. Disabled by default;"
++            " enable with its qualified native library and workspace "
++            "preallocation."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY": env_var(
++        lambda: os.getenv("VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY", ""),
++        description=(
++            "Path to the qualified H8 or H8k4 native prefill library. Empty by "
++            "default because the route is opt-in; set after building the matching"
++            " checked-in source."
++        ),
++        category="experimental",
++        declared_default="''",
++        effective_default="''",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_ORNITH_PREFILL_PREALLOCATE": env_var(
++        lambda: os.getenv("VLLM_SM70_ORNITH_PREFILL_PREALLOCATE", "0"),
++        description=(
++            "Count persistent continuation scratch during GPU memory profiling "
++            "before sizing KV storage. Disabled by default; enable with the "
++            "Ornith continuation route to preserve the physical context capacity "
++            "budget."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE": env_var(
++        lambda: os.getenv("VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE", "0"),
++        description=(
++            "Append the canonical FP32 key correction to unchanged K4/V4 bytes in"
++            " a 268-byte record. Disabled by default; enable only with the "
++            "compatible qualified SM70 H8/H1 decoder."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS": env_var(
++        lambda: os.getenv("VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS", "0"),
++        description=(
++            "Adapt active packed-cache partitions to context length. Disabled by "
++            "default; enable for the qualified SM70 D256 K4/V4 NC decoder."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY": env_var(
++        lambda: os.getenv("VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY", ""),
++        description=(
++            "Path to the qualified adaptive packed-cache decoder. Empty by "
++            "default; override only with a rebuilt compatible extension."
++        ),
++        category="experimental",
++        declared_default="''",
++        effective_default="''",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_TURBOQUANT_GQA_TC": env_var(
++        lambda: os.getenv("VLLM_SM70_TURBOQUANT_GQA_TC", "0"),
++        description=(
++            "Share packed KV unpacking between eight query heads and use Volta "
++            "tensor cores. Disabled by default pending numerical and quality "
++            "qualification for each supported model shape."
++        ),
++        category="experimental",
++        declared_default="'0'",
++        effective_default="'0'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_TURBOQUANT_GQA_TILE": env_var(
++        lambda: os.getenv("VLLM_SM70_TURBOQUANT_GQA_TILE", "16"),
++        description=(
++            "Tile of the experimental Triton grouped-query fallback. Defaults to "
++            "16; native extensions select their own fixed qualified tile."
++        ),
++        category="experimental",
++        declared_default="'16'",
++        effective_default="'16'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_TURBOQUANT_GQA_WARPS": env_var(
++        lambda: os.getenv("VLLM_SM70_TURBOQUANT_GQA_WARPS", "8"),
++        description=(
++            "Warp count of the experimental Triton grouped-query fallback. "
++            "Defaults to 8; native extensions select their own fixed qualified "
++            "warp count."
++        ),
++        category="experimental",
++        declared_default="'8'",
++        effective_default="'8'",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
++    "VLLM_SM70_TURBOQUANT_GQA_LIBRARY": env_var(
++        lambda: os.getenv("VLLM_SM70_TURBOQUANT_GQA_LIBRARY", None),
++        description=(
++            "Path to the qualified native grouped-query decoder. None selects the"
++            " Triton fallback; cached FP32 key correction requires its matching "
++            "native extension."
++        ),
++        category="experimental",
++        declared_default="None",
++        effective_default="None",
++        automatic_conditions=(),
++        acceleration_paths=("sm70_ornith_throughput",),
++        user_visible=True,
++    ),
+     "VLLM_SM70_E4M3_LONG_ATTENTION": env_var(
+         lambda: os.getenv("VLLM_SM70_E4M3_LONG_ATTENTION"),
+         description=(
+diff --git a/vllm/model_executor/layers/fused_moe/sm70_small_routing.py b/vllm/model_executor/layers/fused_moe/sm70_small_routing.py
+index 3367bbb..f9be4b0 100644
+--- a/vllm/model_executor/layers/fused_moe/sm70_small_routing.py
++++ b/vllm/model_executor/layers/fused_moe/sm70_small_routing.py
+@@ -2,6 +2,7 @@
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+ """Small-batch expert alignment without a sort or inverse-sort pipeline."""
+ 
++import os
+ from dataclasses import dataclass
+ 
+ import torch
+@@ -21,6 +22,10 @@ class Sm70SmallRoutingCapability:
+     min_m: int = 1
+     max_m: int = 32
+ 
++    @staticmethod
++    def supports_geometry(hidden_size: int, experts: int) -> bool:
++        return (hidden_size, experts) in ((2560, 512), (2048, 256))
++
+     def reason(self, x, ids, experts):
+         if not x.is_cuda or not current_platform.is_device_capability(70):
+             return "requires_sm70"
+@@ -30,7 +35,10 @@ class Sm70SmallRoutingCapability:
+             return "invalid_route_geometry"
+         if not self.min_m <= x.shape[0] <= self.max_m:
+             return "outside_small_batch_band"
+-        if x.shape[1] != 2560 or experts != 512 or not 1 <= ids.shape[1] <= 16:
++        if (
++            not self.supports_geometry(x.shape[1], experts)
++            or not 1 <= ids.shape[1] <= 16
++        ):
+             return "unmeasured_expert_geometry"
+         if not x.is_contiguous() or not ids.is_contiguous() or x.device != ids.device:
+             return "requires_contiguous_colocated_routes"
+@@ -206,8 +214,16 @@ def _small_unroute(
+         down.is_cuda
+         and current_platform.is_device_capability(70)
+         and down.dtype == torch.float16
+-        and 1 <= m <= 32
+-        and h == 2560
++        and (
++            1 <= m <= 32
++            or (
++                os.getenv("VLLM_SM70_MOE_STREAM_UNROUTE", "0") == "1"
++                and 1 <= m <= 8192
++                and h == 2048
++                and top_k == 8
++            )
++        )
++        and h in (2048, 2560)
+         and 1 <= top_k <= 16
+         and down.is_contiguous()
+         and inverse.is_contiguous()
+diff --git a/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py b/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
+index 063582e..62361ad 100644
+--- a/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
++++ b/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
+@@ -1952,7 +1952,12 @@ def flashqla_sm70_chunk_gated_delta_rule(
+     v_arg = v if v_contiguous else v.contiguous()
+     g_arg = g if g_contiguous else g.contiguous()
+     beta_arg = beta if beta_contiguous else beta.contiguous()
+-    state_arg = initial_state if state_contiguous else initial_state.contiguous()
++    # Indexed kernels must update the real paged cache, never a contiguous copy.
++    state_arg = (
++        initial_state
++        if state_contiguous or state_indices is not None
++        else initial_state.contiguous()
++    )
+     cu_arg = cu_seqlens if cu_seqlens.is_contiguous() else cu_seqlens.contiguous()
+     _sm70_gdn_prefill_profile_end(
+         "flashqla",
+diff --git a/vllm/model_executor/layers/quantization/gguf.py b/vllm/model_executor/layers/quantization/gguf.py
+index 0e3cc26..b22d129 100644
+--- a/vllm/model_executor/layers/quantization/gguf.py
++++ b/vllm/model_executor/layers/quantization/gguf.py
+@@ -1190,6 +1190,7 @@ class GGUFLMHeadMethod(GGUFEmbeddingMethod):
+         calibration = {
+             (int(WeightType.Q4_K), (62080, 2880)): (2, 16),
+             (int(WeightType.Q6_K), (62080, 2100)): (1, 20),
++            (int(WeightType.Q6_K), (124160, 1680)): (2, 32),
+         }.get((weight_type, tuple(raw.shape)))
+         minimum_m, maximum_m = calibration or (2, 16)
+         reason = None
+diff --git a/vllm/model_executor/layers/quantization/gguf_turbomind_moe.py b/vllm/model_executor/layers/quantization/gguf_turbomind_moe.py
+index a591ff6..a57c6cd 100644
+--- a/vllm/model_executor/layers/quantization/gguf_turbomind_moe.py
++++ b/vllm/model_executor/layers/quantization/gguf_turbomind_moe.py
+@@ -2,6 +2,7 @@
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+ """Canonical expert banks and graph-compatible GGUF routing."""
+ 
++import os
+ from dataclasses import asdict
+ from typing import Any
+ 
+@@ -22,6 +23,10 @@ from vllm.model_executor.kernels.gguf import (
+     select_lattice_grouped_capability,
+     small_grouped_vector_capabilities,
+ )
++from vllm.model_executor.layers.fused_moe.sm70_compact_groups import (
++    compact_affine_projection,
++    compact_groups,
++)
+ from vllm.model_executor.layers.fused_moe.sm70_small_routing import (
+     SM70_SMALL_ROUTING,
+ )
+@@ -594,10 +599,28 @@ class GGUFTurboMindMoEMethod(GGUFNativeMoEMethod):
+         self.small_routing = bool(
+             self.native_enabled
+             and self.params_dtype == torch.float16
+-            and self.num_experts == 512
+-            and self.hidden_size == 2560
++            and SM70_SMALL_ROUTING.supports_geometry(self.hidden_size, self.num_experts)
+             and layer.ep_size == 1
+         )
++        self.ornith_compact = bool(
++            self.small_routing
++            and self.hidden_size == 2048
++            and self.intermediate_size == 256
++            and self.num_experts == 256
++            and all(bank.family == GGUFDecoderFamily.AFFINE for bank in banks.values())
++            and os.getenv("VLLM_SM70_MOE_COMPACT_GROUPS", "0") == "1"
++        )
++        if self.ornith_compact:
++            pointers = torch.stack(
++                [
++                    pointer
++                    for shard in ("w1", "w3", "w2")
++                    for pointer in (banks[shard].weight_ptrs, banks[shard].stat_ptrs)
++                ]
++            ).view(6, self.num_experts, 16)
++            layer.register_buffer(
++                "gguf_compact_pointer_banks", pointers, persistent=False
++            )
+         gate, up = banks["w1"], banks["w3"]
+         self.raw_gate_up = bool(
+             layer.ep_size == 1
+@@ -682,7 +705,7 @@ class GGUFTurboMindMoEMethod(GGUFNativeMoEMethod):
+                 "enabled": self.small_routing,
+                 "reason": None
+                 if self.small_routing
+-                else "requires_fp16_512_experts_hidden2560_without_ep",
++                else "requires_fp16_qualified_expert_geometry_without_ep",
+                 "outside_m_band": "legacy_alignment_and_fp32_weighted_sum",
+             },
+             "projections": {
+@@ -759,7 +782,16 @@ class GGUFTurboMindMoEMethod(GGUFNativeMoEMethod):
+             offsets = torch.searchsorted(sorted_ids, boundaries).to(torch.int32)
+             routed = x[torch.div(order, top_k, rounding_mode="floor")].contiguous()
+         bank = layer.gguf_expert_banks
+-        if self.raw_gate_up and layer.expert_map is None:
++        use_compact = (
++            self.ornith_compact and small_routing and routed.shape[0] < self.num_experts
++        )
++        if use_compact:
++            offsets, pointers = compact_groups(
++                offsets, layer.gguf_compact_pointer_banks, routed.shape[0]
++            )
++            gate = compact_affine_projection(bank["w1"], routed, offsets, pointers, 0)
++            up = compact_affine_projection(bank["w3"], routed, offsets, pointers, 2)
++        elif self.raw_gate_up and layer.expert_map is None:
+             gate_bank, up_bank = bank["w1"], bank["w3"]
+             gate, up = torch.ops.vllm.gguf_expert_gate_up(
+                 routed,
+@@ -783,7 +815,16 @@ class GGUFTurboMindMoEMethod(GGUFNativeMoEMethod):
+             gate = bank["w1"](routed, offsets, sorted_ids)
+             up = bank["w3"](routed, offsets, sorted_ids)
+         hidden = torch.nn.functional.silu(gate) * up
+-        down = bank["w2"](hidden.contiguous(), offsets, sorted_ids)
++        # Their kernels are ordered on the current stream; these inputs
++        # are no longer needed before the down projection allocates.
++        del routed, gate, up
++        if use_compact:
++            down = compact_affine_projection(
++                bank["w2"], hidden.contiguous(), offsets, pointers, 4
++            )
++        else:
++            down = bank["w2"](hidden.contiguous(), offsets, sorted_ids)
++        del hidden
+         if small_routing:
+             return torch.ops.vllm.sm70_small_expert_unroute(down, inverse, topk_weights)
+         restored = down[order.argsort()].view(tokens, top_k, self.hidden_size)
+diff --git a/vllm/model_executor/layers/quantization/turboquant/config.py b/vllm/model_executor/layers/quantization/turboquant/config.py
+index 84e3940..fbbff56 100644
+--- a/vllm/model_executor/layers/quantization/turboquant/config.py
++++ b/vllm/model_executor/layers/quantization/turboquant/config.py
+@@ -6,6 +6,7 @@ from __future__ import annotations
+ 
+ import logging
+ import math
++import os
+ from dataclasses import dataclass
+ from typing import TYPE_CHECKING
+ 
+@@ -170,6 +171,16 @@ class TurboQuantConfig:
+         Even-number is required so effective_head_size = slot_size_aligned // 2
+         is integral.
+         """
++        if os.getenv("VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE", "0") == "1":
++            if not (
++                self.head_dim == 256
++                and self.key_quant_bits == 4
++                and self.value_quant_bits == 4
++                and self.norm_correction
++            ):
++                raise ValueError("Cached key scale requires D256 K4/V4 with NC")
++            # Keep all 262 original bytes; align the appended FP32 multiplier.
++            return 268
+         s = self.slot_size
+         return s + (s % 2)  # round up to even
+ 
+diff --git a/vllm/model_executor/model_loader/gguf_adapters/__init__.py b/vllm/model_executor/model_loader/gguf_adapters/__init__.py
+index 5a2e8dc..830cd55 100644
+--- a/vllm/model_executor/model_loader/gguf_adapters/__init__.py
++++ b/vllm/model_executor/model_loader/gguf_adapters/__init__.py
+@@ -5,6 +5,21 @@
+ 
+ def get_gguf_adapter(config, tp_size=1):
+     text = config.get_text_config()
++    if getattr(config, "vision_config", None) is not None and text.model_type in (
++        "qwen3_5_moe_text",
++        "qwen3_5_text",
++    ):
++        from .qwen35_multimodal import (
++            Qwen35MoeMultimodalAdapter,
++            Qwen35MultimodalAdapter,
++        )
++
++        adapter_cls = (
++            Qwen35MoeMultimodalAdapter
++            if text.model_type == "qwen3_5_moe_text"
++            else Qwen35MultimodalAdapter
++        )
++        return adapter_cls(config, tp_size=tp_size)
+     if getattr(text, "gguf_architecture", None) == "dflash" or "DFlash2DraftModel" in (
+         getattr(text, "architectures", None) or []
+     ):
+diff --git a/vllm/model_executor/model_loader/gguf_loader.py b/vllm/model_executor/model_loader/gguf_loader.py
+index ce8e06d..aacd878 100644
+--- a/vllm/model_executor/model_loader/gguf_loader.py
++++ b/vllm/model_executor/model_loader/gguf_loader.py
+@@ -136,6 +136,20 @@ class GGUFModelLoader(BaseModelLoader):
+             local = self._prepare_weights(model_config)
+             self._native_adapter = adapter
+             self._native_tensors = gguf_tensor_index(gguf_shard_paths(local))
++            if getattr(adapter, "requires_mmproj", False):
++                mmproj_file = detect_gguf_multimodal(local)
++                if mmproj_file is None:
++                    raise ValueError("Qwen3.5 multimodal GGUF requires an mmproj file")
++                vision_tensors = gguf_tensor_index(gguf_shard_paths(mmproj_file))
++                duplicates = self._native_tensors.keys() & vision_tensors.keys()
++                if duplicates:
++                    raise ValueError(
++                        f"Duplicate GGUF/mmproj tensor names: {duplicates}"
++                    )
++                self._native_tensors.update(vision_tensors)
++                logger.info(
++                    "Loading native Qwen3.5 mmproj weights from %s", mmproj_file
++                )
+             return adapter.build_name_map(self._native_tensors)
+         # Get text config to handle both nested (multimodal) and flat
+         # (text-only) config structures. For multimodal models like
+diff --git a/vllm/v1/attention/backends/flash_attn_v100.py b/vllm/v1/attention/backends/flash_attn_v100.py
+index 028e437..0693842 100644
+--- a/vllm/v1/attention/backends/flash_attn_v100.py
++++ b/vllm/v1/attention/backends/flash_attn_v100.py
+@@ -51,6 +51,7 @@ from vllm.v1.attention.ops.sm70_fp16_grouped import (
+     grouped_fp16_fp32_reason,
+     load_grouped_fp16_fp32,
+ )
++from vllm.v1.attention.ops.sm70_ornith_h8_prefill import h8_prefill_module
+ from vllm.v1.kv_cache_interface import PrefixAnchoredSWASpec
+ from vllm.v1.worker.gpu.spec_decode import uses_dflash_selector_engine
+ 
+@@ -2452,6 +2453,134 @@ def flash_v100_dense_prefill(
+     return output
+ 
+ 
++def _ornith_padded_dense_continuation(
++    query, key, value, softmax_scale, *, padded_kv=None
++):
++    """Pad both causal tails, then leading Q rows, without exposing fake KV."""
++    if (
++        os.getenv("VLLM_SM70_ORNITH_PADDED_PREFILL", "0") != "1"
++        or query.device.type != "cuda"
++        or key.device != query.device
++        or value.device != query.device
++        or query.dtype != torch.float16
++        or key.dtype != query.dtype
++        or value.dtype != query.dtype
++        or query.shape[1:] != (8, 256)
++        or key.shape[1:] != (1, 256)
++        or key.shape != value.shape
++        or query.shape[0] < 2
++        or key.shape[0] < query.shape[0]
++        or abs(softmax_scale - 0.0625) > 1e-8
++        or _is_cuda_graph_capturing(query)
++    ):
++        return None
++    tail = (-key.shape[0]) % 32
++    leading = (-(query.shape[0] + tail)) % 64
++    q_length = query.shape[0] + leading + tail
++    k_length = key.shape[0] + tail
++    if q_length > 16384 or q_length > k_length:
++        return None
++    capability = current_platform.get_device_capability(query.device.index)
++    if capability is None or (capability.major, capability.minor) != (7, 0):
++        return None
++    h8 = h8_prefill_module() if k_length > q_length and k_length <= 262144 else None
++    if q_length > 8192 and h8 is None:
++        return None
++    operators = None if h8 is not None else _get_sm70_splitd_d256_ops()
++    if h8 is None and operators is None:
++        return None
++    if h8 is not None:
++        operator = h8.prefill
++    else:
++        assert operators is not None
++        operator = operators[0]
++    qpad = torch.zeros(q_length, 8, 256, device=query.device, dtype=query.dtype)
++    qpad[leading : leading + query.shape[0]] = query
++    if tail:
++        if padded_kv is None:
++            kpad = torch.zeros(k_length, 1, 256, device=key.device, dtype=key.dtype)
++            vpad = torch.zeros_like(kpad)
++            kpad[: key.shape[0]], vpad[: value.shape[0]] = key, value
++        else:
++            kpad, vpad = padded_kv
++            # Logical K/V must be contiguous prefix views of these exact buffers.
++            # Keep the original logical lengths for query/causal-tail alignment.
++            for logical, padded in ((key, kpad), (value, vpad)):
++                if (
++                    padded.shape != (k_length, 1, 256)
++                    or padded.dtype != logical.dtype
++                    or padded.device != logical.device
++                    or not padded.is_contiguous()
++                    or not logical.is_contiguous()
++                    or padded.data_ptr() != logical.data_ptr()
++                ):
++                    raise ValueError("Padded KV must share its logical prefix storage")
++                padded[logical.shape[0] :].zero_()
++    else:
++        kpad, vpad = key.contiguous(), value.contiguous()
++    out = torch.empty_like(qpad)
++    operator(
++        qpad.unsqueeze(0),
++        kpad.unsqueeze(0),
++        vpad.unsqueeze(0),
++        out.unsqueeze(0),
++        softmax_scale,
++        True,
++    )
++    return out[leading : leading + query.shape[0]].contiguous()
++
++
++def flash_v100_dense_continuation_prefill(
++    query: torch.Tensor,
++    key: torch.Tensor,
++    value: torch.Tensor,
++    softmax_scale: float,
++    cu_seqlens_q: torch.Tensor,
++    cu_seqlens_k: torch.Tensor,
++    *,
++    padded_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
++) -> torch.Tensor:
++    """Attend a query suffix to full KV with bottom-right causal alignment.
++
++    The native SM70 kernels offset query positions by K_len - Q_len.
++    Independent Q/K lengths are essential here: using the square prefill
++    wrapper would discard the cached prefix. Neither route creates a dense
++    query-by-key attention matrix.
++    """
++    if query.ndim != 3 or key.ndim != 3 or key.shape != value.shape:
++        raise ValueError("continuation prefill expects [T,H,D] Q and matching K/V")
++    if key.shape[0] < query.shape[0]:
++        raise ValueError("continuation KV must include the complete query suffix")
++    padded = _ornith_padded_dense_continuation(
++        query, key, value, softmax_scale, padded_kv=padded_kv
++    )
++    if padded is not None:
++        return padded
++    flash_attn_func, _, _, _, _, _, _, _, _ = _get_flash_ops()
++    if flash_attn_func is None:
++        raise RuntimeError("flash_attn_v100 dense prefill op is unavailable")
++    q_batch, k_batch, v_batch = (tensor.unsqueeze(0) for tensor in (query, key, value))
++    out = torch.empty_like(query)
++    splitd = _try_sm70_fa2_d256_prefill(
++        q_batch,
++        k_batch,
++        v_batch,
++        cu_seqlens_q=cu_seqlens_q,
++        cu_seqlens_k=cu_seqlens_k,
++        max_seqlen_q=query.shape[0],
++        max_seqlen_k=key.shape[0],
++        softmax_scale=softmax_scale,
++        causal=True,
++        window_size=(-1, -1),
++        out=out.unsqueeze(0),
++    )
++    if splitd is not None:
++        return out
++    return flash_attn_func(
++        q_batch, k_batch, v_batch, causal=True, softmax_scale=softmax_scale
++    )[0]
++
++
+ # MLA context-chunk prefill needs the LSE that the dense SM70 kernel already
+ # computes, plus independent Q and K sequence metadata for M != N attention.
+ _flash_attn_forward_lse: Callable[..., tuple[torch.Tensor, ...]] | None = None
+diff --git a/vllm/v1/attention/backends/turboquant_attn.py b/vllm/v1/attention/backends/turboquant_attn.py
+index 80a8bc0..c1ebd3a 100644
+--- a/vllm/v1/attention/backends/turboquant_attn.py
++++ b/vllm/v1/attention/backends/turboquant_attn.py
+@@ -20,6 +20,7 @@ import functools
+ import json
+ import math
+ import os
++from collections.abc import Callable
+ from dataclasses import dataclass
+ from typing import Any, ClassVar
+ 
+@@ -50,12 +51,16 @@ from vllm.v1.attention.backends.fa_utils import (
+     is_flash_attn_varlen_func_available,
+ )
+ from vllm.v1.attention.backends.flash_attn_v100 import (
++    flash_v100_dense_continuation_prefill,
+     flash_v100_dense_prefill,
+     flash_v100_dense_prefill_available,
+     flash_v100_turboquant_decode,
+     flash_v100_turboquant_decode_available,
+ )
+ from vllm.v1.attention.backends.utils import split_decodes_and_prefills
++from vllm.v1.attention.ops.sm70_ornith_h8_prefill import (
++    reserve_h8_prefill_workspace,
++)
+ from vllm.v1.attention.ops.triton_prefill_attention import context_attention_fwd
+ from vllm.v1.attention.ops.triton_turboquant_decode import (
+     _tq_full_dequant_kv,
+@@ -90,6 +95,21 @@ _tq_continuation_workspace_reserved_bytes = 0
+ _CONTINUATION_DECODE_THRESHOLD = 128
+ 
+ 
++def _flash_v100_decode_split_count(
++    max_seq_capacity: int, configured_splits: int
++) -> int:
++    """Cover the static block table with native tiles of at most 1024 tokens.
++
++    Use shapes rather than sequence-length tensor reads so capture/replay
++    share the same launch grid without introducing a device synchronization.
++    Preserve larger user budgets; round automatic growth to a power of two.
++    """
++    if max_seq_capacity <= 0 or configured_splits <= 0:
++        raise ValueError("Sequence capacity and split count must be positive")
++    required = (max_seq_capacity + 1023) // 1024
++    return max(configured_splits, 1 << (required - 1).bit_length())
++
++
+ def _flash_attn_varlen_supported_on_device() -> bool:
+     if not _HAS_FLASH_ATTN:
+         return False
+@@ -406,6 +426,64 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+             and os.getenv("VLLM_SM70_TURBOQUANT_FLASH_V100_DECODE", "1") != "0"
+             and flash_v100_turboquant_decode_available()
+         )
++        capability = current_platform.get_device_capability()
++        self.use_adaptive_sm70_tq_decode = (
++            self.use_flash_v100_tq_decode
++            and head_size == 256
++            and cfg.key_mse_bits == 4
++            and cfg.effective_value_quant_bits == 4
++            and cfg.norm_correction
++            and capability is not None
++            and (capability.major, capability.minor) == (7, 0)
++            and os.getenv("VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS", "0") == "1"
++        )
++        if self.use_adaptive_sm70_tq_decode:
++            from vllm.v1.attention.ops.turboquant_sm70 import load_adaptive_turboquant
++
++            load_adaptive_turboquant()
++            logger.info("TURBOQUANT SM70 adaptive packed-cache partitions enabled.")
++        self.use_sm70_gqa_tq_decode = (
++            self.use_flash_v100_tq_decode
++            and head_size == 256
++            and cfg.key_mse_bits == 4
++            and cfg.effective_value_quant_bits == 4
++            and cfg.norm_correction
++            and self.num_heads == 8 * self.num_kv_heads
++            and capability is not None
++            and (capability.major, capability.minor) == (7, 0)
++            and os.getenv("VLLM_SM70_TURBOQUANT_GQA_TC", "0") == "1"
++        )
++        if self.use_sm70_gqa_tq_decode:
++            logger.info("TURBOQUANT SM70 grouped-query decode enabled.")
++            self._sm70_gqa_tile = int(os.getenv("VLLM_SM70_TURBOQUANT_GQA_TILE", "16"))
++            self._sm70_gqa_warps = int(os.getenv("VLLM_SM70_TURBOQUANT_GQA_WARPS", "8"))
++            if self._sm70_gqa_tile not in (16, 32, 64) or self._sm70_gqa_warps not in (
++                4,
++                8,
++            ):
++                raise ValueError(
++                    "Unsupported SM70 TurboQuant GQA tile/warp configuration"
++                )
++
++        self.use_cached_sm70_keyscale = (
++            os.getenv("VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE", "0") == "1"
++        )
++        if self.use_cached_sm70_keyscale:
++            if not self.use_sm70_gqa_tq_decode or self.num_kv_heads not in (1, 2):
++                raise ValueError(
++                    "Cached key scale requires SM70 H8 GQA with one or two KV heads"
++                )
++            if self.num_kv_heads == 2:
++                from vllm.v1.attention.ops.turboquant_sm70_gqa import _load_gqa_native
++
++                library = os.getenv("VLLM_SM70_TURBOQUANT_GQA_LIBRARY", "")
++                if (
++                    not library
++                    or getattr(_load_gqa_native(library), "max_cache_heads", 1) < 2
++                ):
++                    raise ValueError(
++                        "Two KV heads require a qualified multi-KV native library"
++                    )
+ 
+         # Fixed NUM_KV_SPLITS (grid dims must be constant for cudagraph,
+         # and benchmarks show no regression vs dynamic in eager mode).
+@@ -422,6 +500,21 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+             )
+ 
+     def _reserve_continuation_prefill_workspace(self) -> None:
++        # Account for persistent H8 scratch before profiling the available KV budget.
++        if (
++            self.use_flash_v100_dense_prefill
++            and self.head_size == 256
++            and self.num_heads == 8
++            and self.num_kv_heads == 1
++            and os.getenv("VLLM_SM70_ORNITH_H8_PREFILL", "0") == "1"
++        ):
++            reserve_h8_prefill_workspace(
++                torch.empty(
++                    0,
++                    device=torch.accelerator.current_device_index(),
++                    dtype=torch.float16,
++                )
++            )
+         if not is_workspace_manager_initialized():
+             return
+         if os.getenv("VLLM_SM70_TURBOQUANT_RESERVE_WORKSPACE", "1") == "0":
+@@ -1005,6 +1098,12 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+             value_quant_bits=self.tq_config.effective_value_quant_bits,
+             key_fp8=self.tq_config.key_fp8,
+         )
++        if self.use_cached_sm70_keyscale:
++            from vllm.v1.attention.ops.turboquant_sm70_gqa import (
++                populate_cached_keyscale,
++            )
++
++            populate_cached_keyscale(kv_cache, slot_mapping, layer._tq_centroids)
+ 
+     # ------------------------------------------------------------------ #
+     #  Prefill: SDPA on raw Q/K/V with causal mask                        #
+@@ -1180,7 +1279,12 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+                 # avoid O(cached_len) full-dequant per continuation.
+                 # For large continuations, fall back to _continuation_prefill.
+                 cached_len = seq_len - q_len
+-                if q_len <= _CONTINUATION_DECODE_THRESHOLD:
++                padded_continuation = (
++                    self.use_flash_v100_dense_prefill
++                    and q_len > 1
++                    and os.getenv("VLLM_SM70_ORNITH_PADDED_PREFILL", "0") == "1"
++                )
++                if q_len <= _CONTINUATION_DECODE_THRESHOLD and not padded_continuation:
+                     # Fast path: treat each query as a decode request
+                     # with incremental seq_lens for causal masking.
+                     # Graph-safe: derive per-row seq_lens from the GPU-resident
+@@ -1328,15 +1432,24 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+         # Concatenate cached + current chunk K/V (match query dtype)
+         # Pre-allocate full K/V buffer, copy into slices (no cat alloc)
+         qdtype = query.dtype
+-        k_full = torch.empty(seq_len, Hk, D, dtype=qdtype, device=device)
+-        v_full = torch.empty(seq_len, Hk, D, dtype=qdtype, device=device)
++        reuse_padding = (
++            self.use_flash_v100_dense_prefill
++            and not self.use_flash_attn_prefill
++            and (Hq, Hk, D) == (8, 1, 256)
++            and qdtype == torch.float16
++            and os.getenv("VLLM_SM70_ORNITH_REUSE_PADDED_KV", "0") == "1"
++        )
++        storage_len = seq_len + (-seq_len) % 32 if reuse_padding else seq_len
++        k_storage = torch.empty(storage_len, Hk, D, dtype=qdtype, device=device)
++        v_storage = torch.empty(storage_len, Hk, D, dtype=qdtype, device=device)
++        k_full, v_full = k_storage[:seq_len], v_storage[:seq_len]
+         k_full[:cached_len] = k_cached_trim.to(qdtype)
+         k_full[cached_len:] = key_chunk
+         v_full[:cached_len] = v_cached_trim.to(qdtype)
+         v_full[cached_len:] = val_chunk
+ 
+         # Attention: q_len queries attending to seq_len K/V with causal mask
+-        if self.use_flash_attn_prefill:
++        if self.use_flash_attn_prefill or self.use_flash_v100_dense_prefill:
+             # Reuse pre-allocated cu_seqlens (avoid host→device transfer)
+             if not hasattr(self, "_cu_2_q"):
+                 self._cu_2_q = torch.zeros(2, device=device, dtype=torch.int32)
+@@ -1346,6 +1459,16 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+             self._cu_2_k[1:2] = seq_len
+             cu_seqlens_q = self._cu_2_q
+             cu_seqlens_k = self._cu_2_k
++            if not self.use_flash_attn_prefill:
++                return flash_v100_dense_continuation_prefill(
++                    query,
++                    k_full,
++                    v_full,
++                    self.scale,
++                    cu_seqlens_q,
++                    cu_seqlens_k,
++                    padded_kv=(k_storage, v_storage) if reuse_padding else None,
++                )
+             return self._flash_attn_varlen(
+                 q=query,
+                 k=k_full,
+@@ -1393,18 +1516,29 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+         # Falls back to kernel-internal allocation if workspace unavailable.
+         B = query.shape[0]
+         D = self.head_size
++        if self.use_flash_v100_tq_decode:
++            self.max_num_kv_splits = _flash_v100_decode_split_count(
++                attn_metadata.block_table.shape[1] * kv_cache.shape[1],
++                self.max_num_kv_splits,
++            )
+         S = self.max_num_kv_splits
+         Hq = self.num_heads
+         mid_o_buf = output_buf = lse_buf = None
+         if is_workspace_manager_initialized():
+-            # output_buf in query dtype — matches the in-kernel fp16 cast in stage2.
+-            mid_o_buf, output_buf, lse_buf = (
+-                current_workspace_manager().get_simultaneous(
+-                    ((B, Hq, S, D + 1), torch.float32),
++            if self.use_flash_v100_tq_decode:
++                # Native Flash-V100 owns its partition workspace. Reserving
++                # Triton's mid_o/lse here duplicates unused scratch memory.
++                (output_buf,) = current_workspace_manager().get_simultaneous(
+                     ((B, Hq, D), query.dtype),
+-                    ((B, Hq), torch.float32),
+                 )
+-            )
++            else:
++                mid_o_buf, output_buf, lse_buf = (
++                    current_workspace_manager().get_simultaneous(
++                        ((B, Hq, S, D + 1), torch.float32),
++                        ((B, Hq, D), query.dtype),
++                        ((B, Hq), torch.float32),
++                    )
++                )
+ 
+         if self.use_flash_v100_tq_decode:
+             global _logged_flash_v100_tq_decode
+@@ -1425,7 +1559,29 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+                     self.tq_config.effective_value_quant_bits,
+                 )
+                 _logged_flash_v100_tq_decode = True
+-            result = flash_v100_turboquant_decode(
++            decode_op: Callable[..., torch.Tensor] = flash_v100_turboquant_decode
++            decode_format: dict[str, Any] = dict(
++                mse_bits=self.tq_config.key_mse_bits,
++                value_quant_bits=self.tq_config.effective_value_quant_bits,
++                norm_correction=self.tq_config.norm_correction,
++            )
++            if self.use_sm70_gqa_tq_decode:
++                from vllm.v1.attention.ops.turboquant_sm70_gqa import (
++                    gqa_turboquant_decode,
++                )
++
++                decode_op = gqa_turboquant_decode
++                decode_format = dict(
++                    tile=self._sm70_gqa_tile, warps=self._sm70_gqa_warps
++                )
++            elif self.use_adaptive_sm70_tq_decode:
++                from vllm.v1.attention.ops.turboquant_sm70 import (
++                    adaptive_turboquant_decode,
++                )
++
++                decode_op = adaptive_turboquant_decode
++                decode_format = {}
++            result = decode_op(
+                 q_rot=q_rot,
+                 kv_cache=kv_cache,
+                 output=output_buf,
+@@ -1433,10 +1589,8 @@ class TurboQuantAttentionImpl(AttentionImpl["TurboQuantMetadata"]):
+                 seq_lens=attn_metadata.seq_lens,
+                 centroids=centroids,
+                 softmax_scale=self.scale,
+-                mse_bits=self.tq_config.key_mse_bits,
+-                value_quant_bits=self.tq_config.effective_value_quant_bits,
+-                norm_correction=self.tq_config.norm_correction,
+                 num_kv_splits=self.max_num_kv_splits,
++                **decode_format,
+             )
+             self._maybe_compare_flash_v100_decode(
+                 flash_out=result,
+diff --git a/vllm/v1/core/sched/scheduler.py b/vllm/v1/core/sched/scheduler.py
+index cb068af..016e081 100644
+--- a/vllm/v1/core/sched/scheduler.py
++++ b/vllm/v1/core/sched/scheduler.py
+@@ -6,6 +6,7 @@ import time
+ from collections import defaultdict, deque
+ from collections.abc import Iterable
+ from dataclasses import replace
++from types import TracebackType
+ from typing import Any
+ 
+ from vllm.compilation.cuda_graph import CUDAGraphStat
+@@ -37,6 +38,7 @@ from vllm.v1.core.encoder_cache_manager import (
+ )
+ from vllm.v1.core.kv_cache_manager import KVCacheBlocks, KVCacheManager
+ from vllm.v1.core.kv_cache_metrics import KVCacheMetricsCollector
++from vllm.v1.core.kv_cache_utils import KVCacheBlock
+ from vllm.v1.core.sched.interface import PauseState, SchedulerInterface
+ from vllm.v1.core.sched.mixed_prefill import MixedPrefillBudget
+ from vllm.v1.core.sched.output import (
+@@ -925,293 +927,305 @@ class Scheduler(SchedulerInterface):
+ 
+         # Next, schedule the WAITING requests.
+         if not preempted_reqs and self._pause_state == PauseState.UNPAUSED:
+-            step_skipped_waiting = create_request_queue(self.policy)
++            with _WaitingPrefixCacheGuard(self) as cache_guard:
++                step_skipped_waiting = create_request_queue(self.policy)
+ 
+-            while (self.waiting or self.skipped_waiting) and token_budget > 0:
+-                if len(self.running) == self.max_num_running_reqs:
+-                    break
++                while (self.waiting or self.skipped_waiting) and token_budget > 0:
++                    if len(self.running) == self.max_num_running_reqs:
++                        break
+ 
+-                request_queue = self._select_waiting_queue_for_scheduling()
+-                assert request_queue is not None
++                    request_queue = self._select_waiting_queue_for_scheduling()
++                    assert request_queue is not None
+ 
+-                request = request_queue.peek_request()
+-                request_id = request.request_id
++                    request = request_queue.peek_request()
++                    request_id = request.request_id
+ 
+-                # try to promote blocked statuses while traversing skipped queue.
+-                if self._is_blocked_waiting_status(
+-                    request.status
+-                ) and not self._try_promote_blocked_waiting_request(request):
+-                    if request.status == RequestStatus.WAITING_FOR_REMOTE_KVS:
+-                        logger.debug(
+-                            "%s is still in WAITING_FOR_REMOTE_KVS state.",
+-                            request_id,
++                    # try to promote blocked statuses while traversing skipped queue.
++                    if self._is_blocked_waiting_status(
++                        request.status
++                    ) and not self._try_promote_blocked_waiting_request(request):
++                        if request.status == RequestStatus.WAITING_FOR_REMOTE_KVS:
++                            logger.debug(
++                                "%s is still in WAITING_FOR_REMOTE_KVS state.",
++                                request_id,
++                            )
++                        request_queue.pop_request()
++                        step_skipped_waiting.prepend_request(request)
++                        continue
++
++                    # Check that adding the request still respects the max_loras
++                    # constraint.
++                    if (
++                        self.lora_config
++                        and request.lora_request
++                        and (
++                            len(scheduled_loras) == self.lora_config.max_loras
++                            and request.lora_request.lora_int_id not in scheduled_loras
++                        )
++                    ):
++                        # Scheduling would exceed max_loras, skip.
++                        request_queue.pop_request()
++                        step_skipped_waiting.prepend_request(request)
++                        continue
++
++                    num_external_computed_tokens = 0
++                    load_kv_async = False
++                    connector_prefix_cache_queries, connector_prefix_cache_hits = 0, 0
++
++                    # Get already-cached tokens.
++                    if request.num_computed_tokens == 0:
++                        # Get locally-cached tokens.
++                        new_computed_blocks, num_new_local_computed_tokens = (
++                            self.kv_cache_manager.get_computed_blocks(request)
+                         )
+-                    request_queue.pop_request()
+-                    step_skipped_waiting.prepend_request(request)
+-                    continue
+ 
+-                # Check that adding the request still respects the max_loras
+-                # constraint.
+-                if (
+-                    self.lora_config
+-                    and request.lora_request
+-                    and (
+-                        len(scheduled_loras) == self.lora_config.max_loras
+-                        and request.lora_request.lora_int_id not in scheduled_loras
+-                    )
+-                ):
+-                    # Scheduling would exceed max_loras, skip.
+-                    request_queue.pop_request()
+-                    step_skipped_waiting.prepend_request(request)
+-                    continue
++                        # Get externally-cached tokens if using a KVConnector.
++                        if self.connector is not None:
++                            ext_tokens, load_kv_async = (
++                                self.connector.get_num_new_matched_tokens(
++                                    request, num_new_local_computed_tokens
++                                )
++                            )
+ 
+-                num_external_computed_tokens = 0
+-                load_kv_async = False
+-                connector_prefix_cache_queries, connector_prefix_cache_hits = 0, 0
++                            if ext_tokens is None:
++                                # The request cannot be scheduled because
++                                # the KVConnector couldn't determine
++                                # the number of matched tokens.
++                                request_queue.pop_request()
++                                step_skipped_waiting.prepend_request(request)
++                                continue
+ 
+-                # Get already-cached tokens.
+-                if request.num_computed_tokens == 0:
+-                    # Get locally-cached tokens.
+-                    new_computed_blocks, num_new_local_computed_tokens = (
+-                        self.kv_cache_manager.get_computed_blocks(request)
+-                    )
++                            num_external_computed_tokens = ext_tokens
+ 
+-                    # Get externally-cached tokens if using a KVConnector.
+-                    if self.connector is not None:
+-                        ext_tokens, load_kv_async = (
+-                            self.connector.get_num_new_matched_tokens(
+-                                request, num_new_local_computed_tokens
++                            connector_prefix_cache_queries = (
++                                request.num_tokens - num_new_local_computed_tokens
+                             )
++                            connector_prefix_cache_hits = num_external_computed_tokens
++
++                        # Total computed tokens (local + external).
++                        num_computed_tokens = (
++                            num_new_local_computed_tokens + num_external_computed_tokens
+                         )
++                        assert num_computed_tokens <= request.num_tokens
++
++                        # Keep initial cache hits distinct from this request's own
++                        # partial prefill reused after a pre-token preemption.
++                        if (
++                            request.prefill_stats is not None
++                            and request.num_preemptions == 0
++                        ):
++                            assert num_computed_tokens <= request.num_prompt_tokens
++                            request.prefill_stats.set(
++                                num_prompt_tokens=request.num_prompt_tokens,
++                                num_local_cached_tokens=num_new_local_computed_tokens,
++                                num_external_cached_tokens=num_external_computed_tokens,
++                            )
++                    else:
++                        # KVTransfer: WAITING reqs have num_computed_tokens > 0
++                        # after async KV recvs are completed.
++                        new_computed_blocks = (
++                            self.kv_cache_manager.empty_kv_cache_blocks
++                        )
++                        num_new_local_computed_tokens = 0
++                        num_computed_tokens = request.num_computed_tokens
+ 
+-                        if ext_tokens is None:
+-                            # The request cannot be scheduled because
+-                            # the KVConnector couldn't determine
+-                            # the number of matched tokens.
+-                            request_queue.pop_request()
+-                            step_skipped_waiting.prepend_request(request)
+-                            continue
++                    encoder_inputs_to_schedule = None
++                    external_load_encoder_input = []
++                    new_encoder_compute_budget = encoder_compute_budget
+ 
+-                        num_external_computed_tokens = ext_tokens
++                    if load_kv_async:
++                        # KVTransfer: loading remote KV, do not allocate for new work.
++                        assert num_external_computed_tokens > 0
++                        num_new_tokens = 0
++                    else:
++                        # Number of tokens to be scheduled.
++                        # We use `request.num_tokens` instead of
++                        # `request.num_prompt_tokens` to consider the resumed
++                        # requests, which have output tokens.
++                        num_new_tokens = request.num_tokens - num_computed_tokens
++                        if 0 < long_prefill_token_threshold < num_new_tokens:
++                            num_new_tokens = long_prefill_token_threshold
++
++                        # chunked prefill has to be enabled explicitly to allow
++                        # pooling requests to be chunked
++                        if (
++                            not self.scheduler_config.enable_chunked_prefill
++                            and num_new_tokens > token_budget
++                        ):
++                            # If chunked_prefill is disabled,
++                            # we can stop the scheduling here.
++                            break
+ 
+-                        connector_prefix_cache_queries = (
+-                            request.num_tokens - num_new_local_computed_tokens
++                        num_new_tokens = min(num_new_tokens, token_budget)
++                        assert num_new_tokens > 0
++                        prefill_remaining[request.request_id] = max(
++                            0,
++                            max(request.num_prompt_tokens, request.num_tokens - 1)
++                            - num_computed_tokens,
+                         )
+-                        connector_prefix_cache_hits = num_external_computed_tokens
+-
+-                    # Total computed tokens (local + external).
+-                    num_computed_tokens = (
+-                        num_new_local_computed_tokens + num_external_computed_tokens
+-                    )
+-                    assert num_computed_tokens <= request.num_tokens
+-
+-                    # Track first scheduled prefill, not post-preemption repeat prefills
+-                    if request.prefill_stats is not None:
+-                        assert num_computed_tokens <= request.num_prompt_tokens
+-                        request.prefill_stats.set(
+-                            num_prompt_tokens=request.num_prompt_tokens,
+-                            num_local_cached_tokens=num_new_local_computed_tokens,
+-                            num_external_cached_tokens=num_external_computed_tokens,
++                        num_new_tokens = limit_prefill(
++                            request.request_id, num_new_tokens
+                         )
+-                else:
+-                    # KVTransfer: WAITING reqs have num_computed_tokens > 0
+-                    # after async KV recvs are completed.
+-                    new_computed_blocks = self.kv_cache_manager.empty_kv_cache_blocks
+-                    num_new_local_computed_tokens = 0
+-                    num_computed_tokens = request.num_computed_tokens
+-
+-                encoder_inputs_to_schedule = None
+-                external_load_encoder_input = []
+-                new_encoder_compute_budget = encoder_compute_budget
+-
+-                if load_kv_async:
+-                    # KVTransfer: loading remote KV, do not allocate for new work.
+-                    assert num_external_computed_tokens > 0
+-                    num_new_tokens = 0
+-                else:
+-                    # Number of tokens to be scheduled.
+-                    # We use `request.num_tokens` instead of
+-                    # `request.num_prompt_tokens` to consider the resumed
+-                    # requests, which have output tokens.
+-                    num_new_tokens = request.num_tokens - num_computed_tokens
+-                    if 0 < long_prefill_token_threshold < num_new_tokens:
+-                        num_new_tokens = long_prefill_token_threshold
+-
+-                    # chunked prefill has to be enabled explicitly to allow
+-                    # pooling requests to be chunked
+-                    if (
+-                        not self.scheduler_config.enable_chunked_prefill
+-                        and num_new_tokens > token_budget
+-                    ):
+-                        # If chunked_prefill is disabled,
+-                        # we can stop the scheduling here.
+-                        break
+-
+-                    num_new_tokens = min(num_new_tokens, token_budget)
+-                    assert num_new_tokens > 0
+-                    prefill_remaining[request.request_id] = max(
+-                        0,
+-                        max(request.num_prompt_tokens, request.num_tokens - 1)
+-                        - num_computed_tokens,
+-                    )
+-                    num_new_tokens = limit_prefill(request.request_id, num_new_tokens)
+-                    if num_new_tokens == 0:
+-                        break
++                        if num_new_tokens == 0:
++                            break
+ 
+-                    # Schedule encoder inputs.
+-                    if request.has_encoder_inputs:
+-                        (
+-                            encoder_inputs_to_schedule,
+-                            num_new_tokens,
+-                            new_encoder_compute_budget,
+-                            external_load_encoder_input,
+-                        ) = self._try_schedule_encoder_inputs(
++                        # Schedule encoder inputs.
++                        if request.has_encoder_inputs:
++                            (
++                                encoder_inputs_to_schedule,
++                                num_new_tokens,
++                                new_encoder_compute_budget,
++                                external_load_encoder_input,
++                            ) = self._try_schedule_encoder_inputs(
++                                request,
++                                num_computed_tokens,
++                                num_new_tokens,
++                                encoder_compute_budget,
++                                shift_computed_tokens=1 if self.use_eagle else 0,
++                            )
++                            if num_new_tokens == 0:
++                                # The request cannot be scheduled.
++                                break
++
++                    # Async receive does not schedule local work.
++                    # Skip block alignment for its receive setup.
++                    if self.need_mamba_block_aligned_split and not load_kv_async:
++                        num_new_tokens = self._mamba_block_aligned_split(
+                             request,
+-                            num_computed_tokens,
+                             num_new_tokens,
+-                            encoder_compute_budget,
+-                            shift_computed_tokens=1 if self.use_eagle else 0,
++                            num_new_local_computed_tokens,
++                            num_external_computed_tokens,
+                         )
+                         if num_new_tokens == 0:
+-                            # The request cannot be scheduled.
+                             break
+ 
+-                # Skip block alignment when setting up async receive (no local work).
+-                if self.need_mamba_block_aligned_split and not load_kv_async:
+-                    num_new_tokens = self._mamba_block_aligned_split(
+-                        request,
+-                        num_new_tokens,
+-                        num_new_local_computed_tokens,
+-                        num_external_computed_tokens,
++                    # Handles an edge case when P/D Disaggregation
++                    # is used with Spec Decoding where an
++                    # extra block gets allocated which
++                    # creates a mismatch between the number
++                    # of local and remote blocks.
++                    limit_lookahead_tokens = load_kv_async and self.use_eagle
++                    effective_lookahead_tokens = (
++                        0 if limit_lookahead_tokens else self.num_lookahead_tokens
+                     )
+-                    if num_new_tokens == 0:
+-                        break
+ 
+-                # Handles an edge case when P/D Disaggregation
+-                # is used with Spec Decoding where an
+-                # extra block gets allocated which
+-                # creates a mismatch between the number
+-                # of local and remote blocks.
+-                limit_lookahead_tokens = load_kv_async and self.use_eagle
+-                effective_lookahead_tokens = (
+-                    0 if limit_lookahead_tokens else self.num_lookahead_tokens
+-                )
++                    # Determine if we need to allocate cross-attention blocks.
++                    num_encoder_tokens = 0
++                    if (
++                        self.is_encoder_decoder
++                        and request.has_encoder_inputs
++                        and encoder_inputs_to_schedule
++                    ):
++                        num_encoder_tokens = sum(
++                            request.get_num_encoder_embeds(i)
++                            for i in encoder_inputs_to_schedule
++                        )
+ 
+-                # Determine if we need to allocate cross-attention blocks.
+-                num_encoder_tokens = 0
+-                if (
+-                    self.is_encoder_decoder
+-                    and request.has_encoder_inputs
+-                    and encoder_inputs_to_schedule
+-                ):
+-                    num_encoder_tokens = sum(
+-                        request.get_num_encoder_embeds(i)
+-                        for i in encoder_inputs_to_schedule
++                    new_blocks = cache_guard.allocate_slots(
++                        request,
++                        num_new_tokens,
++                        num_new_computed_tokens=num_new_local_computed_tokens,
++                        new_computed_blocks=new_computed_blocks,
++                        num_lookahead_tokens=effective_lookahead_tokens,
++                        num_external_computed_tokens=num_external_computed_tokens,
++                        delay_cache_blocks=load_kv_async,
++                        num_encoder_tokens=num_encoder_tokens,
++                        full_sequence_must_fit=self.scheduler_reserve_full_isl,
+                     )
+ 
+-                new_blocks = self.kv_cache_manager.allocate_slots(
+-                    request,
+-                    num_new_tokens,
+-                    num_new_computed_tokens=num_new_local_computed_tokens,
+-                    new_computed_blocks=new_computed_blocks,
+-                    num_lookahead_tokens=effective_lookahead_tokens,
+-                    num_external_computed_tokens=num_external_computed_tokens,
+-                    delay_cache_blocks=load_kv_async,
+-                    num_encoder_tokens=num_encoder_tokens,
+-                    full_sequence_must_fit=self.scheduler_reserve_full_isl,
+-                )
++                    if new_blocks is None:
++                        # The request cannot be scheduled.
+ 
+-                if new_blocks is None:
+-                    # The request cannot be scheduled.
++                        # NOTE: we need to untouch the request from the encode cache
++                        # manager
++                        if request.has_encoder_inputs:
++                            self.encoder_cache_manager.free(request)
++                        break
+ 
+-                    # NOTE: we need to untouch the request from the encode cache
+-                    # manager
+-                    if request.has_encoder_inputs:
+-                        self.encoder_cache_manager.free(request)
+-                    break
+-
+-                # KVTransfer: the connector uses this info to determine
+-                # if a load is needed. Note that
+-                # This information is used to determine if a load is
+-                # needed for this request.
+-                if self.connector is not None:
+-                    self.connector.update_state_after_alloc(
+-                        request,
+-                        self.kv_cache_manager.get_blocks(request_id),
+-                        num_external_computed_tokens,
+-                    )
+-                    if (
+-                        self.connector_prefix_cache_stats is not None
+-                        and connector_prefix_cache_queries != 0
+-                    ):
+-                        self.connector_prefix_cache_stats.record(
+-                            num_tokens=connector_prefix_cache_queries,
+-                            num_hits=connector_prefix_cache_hits,
+-                            preempted=request.num_preemptions > 0,
++                    # KVTransfer: the connector uses this info to determine
++                    # if a load is needed. Note that
++                    # This information is used to determine if a load is
++                    # needed for this request.
++                    if self.connector is not None:
++                        self.connector.update_state_after_alloc(
++                            request,
++                            self.kv_cache_manager.get_blocks(request_id),
++                            num_external_computed_tokens,
+                         )
++                        if (
++                            self.connector_prefix_cache_stats is not None
++                            and connector_prefix_cache_queries != 0
++                        ):
++                            self.connector_prefix_cache_stats.record(
++                                num_tokens=connector_prefix_cache_queries,
++                                num_hits=connector_prefix_cache_hits,
++                                preempted=request.num_preemptions > 0,
++                            )
+ 
+-                request = request_queue.pop_request()
+-                if load_kv_async:
+-                    # If loading async, allocate memory and put request
+-                    # into the WAITING_FOR_REMOTE_KV state.
+-                    request.status = RequestStatus.WAITING_FOR_REMOTE_KVS
+-                    step_skipped_waiting.prepend_request(request)
+-                    # Set num_computed_tokens even though KVs are not yet loaded.
+-                    # request.num_computed_tokens will not be used anywhere until
+-                    # the request finished the KV transfer.
+-                    #
+-                    # If a transfer error is reported by the connector,
+-                    # request.num_computed_tokens will be re-set accordingly in
+-                    # _update_requests_with_invalid_blocks.
+-                    #
+-                    # When the transfer is finished, either successfully or not,
+-                    # request.num_computed_tokens will correctly reflect the number
+-                    # of computed tokens.
+-                    # _update_waiting_for_remote_kv will then cache
+-                    # only the successfully loaded tokens.
+-                    request.num_computed_tokens = num_computed_tokens
+-                    continue
++                    request = request_queue.pop_request()
++                    if load_kv_async:
++                        # If loading async, allocate memory and put request
++                        # into the WAITING_FOR_REMOTE_KV state.
++                        request.status = RequestStatus.WAITING_FOR_REMOTE_KVS
++                        step_skipped_waiting.prepend_request(request)
++                        # Set num_computed_tokens even though KVs are not yet loaded.
++                        # request.num_computed_tokens will not be used anywhere until
++                        # the request finished the KV transfer.
++                        #
++                        # If a transfer error is reported by the connector,
++                        # request.num_computed_tokens will be re-set accordingly in
++                        # _update_requests_with_invalid_blocks.
++                        #
++                        # When the transfer is finished, either successfully or not,
++                        # request.num_computed_tokens will correctly reflect the number
++                        # of computed tokens.
++                        # _update_waiting_for_remote_kv will then cache
++                        # only the successfully loaded tokens.
++                        request.num_computed_tokens = num_computed_tokens
++                        continue
++
++                    self.running.append(request)
++                    if self.log_stats:
++                        request.record_event(
++                            EngineCoreEventType.SCHEDULED, scheduled_timestamp
++                        )
++                    if request.status == RequestStatus.WAITING:
++                        scheduled_new_reqs.append(request)
++                    elif request.status == RequestStatus.PREEMPTED:
++                        scheduled_resumed_reqs.append(request)
++                    else:
++                        raise RuntimeError(f"Invalid request status: {request.status}")
+ 
+-                self.running.append(request)
+-                if self.log_stats:
+-                    request.record_event(
+-                        EngineCoreEventType.SCHEDULED, scheduled_timestamp
++                    if self.lora_config and request.lora_request:
++                        scheduled_loras.add(request.lora_request.lora_int_id)
++                    req_to_new_blocks[request_id] = self.kv_cache_manager.get_blocks(
++                        request_id
+                     )
+-                if request.status == RequestStatus.WAITING:
+-                    scheduled_new_reqs.append(request)
+-                elif request.status == RequestStatus.PREEMPTED:
+-                    scheduled_resumed_reqs.append(request)
+-                else:
+-                    raise RuntimeError(f"Invalid request status: {request.status}")
+-
+-                if self.lora_config and request.lora_request:
+-                    scheduled_loras.add(request.lora_request.lora_int_id)
+-                req_to_new_blocks[request_id] = self.kv_cache_manager.get_blocks(
+-                    request_id
+-                )
+-                num_scheduled_tokens[request_id] = num_new_tokens
+-                token_budget -= num_new_tokens
+-                request.status = RequestStatus.RUNNING
+-                request.num_computed_tokens = num_computed_tokens
+-                # Encoder-related.
+-                if encoder_inputs_to_schedule:
+-                    scheduled_encoder_inputs[request_id] = encoder_inputs_to_schedule
+-                    # Allocate the encoder cache.
+-                    for i in encoder_inputs_to_schedule:
+-                        self.encoder_cache_manager.allocate(request, i)
+-                        if self.ec_connector is not None:
+-                            self.ec_connector.update_state_after_alloc(request, i)
+-                    encoder_compute_budget = new_encoder_compute_budget
+-                # Allocate for external load encoder cache
+-                if external_load_encoder_input:
+-                    for i in external_load_encoder_input:
+-                        self.encoder_cache_manager.allocate(request, i)
+-                        if self.ec_connector is not None:
+-                            self.ec_connector.update_state_after_alloc(request, i)
+-
+-            # re-queue requests skipped in this pass ahead of older skipped items.
+-            if step_skipped_waiting:
+-                self.skipped_waiting.prepend_requests(step_skipped_waiting)
++                    num_scheduled_tokens[request_id] = num_new_tokens
++                    token_budget -= num_new_tokens
++                    request.status = RequestStatus.RUNNING
++                    request.num_computed_tokens = num_computed_tokens
++                    # Encoder-related.
++                    if encoder_inputs_to_schedule:
++                        scheduled_encoder_inputs[request_id] = (
++                            encoder_inputs_to_schedule
++                        )
++                        # Allocate the encoder cache.
++                        for i in encoder_inputs_to_schedule:
++                            self.encoder_cache_manager.allocate(request, i)
++                            if self.ec_connector is not None:
++                                self.ec_connector.update_state_after_alloc(request, i)
++                        encoder_compute_budget = new_encoder_compute_budget
++                    # Allocate for external load encoder cache
++                    if external_load_encoder_input:
++                        for i in external_load_encoder_input:
++                            self.encoder_cache_manager.allocate(request, i)
++                            if self.ec_connector is not None:
++                                self.ec_connector.update_state_after_alloc(request, i)
++
++                # re-queue requests skipped in this pass ahead of older skipped items.
++                if step_skipped_waiting:
++                    self.skipped_waiting.prepend_requests(step_skipped_waiting)
+ 
+         # Check if the scheduling constraints are satisfied.
+         total_num_scheduled_tokens = sum(num_scheduled_tokens.values())
+@@ -2879,3 +2893,84 @@ class Scheduler(SchedulerInterface):
+         self.failed_recving_kv_req_ids |= async_failed_req_ids
+         # Return sync affected IDs to skip in update_from_output
+         return sync_failed_req_ids
++
++
++class _WaitingPrefixCacheGuard:
++    """Keep visible waiting prefixes alive until this admission pass finishes.
++
++    Temporary references affect eviction only; running allocation and the
++    existing admission order remain in Scheduler.schedule. Capacity takes
++    precedence over prefix retention when a protected allocation cannot fit.
++    """
++
++    def __init__(self, scheduler: Scheduler) -> None:
++        self.scheduler = scheduler
++        self.manager = scheduler.kv_cache_manager
++        self.pool = self.manager.block_pool
++        self.held: list[KVCacheBlock] = []
++        self.protected = False
++
++    def __enter__(self) -> "_WaitingPrefixCacheGuard":
++        return self
++
++    def __exit__(
++        self,
++        exc_type: type[BaseException] | None,
++        exc: BaseException | None,
++        tb: TracebackType | None,
++    ) -> None:
++        self.release()
++
++    def release(self) -> None:
++        if self.held:
++            self.pool.free_blocks(self.held)
++            self.held.clear()
++
++    def protect(self) -> None:
++        self.protected = True
++        if not self.manager.enable_caching or self.scheduler.connector is not None:
++            return
++        capacity = max(
++            0, self.scheduler.max_num_running_reqs - len(self.scheduler.running)
++        )
++        candidates = list(self.scheduler.waiting) + list(self.scheduler.skipped_waiting)
++        seen: set[int] = set()
++        coordinator = self.manager.coordinator
++        old_boundary = coordinator.shared_prefix_boundary
++        try:
++            for pending in candidates[:capacity]:
++                if (
++                    pending.status
++                    not in (RequestStatus.WAITING, RequestStatus.PREEMPTED)
++                    or pending.num_computed_tokens
++                    or pending.skip_reading_prefix_cache
++                ):
++                    continue
++                blocks, _ = coordinator.find_longest_cache_hit(
++                    pending.block_hashes, pending.num_tokens - 1
++                )
++                for group in blocks:
++                    for block in group:
++                        if block.is_null or block.block_id in seen:
++                            continue
++                        seen.add(block.block_id)
++                        old_ref = block.ref_cnt
++                        try:
++                            self.pool.touch([block])
++                        finally:
++                            # Optional metrics may raise after touch increments.
++                            if block.ref_cnt > old_ref:
++                                self.held.append(block)
++        finally:
++            coordinator.shared_prefix_boundary = old_boundary
++
++    def allocate_slots(
++        self, request: Request, *args: Any, **kwargs: Any
++    ) -> KVCacheBlocks | None:
++        if not self.protected:
++            self.protect()
++        result = self.manager.allocate_slots(request, *args, **kwargs)
++        if result is None and self.held:
++            self.release()
++            result = self.manager.allocate_slots(request, *args, **kwargs)
++        return result
+diff --git a/vllm/v1/sample/ops/topk_topp_triton.py b/vllm/v1/sample/ops/topk_topp_triton.py
+index 1f6cc5d..2bad1ac 100644
+--- a/vllm/v1/sample/ops/topk_topp_triton.py
++++ b/vllm/v1/sample/ops/topk_topp_triton.py
+@@ -19,6 +19,7 @@ from vllm.utils.platform_utils import num_compute_units
+ 
+ _TRITON_TABLE_CACHE: dict[tuple[torch.device], tuple[torch.Tensor, torch.Tensor]] = {}
+ _TRITON_BUFFER_CACHE: dict[tuple[torch.device, torch.dtype, int], torch.Tensor] = {}
++_DENSE_REFERENCE_CHUNK_SHAPES: set[tuple[torch.device, torch.dtype, int, int]] = set()
+ 
+ 
+ def _use_sm70_topk_topp_8_warps(
+@@ -1362,14 +1363,53 @@ def apply_top_k_top_p_triton(
+         # operand. Reuse one ordered row index for logits, parameters and the
+         # final scatter without changing the reference's vocabulary tie order.
+         reference_indices = reference_rows.nonzero(as_tuple=True)[0]
+-        reference_logits = apply_top_k_top_p_pytorch(
+-            original_logits.index_select(0, reference_indices),
+-            k.index_select(0, reference_indices) if k is not None else None,
+-            p.index_select(0, reference_indices) if p is not None else None,
++        shape_key = (
++            original_logits.device,
++            original_logits.dtype,
++            original_logits.shape[1],
++            reference_indices.numel(),
+         )
+-        if mask_value != float("-inf"):
+-            reference_logits.masked_fill_(torch.isneginf(reference_logits), mask_value)
+-        logits.index_copy_(0, reference_indices, reference_logits)
++        use_chunks = shape_key in _DENSE_REFERENCE_CHUNK_SHAPES
++        if not use_chunks:
++            try:
++                reference_logits = apply_top_k_top_p_pytorch(
++                    original_logits.index_select(0, reference_indices),
++                    k.index_select(0, reference_indices) if k is not None else None,
++                    p.index_select(0, reference_indices) if p is not None else None,
++                )
++            except torch.cuda.OutOfMemoryError:
++                use_chunks = True
++            # Leave the exception handler before allocating the smaller chunks,
++            # so its traceback no longer retains the failed dense operands.
++            if use_chunks:
++                _DENSE_REFERENCE_CHUNK_SHAPES.add(shape_key)
++            else:
++                if mask_value != float("-inf"):
++                    reference_logits.masked_fill_(
++                        torch.isneginf(reference_logits), mask_value
++                    )
++                logits.index_copy_(0, reference_indices, reference_logits)
++        if use_chunks:
++            # Reuse the proven two-row fallback only for a shape that failed.
++            # Padding an odd tail preserves the multi-row cumulative scan;
++            # an originally singleton reference set keeps its singleton scan.
++            for start in range(0, reference_indices.numel(), 2):
++                chunk = reference_indices[start : start + 2]
++                valid = chunk.numel()
++                if valid == 1 and reference_indices.numel() > 1:
++                    chunk = torch.cat((chunk, reference_indices[:1]))
++                reference_logits = apply_top_k_top_p_pytorch(
++                    original_logits.index_select(0, chunk),
++                    k.index_select(0, chunk) if k is not None else None,
++                    p.index_select(0, chunk) if p is not None else None,
++                    rowwise_sort=True,
++                )
++                if mask_value != float("-inf"):
++                    reference_logits.masked_fill_(
++                        torch.isneginf(reference_logits), mask_value
++                    )
++                logits.index_copy_(0, chunk[:valid], reference_logits[:valid])
++                del reference_logits
+     return logits
+ 
+ 
+diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
+index 134f3f6..d31a0c9 100644
+--- a/vllm/v1/worker/gpu_worker.py
++++ b/vllm/v1/worker/gpu_worker.py
+@@ -535,6 +535,35 @@ class Worker(WorkerBase):
+         )
+         try:
+             with warmup_allocator:
++                if (
++                    os.getenv("VLLM_SM70_ORNITH_PREFILL_PREALLOCATE", "0") == "1"
++                    and current_platform.is_cuda()
++                    and current_platform.is_device_capability(70)
++                ):
++                    # Dummy attention returns early without touching the TQ cache.
++                    # Reserve its real continuation scratch now; the persistent
++                    # warmup residual below must include it in the KV budget.
++                    before = torch.accelerator.memory_allocated(self.device)
++                    reserved_impls = 0
++                    for module in self.model_runner.model.modules():
++                        impl = getattr(module, "impl", None)
++                        reserve = getattr(
++                            impl, "_reserve_continuation_prefill_workspace", None
++                        )
++                        if reserve is not None:
++                            reserve()
++                            reserved_impls += 1
++                    if reserved_impls == 0:
++                        raise RuntimeError(
++                            "SM70 prefill preallocation found no attention workspace"
++                        )
++                    logger.info(
++                        "SM70 preallocated continuation scratch for %d attention "
++                        "implementations: %.2f MiB before KV memory profiling.",
++                        reserved_impls,
++                        (torch.accelerator.memory_allocated(self.device) - before)
++                        / 2**20,
++                    )
+                 self.model_runner.profile_run()
+         except torch.AcceleratorError:
+             stats = {}

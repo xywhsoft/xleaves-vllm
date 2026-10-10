@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "attempts": [
+    {
+      "returncode": 0,
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/cache210-source-hooks-0.log",
+      "sha256": "fb00f3a517ab206cc009774b2903716ef715cc72aef138b66d051571f7a1bb7e"
+    }
+  ],
+  "candidate_sha256": "0d0ac21791373bfb55deeaa75622d5eb7df4efea5848da04867a061f1af44632"
+}

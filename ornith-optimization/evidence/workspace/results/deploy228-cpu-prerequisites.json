@@ -1,0 +1,60 @@
+{
+  "status": "deploy228_actual_profile_reader_live_job_and_cpu_worker_gates_passed",
+  "utc": "2026-10-08T11:54:24Z",
+  "profile": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-high201-profile.json",
+  "profile_sha256": "22033477ddebbcda0ea01d8544ceb54d55167950a76afc0165c43d9fb431279d",
+  "validation": {
+    "validation": {
+      "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "minimum_full_contexts": 16,
+      "max_context_per_request": 240128,
+      "verified_files": 80,
+      "source_coverage": {
+        "changed_files": 48,
+        "unbound_source": [],
+        "mismatched_source": [],
+        "source_matches": true
+      },
+      "verified_mixed_active_sequences": 144,
+      "verified_full_contexts": 16,
+      "uncached_full_context_concurrency": 16
+    },
+    "command_locality": {
+      "enabled": false,
+      "scope": "Measured command has noNUMA binding; no workerlocality claim."
+    }
+  },
+  "reader_proof": {
+    "reader_sha256": "765e24f4c974f6eb95bd43f356866449f08baa7dfa8aacfad9ba3a932d2c48cf",
+    "cpu_proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/numa222-query-cpu-proof.json",
+    "cpu_proof_sha256": "29eb36ccd2ba941182c4923ecca822d99e18b330241982b426ccdb5b6fe2c27e"
+  },
+  "actual_live_job_rejection": "Active optimization job numa189: 847219",
+  "terminal_job_names": [
+    "workspace187",
+    "numa189",
+    "boundary200",
+    "cache210",
+    "layer216",
+    "numa223-observer",
+    "numa226-freezer"
+  ],
+  "cpu_public_identity_fixture_passed": true,
+  "rejected_cpu_worker_gates": [
+    "worker_outside_public_process_group",
+    "remote_pages_in_bound_anon",
+    "ambiguous_anonymous_pages",
+    "query_nodes_argument",
+    "query_flags"
+  ],
+  "captured_reader_observation": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/numa221-actual-anonymous-page-query.json",
+    "sha256": "4edb0a5558975ae2da46b6a0fe6ca3784f54187b2aacb25006fe03d7ab06e39b"
+  },
+  "wrapper_sha256": "3dca7fa50250d2f1f8eff0d7947c778c4955297653b01e0e213170bc6ff4ce2f",
+  "script_sha256": "a58f7b6440ca141d456e260e8042c3bef701fac656961962ed7d61362444cab3",
+  "model_requests_sent": 0,
+  "deployment_performed": false,
+  "serving_source_mutation": false,
+  "scope": "Actual qualified profile and precise reader prerequisites audited; actual birth-matched live189 job rejected. Public-worker identity/negative cases are CPU mocks over captured reader data; no actual public deployment or rollback yet."
+}

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import math
+import os
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -170,6 +171,16 @@ class TurboQuantConfig:
         Even-number is required so effective_head_size = slot_size_aligned // 2
         is integral.
         """
+        if os.getenv("VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE", "0") == "1":
+            if not (
+                self.head_dim == 256
+                and self.key_quant_bits == 4
+                and self.value_quant_bits == 4
+                and self.norm_correction
+            ):
+                raise ValueError("Cached key scale requires D256 K4/V4 with NC")
+            # Keep all 262 original bytes; align the appended FP32 multiplier.
+            return 268
         s = self.slot_size
         return s + (s % 2)  # round up to even
 

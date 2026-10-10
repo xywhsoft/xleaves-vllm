@@ -1,0 +1,800 @@
+{
+  "status": "workspace186_operator_qualified",
+  "started_utc": 1791439653.4351552,
+  "completed_utc": 1791439658.1229396,
+  "benchmark_sha256": "717e8499bd8d047fcb75bf07fde93aa237b7e8f64ed9a7fc814b03403182feb3",
+  "baseline_sha256": "05f4c8d6bd2d3182b1d3c906a025d4cefa718637031fe9332a9a7efff634a98e",
+  "candidate_sha256": "75232a5095410c3a6ec0d56c4d299f1f554e1fd95196ea10f900171ddbc990f9",
+  "native_library_sha256": "7a4890fda7ad1d5a91f30c1bd1efc02c59ab02007ccd9557ce453afcbbd475d2",
+  "dimensions": {
+    "per_gpu_query_heads": 8,
+    "per_gpu_kv_heads": 1,
+    "head_dim": 256,
+    "splits": 256,
+    "block_size": 4096,
+    "max_context": 240128,
+    "independent_full_caches": 16,
+    "max_batch": 160
+  },
+  "scope": "Actual native GQA unchanged; original and candidate real wrappers. Serialized graph replay, captured arena growth, independent CUDA stream isolation. No whole-model TPS measured and no live source mutation.",
+  "numerical_checks": [
+    {
+      "device": 0,
+      "batch": 1,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 1,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 16,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 16,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 32,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 32,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 64,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 64,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 87,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 87,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 96,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 96,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 112,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 112,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 128,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 128,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 160,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 160,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 0,
+      "batch": 16,
+      "pattern": "repeated_wrapper_call",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 1,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 1,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 16,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 16,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 32,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 32,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 64,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 64,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 87,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 87,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 96,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 96,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 112,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 112,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 128,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 128,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 160,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 160,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "finite": true
+    },
+    {
+      "device": 1,
+      "batch": 16,
+      "pattern": "repeated_wrapper_call",
+      "bitwise_equal": true,
+      "finite": true
+    }
+  ],
+  "memory_measurements": [
+    {
+      "device": 0,
+      "repeat": 0,
+      "batches": [
+        128,
+        127,
+        121,
+        112,
+        96,
+        87,
+        64,
+        32,
+        16,
+        1
+      ],
+      "retained_bytes": {
+        "baseline": 1657012224,
+        "candidate": 270532608
+      },
+      "saved_bytes": 1386479616
+    },
+    {
+      "device": 0,
+      "repeat": 1,
+      "batches": [
+        128,
+        127,
+        121,
+        112,
+        96,
+        87,
+        64,
+        32,
+        16,
+        1
+      ],
+      "retained_bytes": {
+        "baseline": 1657012224,
+        "candidate": 270532608
+      },
+      "saved_bytes": 1386479616
+    },
+    {
+      "device": 0,
+      "repeat": 2,
+      "batches": [
+        128,
+        127,
+        121,
+        112,
+        96,
+        87,
+        64,
+        32,
+        16,
+        1
+      ],
+      "retained_bytes": {
+        "baseline": 1657012224,
+        "candidate": 270532608
+      },
+      "saved_bytes": 1386479616
+    },
+    {
+      "device": 1,
+      "repeat": 0,
+      "batches": [
+        128,
+        127,
+        121,
+        112,
+        96,
+        87,
+        64,
+        32,
+        16,
+        1
+      ],
+      "retained_bytes": {
+        "baseline": 1657012224,
+        "candidate": 270532608
+      },
+      "saved_bytes": 1386479616
+    },
+    {
+      "device": 1,
+      "repeat": 1,
+      "batches": [
+        128,
+        127,
+        121,
+        112,
+        96,
+        87,
+        64,
+        32,
+        16,
+        1
+      ],
+      "retained_bytes": {
+        "baseline": 1657012224,
+        "candidate": 270532608
+      },
+      "saved_bytes": 1386479616
+    },
+    {
+      "device": 1,
+      "repeat": 2,
+      "batches": [
+        128,
+        127,
+        121,
+        112,
+        96,
+        87,
+        64,
+        32,
+        16,
+        1
+      ],
+      "retained_bytes": {
+        "baseline": 1657012224,
+        "candidate": 270532608
+      },
+      "saved_bytes": 1386479616
+    }
+  ],
+  "graph_checks": [
+    {
+      "device": 0,
+      "batch": 16,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 0,
+      "batch": 64,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 0,
+      "batch": 128,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 0,
+      "batch": 16,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 0,
+      "batch": 64,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 0,
+      "batch": 128,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 0,
+      "batch": 16,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 0,
+      "batch": 64,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 0,
+      "batch": 128,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 16,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 64,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 128,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 16,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 64,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 128,
+      "pattern": "short",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 16,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 64,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    },
+    {
+      "device": 1,
+      "batch": 128,
+      "pattern": "mixed_deep",
+      "bitwise_equal": true,
+      "survived_arena_growth_to": 160,
+      "retained_captured_capacities": [
+        128,
+        64,
+        16
+      ]
+    }
+  ],
+  "stream_checks": [
+    {
+      "device": 0,
+      "iteration": 0,
+      "streams": 2,
+      "isolated_storage": true,
+      "overlapping_submissions": true,
+      "bitwise_equal": true
+    },
+    {
+      "device": 0,
+      "iteration": 1,
+      "streams": 2,
+      "isolated_storage": true,
+      "overlapping_submissions": true,
+      "bitwise_equal": true
+    },
+    {
+      "device": 0,
+      "iteration": 2,
+      "streams": 2,
+      "isolated_storage": true,
+      "overlapping_submissions": true,
+      "bitwise_equal": true
+    },
+    {
+      "device": 1,
+      "iteration": 0,
+      "streams": 2,
+      "isolated_storage": true,
+      "overlapping_submissions": true,
+      "bitwise_equal": true
+    },
+    {
+      "device": 1,
+      "iteration": 1,
+      "streams": 2,
+      "isolated_storage": true,
+      "overlapping_submissions": true,
+      "bitwise_equal": true
+    },
+    {
+      "device": 1,
+      "iteration": 2,
+      "streams": 2,
+      "isolated_storage": true,
+      "overlapping_submissions": true,
+      "bitwise_equal": true
+    }
+  ],
+  "latency_measurements": [
+    {
+      "device": 0,
+      "batch": 16,
+      "pattern": "mixed_deep",
+      "samples_us": {
+        "baseline": [
+          995.3686396280924,
+          991.2579854329427,
+          991.3020133972168
+        ],
+        "candidate": [
+          990.0360107421875,
+          991.3866519927979,
+          990.4233614603678
+        ]
+      },
+      "medians_us": {
+        "baseline": 991.3020133972168,
+        "candidate": 990.4233614603678
+      },
+      "candidate_over_baseline": 0.9991136385027225,
+      "scope": "Paired operator GPU graph timing, not model TPS"
+    },
+    {
+      "device": 0,
+      "batch": 128,
+      "pattern": "short",
+      "samples_us": {
+        "baseline": [
+          133.2813302675883,
+          133.2306663195292,
+          133.31066568692526
+        ],
+        "candidate": [
+          133.02533825238547,
+          132.99999634424844,
+          133.18133354187012
+        ]
+      },
+      "medians_us": {
+        "baseline": 133.2813302675883,
+        "candidate": 133.02533825238547
+      },
+      "candidate_over_baseline": 0.9980793107730177,
+      "scope": "Paired operator GPU graph timing, not model TPS"
+    },
+    {
+      "device": 1,
+      "batch": 16,
+      "pattern": "mixed_deep",
+      "samples_us": {
+        "baseline": [
+          993.6652978261312,
+          989.1339937845866,
+          986.5880012512207
+        ],
+        "candidate": [
+          991.5912946065267,
+          987.0973428090414,
+          988.7406826019287
+        ]
+      },
+      "medians_us": {
+        "baseline": 989.1339937845866,
+        "candidate": 988.7406826019287
+      },
+      "candidate_over_baseline": 0.9996023681471577,
+      "scope": "Paired operator GPU graph timing, not model TPS"
+    },
+    {
+      "device": 1,
+      "batch": 128,
+      "pattern": "short",
+      "samples_us": {
+        "baseline": [
+          132.95400142669678,
+          132.86866744359335,
+          132.82866279284158
+        ],
+        "candidate": [
+          132.7393352985382,
+          132.80799984931946,
+          132.80266523361206
+        ]
+      },
+      "medians_us": {
+        "baseline": 132.86866744359335,
+        "candidate": 132.80266523361206
+      },
+      "candidate_over_baseline": 0.9995032522621685,
+      "scope": "Paired operator GPU graph timing, not model TPS"
+    }
+  ],
+  "invalid_capacity_checks": [
+    {
+      "device": 0,
+      "module": "vllm.v1.attention.ops.turboquant_sm70_gqa",
+      "raised": true
+    },
+    {
+      "device": 0,
+      "module": "workspace186_candidate",
+      "raised": true
+    },
+    {
+      "device": 1,
+      "module": "vllm.v1.attention.ops.turboquant_sm70_gqa",
+      "raised": true
+    },
+    {
+      "device": 1,
+      "module": "workspace186_candidate",
+      "raised": true
+    }
+  ]
+}

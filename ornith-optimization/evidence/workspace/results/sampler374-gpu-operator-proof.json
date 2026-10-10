@@ -1,0 +1,264 @@
+{
+  "status": "sampler374_gpu_operator_checks_passed",
+  "utc": "2026-10-08T21:59:32Z",
+  "script_sha256": "2b45a0eb86a0d3e3774ac1b120a3af0ab8dbeb6c669e6aad77bf03829645a322",
+  "pins": [
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/test_sampler373_gpu.py",
+      "sha256": "7ee48c3873903c0d3076d7ee8da9830947a7a159b454643eaa26ebc82bd4e435"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/topk_topp_adaptive370_candidate.py",
+      "sha256": "7e1e04a7af6badc8012cfbcae920495672a57d3a30b07d547adc82f8d8177c52"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler371-adaptive-cpu-bitwise-proof.json",
+      "sha256": "a00b62d937b538844b4d14850eb82e5564f5827c87fcf2cd9aed1ebaaac2e95d"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/sample/ops/topk_topp_triton.py",
+      "sha256": "35c2aa9437444104df8f23f3c1b6abe2efaa6e6909257e6a7cdebd4aeb8b3dd3"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/sample/ops/topk_topp_sampler.py",
+      "sha256": "ab2ee9e52cc229ced835e840cb90cea3a1d7ed2d927d86507b670b532a56d52f"
+    }
+  ],
+  "terminal_jobs": [
+    {
+      "job": "workspace187",
+      "pid": 825019,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa189",
+      "pid": 847219,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "boundary200",
+      "pid": 879195,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "cache210",
+      "pid": 901473,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "layer216",
+      "pid": 917416,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa223-observer",
+      "pid": 926536,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa226-freezer",
+      "pid": 931031,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "sampler260-job.json",
+      "pid": 994061,
+      "state": "missing",
+      "birth": null,
+      "descriptor_sha256": "8beb80ba4903705ab0fe9fd04ca399d98aef77b59e37558ebb15765a34ab69b0",
+      "script_sha256": "e19fdd53285788669ec97eef37922b2dc9d7b25a0579a5e1f2a515091b4c9f36"
+    }
+  ],
+  "restored_runs": [
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_high_and_full_capacity.jsonl",
+      "sha256": "44377ee0016bce6dfa015443c5dbd82478169d85b6bfa0d085c43437fac7502b",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_numa189.jsonl",
+      "sha256": "8fce772119320bd3bdf29a6d2aa3d68252f7a294cc8cc25b193a41548914d68f",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_boundary200.jsonl",
+      "sha256": "20e3473e3e7090624ecb78061f885c518cac8c4b49edba379d8a747e42bffe4b",
+      "run_passed": false
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler_guard210.jsonl",
+      "sha256": "95955ecc4738b345da217de55b00f0fb0c73d2ef7387feebc06580fb3ea1464a",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/llama_exact_layer216.jsonl",
+      "sha256": "66c751c11c69a30bc9e34758be87789983bc0b3c3b61560d198f5760e1cf4c6c",
+      "run_passed": true
+    },
+    {
+      "corrected_numa_freezes": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/numa226-frozen-qualification-results.json",
+      "sha256": "b098bfaafd1da25d96fd822be26ee15c6dc2b1ab1ff533aa530c930b2b3099fd"
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler260-gpu-operator-proof.json",
+      "sha256": "66c09944b80fe47869019296e501faf93b09505bcdcec8749c553a0d1fcd2dec",
+      "operator_status": "sampler260_gpu_operator_checks_passed",
+      "restored": {
+        "pid": 1076648,
+        "startup_s": 9.83298719394952,
+        "verification": {
+          "passed": true,
+          "slots": 16,
+          "context": 240128
+        },
+        "original_command_reused": true,
+        "api_key_preserved": true
+      }
+    }
+  ],
+  "completed": [
+    {
+      "device": 0,
+      "mode": "numeric",
+      "variant": null,
+      "force_cache": false,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler374-0-numeric-fast.json",
+      "sha256": "5b55c5d289b3c44582cc00ffe35b687b702b7bd87ef27dce3d1d145f9cfe7eea",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler374-0-numeric-fast.log",
+      "log_sha256": "bbb294d50af60dddb231d4e7a40adf4cbf3779763067f3c7de8681b804ea72c2",
+      "returncode": 0
+    },
+    {
+      "device": 0,
+      "mode": "numeric",
+      "variant": null,
+      "force_cache": true,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler374-0-numeric-cached.json",
+      "sha256": "4127c6944aa9ce95366af1037ba0d72277b1ab31b0bb4ab6c8e7d9a140a99000",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler374-0-numeric-cached.log",
+      "log_sha256": "12e068f544f71bd0e89fb167f325402469247ca5ccc2c7931344dba0746cbd41",
+      "returncode": 0
+    },
+    {
+      "device": 0,
+      "mode": "pressure",
+      "variant": "baseline",
+      "force_cache": false,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler374-0-pressure-baseline.json",
+      "sha256": "271ae5c36db9d63a5f4b4b64f58c1c36e809337ee597c478775924ced077e73e",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler374-0-pressure-baseline.log",
+      "log_sha256": "e1e433f1ff47e83c3bd050e9028e45f558b452fb1f03b8aa8f9a8e540c334e32",
+      "returncode": 0
+    },
+    {
+      "device": 0,
+      "mode": "pressure",
+      "variant": "candidate",
+      "force_cache": false,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler374-0-pressure-candidate.json",
+      "sha256": "1e36a885d68e13de98916d8d733769fe21ccff28004595b3e0ddd27fe6f25bcb",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler374-0-pressure-candidate.log",
+      "log_sha256": "19619b244b26c3fafcb05be5ef081337b7678508ea727a3e54c367838507e228",
+      "returncode": 0
+    },
+    {
+      "device": 1,
+      "mode": "numeric",
+      "variant": null,
+      "force_cache": false,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler374-1-numeric-fast.json",
+      "sha256": "a9ade17017fe61767d2432a44145787fee0c27d6dab7f42187622b1c9ea7bfe0",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler374-1-numeric-fast.log",
+      "log_sha256": "425a1daa26bbbd8c73b4f964bfe16dd55c98f815d4c5945c745defa76763c573",
+      "returncode": 0
+    },
+    {
+      "device": 1,
+      "mode": "numeric",
+      "variant": null,
+      "force_cache": true,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler374-1-numeric-cached.json",
+      "sha256": "b4e3e2da9f0e51d0f347385210771181279c576e1aa9512a9ed1e4256917313c",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler374-1-numeric-cached.log",
+      "log_sha256": "f8da8e742b5c4c96316eedc68266f4e3c92393c24c42eab67e5e33ed98728d90",
+      "returncode": 0
+    },
+    {
+      "device": 1,
+      "mode": "pressure",
+      "variant": "baseline",
+      "force_cache": false,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler374-1-pressure-baseline.json",
+      "sha256": "31502592b57a5d9ad9a49f0fddf7b0a12fcbf59ee68895e9e8c3f9f40fdbd423",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler374-1-pressure-baseline.log",
+      "log_sha256": "ff1e519ddc15c16bce808da1aa128cadbf357271557b2ced0a15806d9a89bf9c",
+      "returncode": 0
+    },
+    {
+      "device": 1,
+      "mode": "pressure",
+      "variant": "candidate",
+      "force_cache": false,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler374-1-pressure-candidate.json",
+      "sha256": "d7a079dbe384d8965a9e4cb268013526d411a8c6650dcecb3ff4d8e582e48e2f",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler374-1-pressure-candidate.log",
+      "log_sha256": "f8fdf5b087c9e72cb3d527123331d476c5c8e7a71eb3076060c6eea80695db44",
+      "returncode": 0
+    }
+  ],
+  "failure": null,
+  "job_descriptor_sha256": "c4d2175b2432319a5aa81117fa39a26583fbf45cbc9c7aa56ba0c26ee11680ac",
+  "fast_latency_ratios": [
+    {
+      "device": 0,
+      "batch": 16,
+      "ratio": 1.001085036809724
+    },
+    {
+      "device": 0,
+      "batch": 160,
+      "ratio": 0.998143470112004
+    },
+    {
+      "device": 0,
+      "batch": 176,
+      "ratio": 1.0025375521318003
+    },
+    {
+      "device": 1,
+      "batch": 16,
+      "ratio": 1.0008848143434375
+    },
+    {
+      "device": 1,
+      "batch": 160,
+      "ratio": 0.9947596345444416
+    },
+    {
+      "device": 1,
+      "batch": 176,
+      "ratio": 1.0005673047544856
+    }
+  ],
+  "restored": {
+    "pid": 1082791,
+    "startup_s": 9.888670157175511,
+    "verification": {
+      "passed": true,
+      "slots": 16,
+      "context": 240128
+    },
+    "original_command_reused": true,
+    "api_key_preserved": true
+  },
+  "source_mutation_performed": false,
+  "whole_model_qualified": false,
+  "scope": "Two V100 adaptive sampler operators: fast and forced-cache strict outputs/RNG/graph, fast median latency gate, actual first-OOM and cached pressure replay. No model TPS or whole-service capacity qualification."
+}

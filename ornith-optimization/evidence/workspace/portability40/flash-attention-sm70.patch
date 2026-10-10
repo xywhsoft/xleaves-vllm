@@ -1,0 +1,3391 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6262301..f5e2732 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -83,9 +83,11 @@ string(REPLACE "-O2" "-O3" CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_R
+ #
+ 
+ if (FA2_ENABLED)
+-    file(GLOB FA2_GEN_SRCS 
+-        "csrc/flash_attn/src/flash_fwd_split_hdim*.cu"
+-        "csrc/flash_attn/src/flash_fwd_hdim*.cu")
++    set(FA2_GEN_SRCS
++        "csrc/flash_attn/src/flash_fwd_d256_gqa_arch_sm70.cu"
++        "csrc/flash_attn/src/flash_fwd_d256_splitd_sm70.cu"
++        "csrc/flash_attn/src/flash_fwd_hdim256_causal_prefill_sm70.cu"
++        "csrc/flash_attn/src/flash_fwd_split_hdim256_causal_prefill_sm70.cu")
+ 
+     # For CUDA we set the architectures on a per file basis
+     if (VLLM_GPU_LANG STREQUAL "CUDA")
+@@ -113,7 +115,8 @@ if (FA2_ENABLED)
+         csrc/flash_attn
+         csrc/flash_attn/src
+         csrc/common
+-        csrc/cutlass/include)
++        csrc/cutlass/include
++        csrc/cutlass/examples/35_gemm_softmax)
+ 
+     # custom definitions
+     target_compile_definitions(_vllm_fa2_C PRIVATE
+@@ -124,5 +127,16 @@ if (FA2_ENABLED)
+         # FLASHATTENTION_DISABLE_UNEVEN_K
+         # FLASHATTENTION_DISABLE_LOCAL
+         FLASHATTENTION_DISABLE_PYBIND
++        PREFIX_TORCH_EXTENSION
++        PREFIX_QK_FULL_STATS
++        PREFIX_QK_SKIP_APPLY
++        QK_TB_M=128
++        QK_TB_N=512
++        QK_WARP_M=64
++        QK_WARP_N=128
++        PV_TB_M=64
++        PV_TB_N=256
++        PV_WARP_M=32
++        PV_WARP_N=64
+     )
+-endif ()
+\ No newline at end of file
++endif ()
+diff --git a/csrc/flash_attn/flash_api.cpp b/csrc/flash_attn/flash_api.cpp
+index 969e42d..57cc45d 100644
+--- a/csrc/flash_attn/flash_api.cpp
++++ b/csrc/flash_attn/flash_api.cpp
+@@ -240,17 +240,19 @@ void set_params_dgrad(Flash_bwd_params &params,
+ }
+ 
+ void run_mha_fwd(Flash_fwd_params &params, cudaStream_t stream, bool force_split_kernel=false) {
+-    HEADDIM_SWITCH(params.d, [&] {
+-        BOOL_SWITCH(params.is_causal, Is_causal, [&] {
+-            BOOL_SWITCH(params.seqlen_q >= 1024, Is_prefill, [&] {
+-                if (params.num_splits <= 1 && !force_split_kernel) {  // If we don't set it num_splits == 0
+-                    run_mha_fwd_<kHeadDim, Is_causal, Is_prefill>(params, stream);
+-                } else {
+-                    run_mha_fwd_splitkv_dispatch<kHeadDim, Is_causal, Is_prefill>(params, stream);
+-                }
+-            });
+-        });
+-    });
++    TORCH_CHECK(params.d == 256,
++                "SM70 FA2 fast path requires head_dim 256");
++    TORCH_CHECK(params.is_causal && params.seqlen_q >= 1024,
++                "SM70 FA2 fast path requires causal prefill with query length >= 1024");
++    TORCH_CHECK(params.num_splits <= 1,
++                "SM70 FA2 fast path does not support multi-split combine");
++    if (force_split_kernel) {
++        TORCH_CHECK(params.block_table != nullptr,
++                    "SM70 FA2 split kernel requires paged KV");
++        run_mha_fwd_splitkv_dispatch<256, true, true>(params, stream);
++    } else {
++        run_mha_fwd_<256, true, true>(params, stream);
++    }
+ }
+ 
+ // Find the number of splits that maximizes the occupancy. For example, if we have
+diff --git a/csrc/flash_attn/flash_api_torch_lib.cpp b/csrc/flash_attn/flash_api_torch_lib.cpp
+index f90a489..f5b71a2 100644
+--- a/csrc/flash_attn/flash_api_torch_lib.cpp
++++ b/csrc/flash_attn/flash_api_torch_lib.cpp
+@@ -14,6 +14,53 @@ namespace FLASH_NAMESPACE {
+ 
+ ////////////////////////////// From flash_api.cpp //////////////////////////////
+ 
++at::Tensor sm70_d256_splitd_dense_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    at::Tensor &out,
++    double softmax_scale,
++    bool causal);
++
++at::Tensor sm70_d256_splitd_dense_splitkv3_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    at::Tensor &partial_out,
++    at::Tensor &partial_max,
++    at::Tensor &partial_sum,
++    at::Tensor &out,
++    double softmax_scale,
++    bool causal);
++
++at::Tensor sm70_d256_splitd_dense_state_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    at::Tensor &state_max,
++    at::Tensor &state_sum,
++    at::Tensor &out,
++    double softmax_scale,
++    bool causal);
++
++at::Tensor sm70_d256_gqa_architecture_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    at::Tensor &out,
++    double softmax_scale,
++    bool causal);
++
++at::Tensor sm70_d256_splitd_paged_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    const at::Tensor &block_table,
++    at::Tensor &out,
++    int64_t kv_len,
++    double softmax_scale,
++    bool causal);
++
+ std::vector<at::Tensor>
+ mha_varlen_fwd(at::Tensor &q,  // total_q x num_heads x head_size, total_q := \sum_{i=0}^{b} s_i
+                const at::Tensor &k,  // total_k x num_heads_k x head_size, total_k := \sum_{i=0}^{b} s_i or num_blocks x page_block_size x num_heads_k x head_size if there's a block_table.
+@@ -64,6 +111,35 @@ mha_fwd_kvcache(at::Tensor &q,                 // batch_size x seqlen_q x num_he
+  *  Torch Library Registration
+  */
+ TORCH_LIBRARY_EXPAND(TORCH_EXTENSION_NAME, ops) {
++    ops.def("sm70_d256_splitd_n32_dense_fwd(Tensor q, Tensor k, Tensor v, "
++            "Tensor(a!) out, float softmax_scale, bool causal) -> Tensor(a!)");
++    ops.impl("sm70_d256_splitd_n32_dense_fwd", torch::kCUDA,
++             make_pytorch_shim(&sm70_d256_splitd_dense_fwd));
++
++    ops.def("sm70_d256_splitd_n32_dense_state_fwd(Tensor q, Tensor k, "
++            "Tensor v, Tensor(a!) state_max, Tensor(b!) state_sum, "
++            "Tensor(c!) out, float softmax_scale, bool causal) -> Tensor(c!)");
++    ops.impl("sm70_d256_splitd_n32_dense_state_fwd", torch::kCUDA,
++             make_pytorch_shim(&sm70_d256_splitd_dense_state_fwd));
++
++    ops.def("sm70_d256_gqa_architecture_fwd(Tensor q, Tensor k, Tensor v, "
++            "Tensor(a!) out, float softmax_scale, bool causal) -> Tensor(a!)");
++    ops.impl("sm70_d256_gqa_architecture_fwd", torch::kCUDA,
++             make_pytorch_shim(&sm70_d256_gqa_architecture_fwd));
++
++    ops.def("sm70_d256_splitd_n32_dense_splitkv3_fwd(Tensor q, Tensor k, "
++            "Tensor v, Tensor(a!) partial_out, Tensor(b!) partial_max, "
++            "Tensor(c!) partial_sum, Tensor(d!) out, float softmax_scale, "
++            "bool causal) -> Tensor(d!)");
++    ops.impl("sm70_d256_splitd_n32_dense_splitkv3_fwd", torch::kCUDA,
++             make_pytorch_shim(&sm70_d256_splitd_dense_splitkv3_fwd));
++
++    ops.def("sm70_d256_splitd_n32_paged_fwd(Tensor q, Tensor k, Tensor v, "
++            "Tensor block_table, Tensor(a!) out, int kv_len, float softmax_scale, "
++            "bool causal) -> Tensor(a!)");
++    ops.impl("sm70_d256_splitd_n32_paged_fwd", torch::kCUDA,
++             make_pytorch_shim(&sm70_d256_splitd_paged_fwd));
++
+     ops.def("varlen_fwd(Tensor! q, Tensor k, Tensor v, Tensor!? out, Tensor cu_seqlens_q, "
+             "Tensor cu_seqlens_k, Tensor? seqused_k, Tensor? leftpad_k, Tensor? block_table, Tensor? alibi_slopes, "
+             "int max_seqlen_q, int max_seqlen_k, float p_dropout, float softmax_scale, bool zero_tensors, "
+@@ -80,4 +156,4 @@ TORCH_LIBRARY_EXPAND(TORCH_EXTENSION_NAME, ops) {
+ 
+ REGISTER_EXTENSION(TORCH_EXTENSION_NAME);
+ 
+-} // namespace FLASH_NAMESPACE
+\ No newline at end of file
++} // namespace FLASH_NAMESPACE
+diff --git a/csrc/flash_attn/src/flash_fwd_kernel.h b/csrc/flash_attn/src/flash_fwd_kernel.h
+index 9a8fe5d..5317fc5 100644
+--- a/csrc/flash_attn/src/flash_fwd_kernel.h
++++ b/csrc/flash_attn/src/flash_fwd_kernel.h
+@@ -174,8 +174,11 @@ inline __device__ void compute_attn_1rowblock(const Params &params, const int bi
+                             typename Kernel_traits::SmemLayoutQ{});
+     Tensor sK = make_tensor(sQ.data() + size(sQ), typename Kernel_traits::SmemLayoutKV{});
+     Tensor sV = make_tensor(sK.data() + size(sK), typename Kernel_traits::SmemLayoutKV{});
++    Tensor sK_next = make_tensor(sV.data() + size(sV), typename Kernel_traits::SmemLayoutKV{});
++    Tensor sV_next = make_tensor(sK_next.data() + size(sK_next), typename Kernel_traits::SmemLayoutKV{});
+     Tensor sVt = make_tensor(sV.data(), typename Kernel_traits::SmemLayoutVtransposed{});
+     Tensor sVtNoSwizzle = make_tensor(sV.data().get(), typename Kernel_traits::SmemLayoutVtransposedNoSwizzle{});
++    Tensor sVt_next = make_tensor(sV_next.data(), typename Kernel_traits::SmemLayoutVtransposed{});
+     Tensor sQ_warp = local_tile(sQ, Shape<Int<kWarpRows>, Int<kHeadDim>>{},
+                                 make_coord(mma_group_id, 0));
+     Tensor p_layout_tensor = make_tensor(
+@@ -194,8 +197,12 @@ inline __device__ void compute_attn_1rowblock(const Params &params, const int bi
+     Tensor tQsQ = gmem_thr_copy_QKV.partition_D(sQ);
+     Tensor tKgK = gmem_thr_copy_QKV.partition_S(gK);  // (KCPY, KCPY_N, KCPY_K, nblocksN)
+     Tensor tKsK = gmem_thr_copy_QKV.partition_D(sK);
++    Tensor tKsK_next = gmem_thr_copy_QKV.partition_D(sK_next);
+     Tensor tVgV = gmem_thr_copy_QKV.partition_S(gV);  // (VCPY, VCPY_N, VCPY_K, nblocksN)
+     Tensor tVsV = gmem_thr_copy_QKV.partition_D(sV);
++    Tensor tVsV_next = gmem_thr_copy_QKV.partition_D(sV_next);
++    Tensor tVrV = make_fragment_like(tVsV);
++    Tensor tKrK = make_fragment_like(tKsK);
+ 
+     typename Kernel_traits::TiledMma tiled_mma;
+     auto thr_mma = tiled_mma.get_thread_slice(mma_thread_id);
+@@ -203,8 +210,10 @@ inline __device__ void compute_attn_1rowblock(const Params &params, const int bi
+     Tensor tSrK  = thr_mma.partition_fragment_B(sK);                        // (MMA,MMA_N,MMA_K)
+     Tensor tOsQ  = thr_mma.partition_A(sQ_warp);                            // (MMA,MMA_M,MMA_K)
+     Tensor tOsK  = thr_mma.partition_B(sK);                                 // (MMA,MMA_N,MMA_K)
++    Tensor tOsK_next = thr_mma.partition_B(sK_next);                         // (MMA,MMA_N,MMA_K)
+     Tensor tOrVt  = thr_mma.partition_fragment_B(sVtNoSwizzle);             // (MMA, MMA_K,MMA_N)
+     Tensor tOsVtWarp = thr_mma.partition_B(sVt);                            // (MMA, MMA_K,MMA_N)
++    Tensor tOsVtWarp_next = thr_mma.partition_B(sVt_next);                  // (MMA, MMA_K,MMA_N)
+ 
+     Tensor tSgS  = thr_mma.partition_C(gP_warp);
+ 
+@@ -223,10 +232,12 @@ inline __device__ void compute_attn_1rowblock(const Params &params, const int bi
+     auto smem_tiled_copy_K = make_tiled_copy_B(typename Kernel_traits::SmemCopyAtom{}, tiled_mma);
+     auto smem_thr_copy_K = smem_tiled_copy_K.get_thread_slice(mma_thread_id);
+     Tensor tSsK = smem_thr_copy_K.retile_S(tOsK);
++    Tensor tSsK_next = smem_thr_copy_K.retile_S(tOsK_next);
+ 
+     auto smem_tiled_copy_V = make_tiled_copy_B(typename Kernel_traits::SmemCopyAtomTransposed{}, tiled_mma);
+     auto smem_thr_copy_V = smem_tiled_copy_V.get_thread_slice(mma_thread_id);
+     Tensor tOsVt = smem_thr_copy_V.retile_S(tOsVtWarp);
++    Tensor tOsVt_next = smem_thr_copy_V.retile_S(tOsVtWarp_next);
+ 
+     //
+     // PREDICATES
+@@ -359,24 +370,47 @@ inline __device__ void compute_attn_1rowblock(const Params &params, const int bi
+         }
+     }
+ 
++    int pipeline_stage = 0;
++    if (n_block >= n_block_min) {
++        __syncthreads();
++        FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(
++            gmem_tiled_copy_QKV, tVgV(_, _, _, n_block), tVsV, tKVcKV, tKVpKV
++        );
++        __syncthreads();
++    }
++
+     // These are the iterations where we don't need masking on S
+     for (; n_block >= n_block_min; --n_block) {
+         Tensor acc_s = partition_fragment_C(tiled_mma, Shape<Int<kWarpRows>, Int<kBlockN>>{});  // (MMA=4, MMA_M, MMA_N)
+         clear(acc_s);
+-        __syncthreads();
+-        FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(gmem_tiled_copy_QKV, tVgV(_, _, _, n_block), tVsV, tKVcKV, tKVpKV);
++        if (n_block > n_block_min) {
++            FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(gmem_tiled_copy_QKV, tKgK(_, _, _, n_block - 1), tKrK, tKVcKV, tKVpKV);
++            FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(gmem_tiled_copy_QKV, tVgV(_, _, _, n_block - 1), tVrV, tKVcKV, tKVpKV);
++        }
+ 
+-        FLASH_NAMESPACE::gemm</*A_in_regs=*/false>(
+-            acc_s, tSrQ, tSrK, tSsQ, tSsK, tiled_mma, smem_tiled_copy_Q, smem_tiled_copy_K,
+-            smem_thr_copy_Q, smem_thr_copy_K
+-        );
++        if (pipeline_stage == 0) {
++            FLASH_NAMESPACE::gemm</*A_in_regs=*/false>(
++                acc_s, tSrQ, tSrK, tSsQ, tSsK, tiled_mma, smem_tiled_copy_Q, smem_tiled_copy_K,
++                smem_thr_copy_Q, smem_thr_copy_K
++            );
++        } else {
++            FLASH_NAMESPACE::gemm</*A_in_regs=*/false>(
++                acc_s, tSrQ, tSrK, tSsQ, tSsK_next, tiled_mma, smem_tiled_copy_Q, smem_tiled_copy_K,
++                smem_thr_copy_Q, smem_thr_copy_K
++            );
++        }
+         if constexpr (Is_softcap){
+             FLASH_NAMESPACE::apply_softcap(acc_s, params.softcap);
+         }
+ 
+-        __syncthreads();
+         if (n_block > n_block_min) {
+-            FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(gmem_tiled_copy_QKV, tKgK(_, _, _, n_block - 1), tKsK, tKVcKV, tKVpKV);
++            if (pipeline_stage == 0) {
++                cute::copy(tKrK, tKsK_next);
++                cute::copy(tVrV, tVsV_next);
++            } else {
++                cute::copy(tKrK, tKsK);
++                cute::copy(tVrV, tVsV);
++            }
+         }
+         
+         mask.template apply_mask</*Causal_mask=*/false>(
+@@ -405,7 +439,15 @@ inline __device__ void compute_attn_1rowblock(const Params &params, const int bi
+         auto tOrP = FLASH_NAMESPACE::convert_layout_C_to_A_v2<Kernel_traits>(
+             thr_mma, p_layout_warp, rP, smem_thr_copy_Q, lane_id
+         );
+-        FLASH_NAMESPACE::gemm_rs(acc_o, tOrP, tOrVt, tOsVt, tiled_mma, smem_tiled_copy_V, smem_thr_copy_V);
++        if (pipeline_stage == 0) {
++            FLASH_NAMESPACE::gemm_rs(acc_o, tOrP, tOrVt, tOsVt, tiled_mma, smem_tiled_copy_V, smem_thr_copy_V);
++        } else {
++            FLASH_NAMESPACE::gemm_rs(acc_o, tOrP, tOrVt, tOsVt_next, tiled_mma, smem_tiled_copy_V, smem_thr_copy_V);
++        }
++        if (n_block > n_block_min) {
++            __syncthreads();
++            pipeline_stage ^= 1;
++        }
+     }
+ 
+     // Epilogue
+@@ -607,8 +649,11 @@ inline __device__ void compute_attn_1rowblock_splitkv(const Params &params, cons
+                             typename Kernel_traits::SmemLayoutQ{});
+     Tensor sK = make_tensor(sQ.data() + size(sQ), typename Kernel_traits::SmemLayoutKV{});
+     Tensor sV = make_tensor(sK.data() + size(sK), typename Kernel_traits::SmemLayoutKV{});
++    Tensor sK_next = make_tensor(sV.data() + size(sV), typename Kernel_traits::SmemLayoutKV{});
++    Tensor sV_next = make_tensor(sK_next.data() + size(sK_next), typename Kernel_traits::SmemLayoutKV{});
+     Tensor sVt = make_tensor(sV.data(), typename Kernel_traits::SmemLayoutVtransposed{});
+     Tensor sVtNoSwizzle = make_tensor(sV.data().get(), typename Kernel_traits::SmemLayoutVtransposedNoSwizzle{});
++    Tensor sVt_next = make_tensor(sV_next.data(), typename Kernel_traits::SmemLayoutVtransposed{});
+     Tensor sQ_warp = local_tile(sQ, Shape<Int<kWarpRows>, Int<kHeadDim>>{},
+                                 make_coord(mma_group_id, 0));
+     Tensor p_layout_tensor = make_tensor(
+@@ -628,13 +673,19 @@ inline __device__ void compute_attn_1rowblock_splitkv(const Params &params, cons
+ 
+     Tensor tKgK_ = gmem_thr_copy_KV.partition_S(gK);  // (KCPY, KCPY_N, KCPY_K)
+     Tensor tKsK_ = gmem_thr_copy_KV.partition_D(sK);
++    Tensor tKsK_next_ = gmem_thr_copy_KV.partition_D(sK_next);
+     Tensor tVgV_ = gmem_thr_copy_KV.partition_S(gV);  // (VCPY, VCPY_N, VCPY_K)
+     Tensor tVsV_ = gmem_thr_copy_KV.partition_D(sV);
++    Tensor tVsV_next_ = gmem_thr_copy_KV.partition_D(sV_next);
+ 
+     Tensor tKgK = make_tensor(tKgK_.data(), reshape_thread_tile(tKgK_.layout()));
+     Tensor tKsK = make_tensor(tKsK_.data(), reshape_thread_tile(tKsK_.layout()));
++    Tensor tKsK_next = make_tensor(tKsK_next_.data(), reshape_thread_tile(tKsK_next_.layout()));
+     Tensor tVgV = make_tensor(tVgV_.data(), reshape_thread_tile(tVgV_.layout()));
+     Tensor tVsV = make_tensor(tVsV_.data(), reshape_thread_tile(tVsV_.layout()));
++    Tensor tVsV_next = make_tensor(tVsV_next_.data(), reshape_thread_tile(tVsV_next_.layout()));
++    Tensor tKrK = make_fragment_like(tKsK);
++    Tensor tVrV = make_fragment_like(tVsV);
+ 
+     if (block_table != nullptr) {
+         auto final_block_size = binfo.actual_seqlen_k - (n_block_max - 1) * kBlockN;
+@@ -650,8 +701,10 @@ inline __device__ void compute_attn_1rowblock_splitkv(const Params &params, cons
+     Tensor tSrK  = thr_mma.partition_fragment_B(sK);                        // (MMA,MMA_N,MMA_K)
+     Tensor tOsQ  = thr_mma.partition_A(sQ_warp);                            // (MMA,MMA_M,MMA_K)
+     Tensor tOsK  = thr_mma.partition_B(sK);                                 // (MMA,MMA_N,MMA_K)
++    Tensor tOsK_next = thr_mma.partition_B(sK_next);                         // (MMA,MMA_N,MMA_K)
+     Tensor tOrVt  = thr_mma.partition_fragment_B(sVtNoSwizzle);             // (MMA, MMA_K,MMA_N)
+     Tensor tOsVtWarp = thr_mma.partition_B(sVt);                            // (MMA, MMA_K,MMA_N)
++    Tensor tOsVtWarp_next = thr_mma.partition_B(sVt_next);                  // (MMA, MMA_K,MMA_N)
+ 
+     Tensor acc_o = partition_fragment_C(tiled_mma, Shape<Int<kWarpRows>, Int<kHeadDim>>{});  // MMA, MMA_M, MMA_K
+     Tensor caccO = make_identity_tensor(Shape<Int<kWarpRows>, Int<kHeadDim>>{});                 // (BLK_M, BLK_K) -> (row, col)
+@@ -668,10 +721,12 @@ inline __device__ void compute_attn_1rowblock_splitkv(const Params &params, cons
+     auto smem_tiled_copy_K = make_tiled_copy_B(typename Kernel_traits::SmemCopyAtom{}, tiled_mma);
+     auto smem_thr_copy_K = smem_tiled_copy_K.get_thread_slice(mma_thread_id);
+     Tensor tSsK = smem_thr_copy_K.retile_S(tOsK);
++    Tensor tSsK_next = smem_thr_copy_K.retile_S(tOsK_next);
+ 
+     auto smem_tiled_copy_V = make_tiled_copy_B(typename Kernel_traits::SmemCopyAtomTransposed{}, tiled_mma);
+     auto smem_thr_copy_V = smem_tiled_copy_V.get_thread_slice(mma_thread_id);
+     Tensor tOsVt = smem_thr_copy_V.retile_S(tOsVtWarp);
++    Tensor tOsVt_next = smem_thr_copy_V.retile_S(tOsVtWarp_next);
+ 
+     // PREDICATES
+     //
+@@ -954,39 +1009,72 @@ inline __device__ void compute_attn_1rowblock_splitkv(const Params &params, cons
+         }
+     }
+ 
+-    // These are the iterations where we don't need masking on S
+-    for (; n_block >= n_block_min; --n_block) {
+-        Tensor acc_s = partition_fragment_C(tiled_mma, Shape<Int<kWarpRows>, Int<kBlockN>>{});  // (MMA=4, MMA_M, MMA_N)
+-        clear(acc_s);
++    int pipeline_stage = 0;
++    if (n_block >= n_block_min) {
+         __syncthreads();
+-        // Advance gV
+         if (block_table == nullptr) {
+-            tVgV.data() = tVgV.data() + (-int(kBlockN * params.v_row_stride));
++            tVgV.data() = gV.data() +
++                (n_block - (n_block_max - 1)) * kBlockN * params.v_row_stride;
+         } else {
+-            tVgV.data() = gV.data() + flash::resolve_thread_kv_page_slice_offset<Kernel_traits>(tidx, n_block, params.page_block_size,
+-                block_table, params.v_batch_stride, params.v_row_stride);
++            tVgV.data() = gV.data() +
++                flash::resolve_thread_kv_page_slice_offset<Kernel_traits>(
++                    tidx, n_block, params.page_block_size, block_table,
++                    params.v_batch_stride, params.v_row_stride);
+         }
++        FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(
++            gmem_tiled_copy_KV, tVgV, tVsV, tKVcKV, tKVpKV);
++        __syncthreads();
++    }
+ 
+-        FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(gmem_tiled_copy_KV, tVgV, tVsV, tKVcKV, tKVpKV);
++    // Unmasked iterations software-pipeline page lookup and K/V loads with HMMA.
++    for (; n_block >= n_block_min; --n_block) {
++        Tensor acc_s = partition_fragment_C(tiled_mma, Shape<Int<kWarpRows>, Int<kBlockN>>{});  // (MMA=4, MMA_M, MMA_N)
++        clear(acc_s);
++        if (n_block > n_block_min) {
++            if (block_table == nullptr) {
++                tKgK.data() = gK.data() +
++                    (n_block - 1 - (n_block_max - 1)) * kBlockN * params.k_row_stride;
++                tVgV.data() = gV.data() +
++                    (n_block - 1 - (n_block_max - 1)) * kBlockN * params.v_row_stride;
++            } else {
++                tKgK.data() = gK.data() +
++                    flash::resolve_thread_kv_page_slice_offset<Kernel_traits>(
++                        tidx, n_block - 1, params.page_block_size, block_table,
++                        params.k_batch_stride, params.k_row_stride);
++                tVgV.data() = gV.data() +
++                    flash::resolve_thread_kv_page_slice_offset<Kernel_traits>(
++                        tidx, n_block - 1, params.page_block_size, block_table,
++                        params.v_batch_stride, params.v_row_stride);
++            }
++            FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(
++                gmem_tiled_copy_KV, tKgK, tKrK, tKVcKV, tKVpKV);
++            FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(
++                gmem_tiled_copy_KV, tVgV, tVrV, tKVcKV, tKVpKV);
++        }
+ 
+-        FLASH_NAMESPACE::gemm(
+-            acc_s, tSrQ, tSrK, tSsQ, tSsK, tiled_mma, smem_tiled_copy_Q, smem_tiled_copy_K,
+-            smem_thr_copy_Q, smem_thr_copy_K
+-        );
++        if (pipeline_stage == 0) {
++            FLASH_NAMESPACE::gemm</*A_in_regs=*/false>(
++                acc_s, tSrQ, tSrK, tSsQ, tSsK, tiled_mma,
++                smem_tiled_copy_Q, smem_tiled_copy_K,
++                smem_thr_copy_Q, smem_thr_copy_K);
++        } else {
++            FLASH_NAMESPACE::gemm</*A_in_regs=*/false>(
++                acc_s, tSrQ, tSrK, tSsQ, tSsK_next, tiled_mma,
++                smem_tiled_copy_Q, smem_tiled_copy_K,
++                smem_thr_copy_Q, smem_thr_copy_K);
++        }
+         if constexpr (Is_softcap){
+             FLASH_NAMESPACE::apply_softcap(acc_s, params.softcap);
+         }
+ 
+-        __syncthreads();
+         if (n_block > n_block_min) {
+-            // Advance gK
+-            if (block_table == nullptr) {
+-                tKgK.data() = tKgK.data() + (-int(kBlockN * params.k_row_stride));
++            if (pipeline_stage == 0) {
++                cute::copy(tKrK, tKsK_next);
++                cute::copy(tVrV, tVsV_next);
+             } else {
+-                tKgK.data() = gK.data() + flash::resolve_thread_kv_page_slice_offset<Kernel_traits>(tidx, n_block - 1, params.page_block_size,
+-                    block_table, params.k_batch_stride, params.k_row_stride);
++                cute::copy(tKrK, tKsK);
++                cute::copy(tVrV, tVsV);
+             }
+-            FLASH_NAMESPACE::copy</*Is_even_MN=*/true, Is_even_K>(gmem_tiled_copy_KV, tKgK, tKsK, tKVcKV, tKVpKV);
+         }
+ 
+         mask.template apply_mask</*Causal_mask=*/false>(
+@@ -1001,7 +1089,19 @@ inline __device__ void compute_attn_1rowblock_splitkv(const Params &params, cons
+         auto tOrP = FLASH_NAMESPACE::convert_layout_C_to_A_v2<Kernel_traits>(
+             thr_mma, p_layout_warp, rP, smem_thr_copy_Q, lane_id
+         );
+-        FLASH_NAMESPACE::gemm_rs(acc_o, tOrP, tOrVt, tOsVt, tiled_mma, smem_tiled_copy_V, smem_thr_copy_V);
++        if (pipeline_stage == 0) {
++            FLASH_NAMESPACE::gemm_rs(
++                acc_o, tOrP, tOrVt, tOsVt, tiled_mma,
++                smem_tiled_copy_V, smem_thr_copy_V);
++        } else {
++            FLASH_NAMESPACE::gemm_rs(
++                acc_o, tOrP, tOrVt, tOsVt_next, tiled_mma,
++                smem_tiled_copy_V, smem_thr_copy_V);
++        }
++        if (n_block > n_block_min) {
++            __syncthreads();
++            pipeline_stage ^= 1;
++        }
+     }
+ 
+     // Epilogue
+diff --git a/csrc/flash_attn/src/flash_fwd_launch_template.h b/csrc/flash_attn/src/flash_fwd_launch_template.h
+index bc12622..ae94a62 100644
+--- a/csrc/flash_attn/src/flash_fwd_launch_template.h
++++ b/csrc/flash_attn/src/flash_fwd_launch_template.h
+@@ -79,30 +79,20 @@ void run_flash_splitkv_fwd(Flash_fwd_params &params, cudaStream_t stream) {
+     dim3 grid(num_m_block, params.num_splits > 1 ? params.num_splits : params.b, params.num_splits > 1 ? params.b * params.h : params.h);
+     const bool is_even_MN = params.cu_seqlens_q == nullptr && params.cu_seqlens_k == nullptr && params.seqlen_k % Kernel_traits::kBlockN == 0 && params.seqlen_q % Kernel_traits::kBlockM == 0;
+     const bool is_even_K = params.d == Kernel_traits::kHeadDim;
+-    BOOL_SWITCH(is_even_MN, IsEvenMNConst, [&] {
+-        EVENK_SWITCH(is_even_K, IsEvenKConst, [&] {
+-            LOCAL_SWITCH((params.window_size_left >= 0 || params.window_size_right >= 0) && !Is_causal, Is_local, [&] {
+-                BOOL_SWITCH(params.num_splits > 1, Split, [&] {
+-                    BOOL_SWITCH(params.knew_ptr != nullptr, Append_KV, [&] {
+-                        ALIBI_SWITCH(params.alibi_slopes_ptr != nullptr, Has_alibi, [&] {
+-                            SOFTCAP_SWITCH(params.softcap > 0.0, Is_softcap, [&] {
+-                                // If Append_KV, then we must have seqlen_offsets, which means cu_seqlens_k != nullptr.
+-                                // If not IsEvenKConst, we also set IsEvenMNConst to false to reduce number of templates.
+-                                // If Is_local, set Is_causal to false
+-                                auto kernel = &flash_fwd_splitkv_kernel<Kernel_traits, Is_causal, Is_local && !Is_causal, Has_alibi, IsEvenMNConst && !Append_KV && IsEvenKConst && !Is_local && !Has_alibi && Kernel_traits::kHeadDim <= 128, IsEvenKConst && !Has_alibi, Is_softcap, Split, Append_KV>;
+-                                if (smem_size >= 48 * 1024) {
+-                                    C10_CUDA_CHECK(cudaFuncSetAttribute(
+-                                        kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size));
+-                                }
+-                                kernel<<<grid, Kernel_traits::kNThreads, smem_size, stream>>>(params);
+-                                C10_CUDA_KERNEL_LAUNCH_CHECK();
+-                            });
+-                        });
+-                    });
+-                });
+-            });
+-        });
+-    });
++    TORCH_CHECK(!is_even_MN && is_even_K && params.num_splits <= 1,
++                "SM70 FA2 paged path expects varlen D256 without split combine");
++    TORCH_CHECK(params.knew_ptr == nullptr && params.alibi_slopes_ptr == nullptr
++                && params.softcap <= 0.0f && params.is_causal
++                && params.window_size_right == 0,
++                "SM70 FA2 paged path received an unsupported feature");
++    auto kernel = &flash_fwd_splitkv_kernel<Kernel_traits, Is_causal,
++        false, false, false, true, false, false, false>;
++    if (smem_size >= 48 * 1024) {
++        C10_CUDA_CHECK(cudaFuncSetAttribute(
++            kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size));
++    }
++    kernel<<<grid, Kernel_traits::kNThreads, smem_size, stream>>>(params);
++    C10_CUDA_KERNEL_LAUNCH_CHECK();
+     if (params.num_splits > 1) {
+         // Keep kBlockM as small as possible for more parallelism while still aligning
+         // the combine CTA's per-thread vectorized loads with the head dimension.
+@@ -133,7 +123,7 @@ template<int Headdim, bool Is_causal, bool Is_prefill>
+ void run_mha_fwd_splitkv_dispatch(Flash_fwd_params &params, cudaStream_t stream) {
+     if constexpr (Is_prefill) {
+         constexpr static int kBlockM = Headdim <= 128 ? 128 : 64;
+-        constexpr static int kBlockN = 64;
++        constexpr static int kBlockN = Headdim <= 128 ? 64 : 32;
+         run_flash_splitkv_fwd<Flash_fwd_kernel_traits<Headdim, kBlockM, kBlockN, 8>, Is_causal>(params, stream);
+     } else {
+         constexpr static int kBlockM = Headdim <= 128 ? 64 : (Headdim <= 192 ? (Is_causal ? 64 : 32) : 32);
+@@ -251,7 +241,7 @@ void run_mha_fwd_hdim256(Flash_fwd_params &params, cudaStream_t stream) {
+     constexpr static int Headdim = 256;
+     DROPOUT_SWITCH(params.p_dropout < 1.f, Is_dropout, [&] {
+         if constexpr(Is_prefill) {
+-            run_flash_fwd<Flash_fwd_kernel_traits<Headdim, 64, 64, 8>, Is_dropout, Is_causal>(params, stream);
++            run_flash_fwd<Flash_fwd_kernel_traits<Headdim, 64, 32, 8>, Is_dropout, Is_causal>(params, stream);
+         } else {
+             run_flash_fwd<Flash_fwd_kernel_traits<Headdim, 32, 64, 4>, Is_dropout, Is_causal>(params, stream);
+         }
+diff --git a/csrc/flash_attn/src/kernel_traits.h b/csrc/flash_attn/src/kernel_traits.h
+index 64b2108..2b27818 100644
+--- a/csrc/flash_attn/src/kernel_traits.h
++++ b/csrc/flash_attn/src/kernel_traits.h
+@@ -101,8 +101,8 @@ struct Flash_fwd_kernel_traits  {
+     using ElementAccum = float;
+     using index_t = int64_t;
+     using MMA_Atom_Arch = MMA_Atom<SM70_8x8x4_F32F16F16F32_TN>;
+-    using SmemCopyAtom = Copy_Atom<DefaultCopy, Element>;
+-    using SmemCopyAtomTransposed = Copy_Atom<DefaultCopy, Element>;
++    using SmemCopyAtom = Copy_Atom<AutoVectorizingCopyWithAssumedAlignment<128>, Element>;
++    using SmemCopyAtomTransposed = Copy_Atom<AutoVectorizingCopyWithAssumedAlignment<128>, Element>;
+ 
+     // The number of threads.
+     static constexpr int kNWarps = kNWarps_;
+@@ -169,7 +169,7 @@ struct Flash_fwd_kernel_traits  {
+     using SmemCopyAtomOaccum = Copy_Atom<AutoVectorizingCopyWithAssumedAlignment<128>, ElementAccum>;
+ 
+     static constexpr int kSmemQSize = size(SmemLayoutQ{}) * sizeof(Element);
+-    static constexpr int kSmemKVSize = size(SmemLayoutKV{}) * 2 * sizeof(Element);
++    static constexpr int kSmemKVSize = size(SmemLayoutKV{}) * 4 * sizeof(Element);
+     static constexpr int kSmemPSize = size(SmemLayoutP{}) * sizeof(Element);
+     static constexpr int kSmemSize = kSmemQSize + kSmemKVSize;
+     static_assert(kSmemSize <= 96 * 1024, "kSmemSize must fit within the 96KB shared memory limit on SM70");
+diff --git a/csrc/flash_attn/src/flash_fwd_d256_gqa_arch_sm70.cu b/csrc/flash_attn/src/flash_fwd_d256_gqa_arch_sm70.cu
+new file mode 100644
+index 0000000..a0fa2cc
+--- /dev/null
++++ b/csrc/flash_attn/src/flash_fwd_d256_gqa_arch_sm70.cu
+@@ -0,0 +1,1359 @@
++// SPDX-License-Identifier: BSD-3-Clause
++
++/***************************************************************************************************
++ * End-to-end prefix architecture screen for V100/SM70.
++ *
++ * QK GEMM writes FP16 logits and row statistics. PV normalizes logits in its
++ * A-operand transform and writes one reusable FP16 block partial. A float
++ * online accumulator folds that partial into prefix softmax state before the
++ * next block, avoiding resident storage for every block partial.
++ **************************************************************************************************/
++
++#include <cuda_fp16.h>
++#include <cuda_runtime.h>
++#include <math_constants.h>
++
++#include <algorithm>
++#include <cmath>
++#include <cstdint>
++#include <cstdlib>
++#include <dlfcn.h>
++#include <iostream>
++#include <map>
++#include <memory>
++#include <mutex>
++#include <vector>
++
++#if defined(PREFIX_TORCH_EXTENSION)
++#include <ATen/ATen.h>
++#include <ATen/cuda/CUDAContext.h>
++#include <c10/cuda/CUDAGuard.h>
++#include <c10/cuda/CUDAException.h>
++#include "namespace_config.h"
++#endif
++
++#include "cutlass/cutlass.h"
++#include "cutlass/device_kernel.h"
++#include "cutlass/epilogue/thread/linear_combination.h"
++#include "cutlass/gemm/kernel/default_gemm.h"
++#include "cutlass/gemm/kernel/gemm.h"
++#include "cutlass/gemm/threadblock/mma_pipelined.h"
++#include "cutlass/layout/matrix.h"
++#include "cutlass/numeric_conversion.h"
++#include "gemm_with_softmax.h"
++
++namespace {
++
++using Element = cutlass::half_t;
++
++#ifndef QK_TB_M
++#define QK_TB_M 128
++#endif
++#ifndef QK_TB_N
++#define QK_TB_N 128
++#endif
++#ifndef QK_WARP_M
++#define QK_WARP_M 32
++#endif
++#ifndef QK_WARP_N
++#define QK_WARP_N 64
++#endif
++
++using QKLayoutA = cutlass::layout::RowMajor;
++using QKLayoutB = cutlass::layout::ColumnMajor;
++using QKThreadblockShape = cutlass::gemm::GemmShape<QK_TB_M, QK_TB_N, 32>;
++using QKWarpShape = cutlass::gemm::GemmShape<QK_WARP_M, QK_WARP_N, 32>;
++using QKInstructionShape = cutlass::gemm::GemmShape<8, 8, 4>;
++using QKOutputOp = cutlass::epilogue::thread::LinearCombination<
++    Element, 8, Element, Element>;
++using QKGemm = cutlass::GemmSoftmax<
++    Element,
++    QKLayoutA,
++    Element,
++    QKLayoutB,
++    Element,
++    Element,
++    cutlass::arch::OpClassTensorOp,
++    cutlass::arch::Sm70,
++    QKThreadblockShape,
++    QKWarpShape,
++    QKInstructionShape,
++    QKOutputOp,
++    2,
++    cutlass::MatrixShape<1, 1024>>;
++
++#ifndef PV_TB_M
++#define PV_TB_M 64
++#endif
++#ifndef PV_TB_N
++#define PV_TB_N 128
++#endif
++#ifndef PV_WARP_M
++#define PV_WARP_M 32
++#endif
++#ifndef PV_WARP_N
++#define PV_WARP_N 64
++#endif
++
++using PVLayout = cutlass::layout::RowMajor;
++using PVAccumulator = Element;
++using PVThreadblockShape = cutlass::gemm::GemmShape<PV_TB_M, PV_TB_N, 32>;
++using PVWarpShape = cutlass::gemm::GemmShape<PV_WARP_M, PV_WARP_N, 32>;
++using PVInstructionShape = cutlass::gemm::GemmShape<8, 8, 4>;
++using PVSwizzle = cutlass::gemm::threadblock::GemmIdentityThreadblockSwizzle<>;
++using PVOutputOp = cutlass::epilogue::thread::LinearCombination<
++    Element, 8, PVAccumulator, float>;
++
++constexpr int kPVAlignment = 8;
++
++using PVDefaultKernel = typename cutlass::gemm::kernel::DefaultGemm<
++    Element,
++    PVLayout,
++    kPVAlignment,
++    Element,
++    PVLayout,
++    kPVAlignment,
++    Element,
++    PVLayout,
++    PVAccumulator,
++    cutlass::arch::OpClassTensorOp,
++    cutlass::arch::Sm70,
++    PVThreadblockShape,
++    PVWarpShape,
++    PVInstructionShape,
++    PVOutputOp,
++    PVSwizzle,
++    2,
++    false,
++    cutlass::arch::OpMultiplyAdd>::GemmKernel;
++
++using PVDefaultMma = typename PVDefaultKernel::Mma;
++using PVIteratorA = typename PVDefaultMma::IteratorA;
++using PVIteratorB = typename PVDefaultMma::IteratorB;
++using PVSmemIteratorA = typename PVDefaultMma::SmemIteratorA;
++using PVSmemIteratorB = typename PVDefaultMma::SmemIteratorB;
++
++__device__ float const* g_row_max = nullptr;
++__device__ float const* g_row_inv_sum = nullptr;
++__device__ float* g_row_sum_out = nullptr;
++__device__ int g_rows = 0;
++
++#if defined(PREFIX_QK_FULL_STATS)
++struct ExpRowSumTransformA {
++  using InputFragment = typename PVIteratorA::Fragment;
++  using OutputFragment = cutlass::Array<
++      typename PVSmemIteratorA::Element, InputFragment::kElements>;
++  using ThreadMap = typename PVIteratorA::ThreadMap;
++  static constexpr int kAccessesPerVector =
++      PVIteratorA::UnderlyingIterator::kAccessesPerVector;
++  static constexpr int kContiguousIterations =
++      ThreadMap::Iterations::kContiguous;
++  static constexpr int kStridedIterations = ThreadMap::Iterations::kStrided;
++
++  float row_max[kStridedIterations];
++  float row_inv_sum[kStridedIterations];
++
++  CUTLASS_DEVICE
++  ExpRowSumTransformA() {
++    auto thread_offset = ThreadMap::initial_offset(threadIdx.x);
++#pragma unroll
++    for (int s = 0; s < kStridedIterations; ++s) {
++      int row = blockIdx.x * PVThreadblockShape::kM
++          + thread_offset.strided() + s * ThreadMap::Delta::kStrided;
++      row_max[s] = row < g_rows ? g_row_max[row] : 0.0f;
++      row_inv_sum[s] = row < g_rows ? g_row_inv_sum[row] : 0.0f;
++    }
++  }
++
++  CUTLASS_DEVICE
++  OutputFragment operator()(InputFragment const& input) {
++    OutputFragment output;
++    constexpr float kLog2E = 1.4426950408889634f;
++    constexpr int kElementsPerAccess = PVIteratorA::AccessType::kElements;
++    auto const* input_access =
++        reinterpret_cast<typename PVIteratorA::AccessType const*>(&input);
++    auto* output_access =
++        reinterpret_cast<typename PVIteratorA::AccessType*>(&output);
++#pragma unroll
++    for (int s = 0; s < kStridedIterations; ++s) {
++#pragma unroll
++      for (int c = 0; c < kContiguousIterations; ++c) {
++#pragma unroll
++        for (int v = 0; v < kAccessesPerVector; ++v) {
++          int index = v + kAccessesPerVector * (c + s * kContiguousIterations);
++          typename PVIteratorA::AccessType transformed;
++#pragma unroll
++          for (int e = 0; e < kElementsPerAccess; ++e) {
++            float value = static_cast<float>(input_access[index][e]);
++            transformed[e] = Element(
++                exp2f((value - row_max[s]) * kLog2E) * row_inv_sum[s]);
++          }
++          output_access[index] = transformed;
++        }
++      }
++    }
++    return output;
++  }
++};
++#else
++struct ExpRowSumTransformA {
++  using InputFragment = typename PVIteratorA::Fragment;
++  using OutputFragment = cutlass::Array<
++      typename PVSmemIteratorA::Element, InputFragment::kElements>;
++  using ThreadMap = typename PVIteratorA::ThreadMap;
++
++  static constexpr int kAccessesPerVector =
++      PVIteratorA::UnderlyingIterator::kAccessesPerVector;
++  static constexpr int kContiguousIterations =
++      ThreadMap::Iterations::kContiguous;
++  static constexpr int kStridedIterations = ThreadMap::Iterations::kStrided;
++
++  float row_max[kStridedIterations];
++  float row_sum[kStridedIterations];
++  bool valid = true;
++
++  CUTLASS_DEVICE
++  void set_valid(bool is_valid) {
++    valid = is_valid;
++  }
++
++  CUTLASS_DEVICE
++  ExpRowSumTransformA() {
++    auto thread_offset = ThreadMap::initial_offset(threadIdx.x);
++#pragma unroll
++    for (int s = 0; s < kStridedIterations; ++s) {
++      int row = blockIdx.x * PVThreadblockShape::kM
++          + thread_offset.strided() + s * ThreadMap::Delta::kStrided;
++      row_max[s] = row < g_rows ? g_row_max[row] : 0.0f;
++      row_sum[s] = 0.0f;
++    }
++  }
++
++  CUTLASS_DEVICE
++  OutputFragment operator()(InputFragment const& input) {
++    if (!valid) {
++      OutputFragment output;
++      output.clear();
++      return output;
++    }
++    OutputFragment output;
++    constexpr float kLog2E = 1.4426950408889634f;
++    constexpr int kElementsPerAccess = PVIteratorA::AccessType::kElements;
++    auto const* input_access =
++        reinterpret_cast<typename PVIteratorA::AccessType const*>(&input);
++    auto* output_access =
++        reinterpret_cast<typename PVIteratorA::AccessType*>(&output);
++#pragma unroll
++    for (int s = 0; s < kStridedIterations; ++s) {
++#pragma unroll
++      for (int c = 0; c < kContiguousIterations; ++c) {
++#pragma unroll
++        for (int v = 0; v < kAccessesPerVector; ++v) {
++          int index = v + kAccessesPerVector * (c + s * kContiguousIterations);
++          typename PVIteratorA::AccessType transformed;
++#pragma unroll
++          for (int e = 0; e < kElementsPerAccess; ++e) {
++            float value = static_cast<float>(input_access[index][e]);
++            float weight = exp2f((value - row_max[s]) * kLog2E);
++            if (blockIdx.y == 0) {
++              row_sum[s] += weight;
++            }
++            transformed[e] = Element(weight);
++          }
++          output_access[index] = transformed;
++        }
++      }
++    }
++    return output;
++  }
++
++  CUTLASS_DEVICE
++  void finalize() {
++    if (blockIdx.y != 0) {
++      return;
++    }
++    constexpr int kThreadsPerRow =
++        ThreadMap::Detail::WarpThreadArrangement::kContiguous;
++    auto thread_offset = ThreadMap::initial_offset(threadIdx.x);
++    int lane = threadIdx.x & 31;
++#pragma unroll
++    for (int s = 0; s < kStridedIterations; ++s) {
++      float sum = row_sum[s];
++#pragma unroll
++      for (int offset = 1; offset < kThreadsPerRow; offset <<= 1) {
++        sum += __shfl_xor_sync(0xffffffffu, sum, offset);
++      }
++      int row = blockIdx.x * PVThreadblockShape::kM
++          + thread_offset.strided() + s * ThreadMap::Delta::kStrided;
++      if ((lane % kThreadsPerRow) == 0 && row < g_rows) {
++        g_row_sum_out[row] = sum;
++      }
++    }
++  }
++};
++#endif
++
++using PVTransformB = cutlass::NumericArrayConverter<
++    typename PVSmemIteratorB::Element,
++    typename PVIteratorB::Element,
++    PVIteratorB::Fragment::kElements>;
++using PVMma = cutlass::gemm::threadblock::MmaPipelined<
++    typename PVDefaultMma::Shape,
++    PVIteratorA,
++    PVSmemIteratorA,
++    PVIteratorB,
++    PVSmemIteratorB,
++    PVAccumulator,
++    PVLayout,
++    typename PVDefaultMma::Policy,
++    ExpRowSumTransformA,
++    PVTransformB>;
++using PVKernel = cutlass::gemm::kernel::Gemm<
++    PVMma, typename PVDefaultKernel::Epilogue, PVSwizzle, false>;
++
++void check(cudaError_t result, char const* operation) {
++  if (result != cudaSuccess) {
++    std::cerr << operation << ": " << cudaGetErrorString(result) << "\n";
++    std::exit(EXIT_FAILURE);
++  }
++}
++
++void check(cutlass::Status status, char const* operation) {
++  if (status != cutlass::Status::kSuccess) {
++    std::cerr << operation << ": CUTLASS status " << int(status) << "\n";
++    std::exit(EXIT_FAILURE);
++  }
++}
++
++struct PVLauncher {
++  typename PVKernel::Params params;
++  dim3 grid;
++  dim3 block;
++  int smem_bytes;
++
++  PVLauncher(Element* scores, Element* value, Element* output, int rows, int k) {
++    cutlass::gemm::GemmCoord problem(rows, 256, k);
++    PVSwizzle swizzle;
++    auto tiled_shape = swizzle.get_tiled_shape(
++        problem,
++        {PVThreadblockShape::kM, PVThreadblockShape::kN,
++         PVThreadblockShape::kK},
++        1);
++    params = typename PVKernel::Params(
++        problem,
++        tiled_shape,
++        {scores, PVLayout(k)},
++        {value, PVLayout(256)},
++        {output, PVLayout(256)},
++        {output, PVLayout(256)},
++        typename PVOutputOp::Params(1.0f, 0.0f),
++        nullptr);
++    grid = swizzle.get_grid_shape(tiled_shape);
++    block = dim3(PVKernel::kThreadCount, 1, 1);
++    smem_bytes = int(sizeof(typename PVKernel::SharedStorage));
++    if (smem_bytes >= 48 * 1024) {
++      check(cudaFuncSetAttribute(
++                cutlass::Kernel<PVKernel>,
++                cudaFuncAttributeMaxDynamicSharedMemorySize,
++                smem_bytes),
++            "set PV dynamic shared memory");
++    }
++  }
++
++  void launch(cudaStream_t stream) const {
++    cutlass::Kernel<PVKernel><<<grid, block, smem_bytes, stream>>>(params);
++  }
++};
++
++__global__ void prepare_weights(
++    float const* block_max,
++    float const* block_sum,
++    float* weights,
++    float* state_max,
++    float* state_sum,
++    int blocks,
++    int rows) {
++  int row = blockIdx.x * blockDim.x + threadIdx.x;
++  if (row >= rows) {
++    return;
++  }
++  float global_max = -CUDART_INF_F;
++  for (int block = 0; block < blocks; ++block) {
++    global_max = fmaxf(global_max, block_max[block * rows + row]);
++  }
++  float denominator = 0.0f;
++  for (int block = 0; block < blocks; ++block) {
++    float scale = exp2f(
++        (block_max[block * rows + row] - global_max) *
++        1.4426950408889634f);
++#if defined(PREFIX_QK_FULL_STATS)
++    float scaled_sum = scale / block_sum[block * rows + row];
++    weights[block * rows + row] = scaled_sum;
++    denominator += scaled_sum;
++#else
++    weights[block * rows + row] = scale;
++    denominator += scale * block_sum[block * rows + row];
++#endif
++  }
++  float inverse = 1.0f / denominator;
++  for (int block = 0; block < blocks; ++block) {
++    weights[block * rows + row] *= inverse;
++  }
++  state_max[row] = global_max;
++  state_sum[row] = denominator;
++}
++
++__global__ void merge_partials(
++    __half const* partials,
++    float const* weights,
++    __half* output,
++    int blocks,
++    int rows) {
++  int pair = blockIdx.x * blockDim.x + threadIdx.x;
++  constexpr int kPairsPerRow = 128;
++  int total_pairs = rows * kPairsPerRow;
++  if (pair >= total_pairs) {
++    return;
++  }
++  int row = pair / kPairsPerRow;
++  int column_pair = pair - row * kPairsPerRow;
++  float2 accumulator = make_float2(0.0f, 0.0f);
++  auto const* partials2 = reinterpret_cast<__half2 const*>(partials);
++  auto* output2 = reinterpret_cast<__half2*>(output);
++  for (int block = 0; block < blocks; ++block) {
++    int index = (block * rows + row) * kPairsPerRow + column_pair;
++    float2 value = __half22float2(partials2[index]);
++    float weight = weights[block * rows + row];
++    accumulator.x = fmaf(weight, value.x, accumulator.x);
++    accumulator.y = fmaf(weight, value.y, accumulator.y);
++  }
++  output2[pair] = __floats2half2_rn(accumulator.x, accumulator.y);
++}
++
++__global__ void update_prefix_accumulator(
++    __half const* block_output,
++    float const* block_max,
++    float const* block_inv_sum,
++    float* prefix_accumulator,
++    float* prefix_max,
++    float* prefix_sum,
++    int rows,
++    bool initialize) {
++  int row = blockIdx.x;
++  int d = threadIdx.x;
++  if (row >= rows || d >= 256) {
++    return;
++  }
++  __shared__ float scales[3];
++  if (d == 0) {
++    constexpr float kLog2E = 1.4426950408889634f;
++    float next_max = block_max[row];
++    float next_mass = 1.0f / block_inv_sum[row];
++    if (initialize) {
++      scales[0] = 0.0f;
++      scales[1] = next_mass;
++      scales[2] = next_mass;
++      prefix_max[row] = next_max;
++    } else {
++      float old_max = prefix_max[row];
++      float global_max = fmaxf(old_max, next_max);
++      float old_scale = exp2f((old_max - global_max) * kLog2E);
++      float next_scale = exp2f((next_max - global_max) * kLog2E);
++      scales[0] = old_scale;
++      scales[1] = next_mass * next_scale;
++      scales[2] = prefix_sum[row] * old_scale + scales[1];
++      prefix_max[row] = global_max;
++    }
++    prefix_sum[row] = scales[2];
++  }
++  __syncthreads();
++  int64_t element = int64_t(row) * 256 + d;
++  float block_value = float(block_output[element]);
++  float old_value = initialize ? 0.0f : prefix_accumulator[element];
++  prefix_accumulator[element] =
++      fmaf(old_value, scales[0], block_value * scales[1]);
++}
++
++__global__ void prepare_prefix_update(
++    float const* block_max,
++    float const* block_inv_sum,
++    float* prefix_max,
++    float* prefix_sum,
++    float* old_scales,
++    float* block_scales,
++    int rows,
++    bool initialize) {
++  int row = blockIdx.x * blockDim.x + threadIdx.x;
++  if (row >= rows) {
++    return;
++  }
++  constexpr float kLog2E = 1.4426950408889634f;
++  float next_max = block_max[row];
++  float next_mass = 1.0f / block_inv_sum[row];
++  if (initialize) {
++    old_scales[row] = 0.0f;
++    block_scales[row] = next_mass;
++    prefix_max[row] = next_max;
++    prefix_sum[row] = next_mass;
++    return;
++  }
++  float old_max = prefix_max[row];
++  float global_max = fmaxf(old_max, next_max);
++  float old_scale = exp2f((old_max - global_max) * kLog2E);
++  float block_scale =
++      next_mass * exp2f((next_max - global_max) * kLog2E);
++  old_scales[row] = old_scale;
++  block_scales[row] = block_scale;
++  prefix_max[row] = global_max;
++  prefix_sum[row] = prefix_sum[row] * old_scale + block_scale;
++}
++
++__global__ void apply_prefix_update_half2(
++    __half const* block_output,
++    float* prefix_accumulator,
++    float const* old_scales,
++    float const* block_scales,
++    int rows,
++    bool initialize) {
++  int pair = blockIdx.x * blockDim.x + threadIdx.x;
++  constexpr int kPairsPerRow = 128;
++  if (pair >= rows * kPairsPerRow) {
++    return;
++  }
++  int row = pair / kPairsPerRow;
++  auto const* block2 = reinterpret_cast<__half2 const*>(block_output);
++  auto* accumulator2 = reinterpret_cast<float2*>(prefix_accumulator);
++  float2 block_value = __half22float2(block2[pair]);
++  float2 old_value = initialize
++      ? make_float2(0.0f, 0.0f)
++      : accumulator2[pair];
++  float old_scale = old_scales[row];
++  float block_scale = block_scales[row];
++  accumulator2[pair] = make_float2(
++      fmaf(old_value.x, old_scale, block_value.x * block_scale),
++      fmaf(old_value.y, old_scale, block_value.y * block_scale));
++}
++
++__global__ void finalize_prefix_accumulator(
++    float const* prefix_accumulator,
++    float const* prefix_sum,
++    __half* output,
++    int rows) {
++  int pair = blockIdx.x * blockDim.x + threadIdx.x;
++  constexpr int kPairsPerRow = 128;
++  if (pair >= rows * kPairsPerRow) {
++    return;
++  }
++  int row = pair / kPairsPerRow;
++  int64_t first = int64_t(pair) * 2;
++  float inverse = 1.0f / prefix_sum[row];
++  output[first] = __float2half_rn(prefix_accumulator[first] * inverse);
++  output[first + 1] =
++      __float2half_rn(prefix_accumulator[first + 1] * inverse);
++}
++
++__global__ void merge_prefix_accumulator_tail(
++    float const* prefix_accumulator,
++    float const* prefix_max,
++    float const* prefix_sum,
++    __half const* tail_output,
++    float const* tail_max,
++    float const* tail_sum,
++    __half* output,
++    int rows) {
++  int row = blockIdx.x;
++  int d = threadIdx.x;
++  __shared__ float masses[3];
++  if (d == 0) {
++    constexpr float kLog2E = 1.4426950408889634f;
++    float global_max = fmaxf(prefix_max[row], tail_max[row]);
++    masses[0] = exp2f((prefix_max[row] - global_max) * kLog2E);
++    masses[1] = tail_sum[row]
++        * exp2f((tail_max[row] - global_max) * kLog2E);
++    masses[2] = 1.0f / (prefix_sum[row] * masses[0] + masses[1]);
++  }
++  __syncthreads();
++  int64_t element = int64_t(row) * 256 + d;
++  float numerator = prefix_accumulator[element] * masses[0]
++      + float(tail_output[element]) * masses[1];
++  output[element] = __float2half_rn(numerator * masses[2]);
++}
++
++__global__ void merge_prefix_tail(
++    __half const* prefix_output,
++    float const* prefix_max,
++    float const* prefix_sum,
++    __half const* tail_output,
++    float const* tail_max,
++    float const* tail_sum,
++    __half* output,
++    int rows) {
++  int row = blockIdx.x;
++  int d = threadIdx.x;
++  __shared__ float masses[3];
++  if (d == 0) {
++    float global_max = fmaxf(prefix_max[row], tail_max[row]);
++    float prefix_scale = exp2f(
++        (prefix_max[row] - global_max) * 1.4426950408889634f);
++    float tail_scale = exp2f(
++        (tail_max[row] - global_max) * 1.4426950408889634f);
++    masses[0] = prefix_sum[row] * prefix_scale;
++    masses[1] = tail_sum[row] * tail_scale;
++    masses[2] = 1.0f / (masses[0] + masses[1]);
++  }
++  __syncthreads();
++  int64_t element = int64_t(row) * 256 + d;
++  float numerator = float(prefix_output[element]) * masses[0]
++      + float(tail_output[element]) * masses[1];
++  output[element] = __float2half_rn(numerator * masses[2]);
++}
++
++using DenseTailRaw = cudaError_t (*)(
++    const void*,
++    const void*,
++    const void*,
++    float*,
++    float*,
++    void*,
++    int,
++    int,
++    int,
++    int,
++    float,
++    cudaStream_t);
++
++__global__ void fill_pattern(__half* data, size_t elements, uint32_t seed) {
++  size_t index = size_t(blockIdx.x) * blockDim.x + threadIdx.x;
++  if (index >= elements) {
++    return;
++  }
++  uint32_t value = uint32_t(index) ^ seed;
++  value ^= value >> 16;
++  value *= 0x7feb352du;
++  value ^= value >> 15;
++  value *= 0x846ca68bu;
++  value ^= value >> 16;
++  float uniform = float(value & 0xffffu) * (2.0f / 65535.0f) - 1.0f;
++  data[index] = __float2half_rn(uniform);
++}
++
++struct BlockOperators {
++  int width;
++  QKGemm qk;
++  std::unique_ptr<PVLauncher> pv;
++};
++
++}  // namespace
++
++#if !defined(PREFIX_TORCH_EXTENSION)
++int main(int argc, char** argv) {
++  int block_n = argc > 1 ? std::atoi(argv[1]) : 2048;
++  int iterations = argc > 2 ? std::atoi(argv[2]) : 5;
++#if defined(PREFIX_FULL_ENDPOINT)
++  if (argc <= 3) {
++    std::cerr << "full endpoint requires the exact-tail extension path\n";
++    return EXIT_FAILURE;
++  }
++#endif
++  constexpr int kRows = 48000;
++  constexpr int kHeadDim = 256;
++  constexpr int kPrefix = 120000;
++  constexpr int kTail = 8000;
++  constexpr int kTotalKV = kPrefix + kTail;
++#if defined(PREFIX_FULL_ENDPOINT)
++  constexpr int kStoredKV = kTotalKV;
++#else
++  constexpr int kStoredKV = kPrefix;
++#endif
++  int blocks = (kPrefix + block_n - 1) / block_n;
++
++  Element* query = nullptr;
++  Element* key = nullptr;
++  Element* value = nullptr;
++  Element* scores = nullptr;
++  Element* partials = nullptr;
++  Element* output = nullptr;
++  float* qk_norm = nullptr;
++  float* qk_sum = nullptr;
++  float* prefix_accumulator = nullptr;
++  float* prefix_max = nullptr;
++  float* prefix_sum = nullptr;
++  float* old_scales = nullptr;
++  float* block_scales = nullptr;
++#if defined(PREFIX_FULL_ENDPOINT)
++  Element* tail_output = nullptr;
++  Element* final_output = nullptr;
++  Element* exact_output = nullptr;
++  float* tail_max = nullptr;
++  float* tail_sum = nullptr;
++#endif
++
++  int qk_tiles_n = (block_n + QKThreadblockShape::kN - 1) /
++      QKThreadblockShape::kN;
++  size_t partial_elements = size_t(kRows) * kHeadDim;
++  check(cudaMalloc(&query, size_t(kRows) * kHeadDim * sizeof(Element)), "allocate Q");
++  check(cudaMalloc(&key, size_t(kStoredKV) * kHeadDim * sizeof(Element)), "allocate K");
++  check(cudaMalloc(&value, size_t(kStoredKV) * kHeadDim * sizeof(Element)), "allocate V");
++  check(cudaMalloc(&scores, size_t(kRows) * block_n * sizeof(Element)), "allocate scores");
++  check(cudaMalloc(&partials, partial_elements * sizeof(Element)), "allocate partials");
++  check(cudaMalloc(&output, size_t(kRows) * kHeadDim * sizeof(Element)), "allocate output");
++  check(cudaMalloc(&qk_norm, size_t(qk_tiles_n) * kRows * sizeof(float)), "allocate QK max");
++  check(cudaMalloc(&qk_sum, size_t(qk_tiles_n) * kRows * sizeof(float)), "allocate QK sum");
++  check(cudaMalloc(
++            &prefix_accumulator,
++            size_t(kRows) * kHeadDim * sizeof(float)),
++        "allocate prefix accumulator");
++  check(cudaMalloc(&prefix_max, size_t(kRows) * sizeof(float)), "allocate prefix max");
++  check(cudaMalloc(&prefix_sum, size_t(kRows) * sizeof(float)), "allocate prefix sum");
++  check(cudaMalloc(&old_scales, size_t(kRows) * sizeof(float)),
++        "allocate old scales");
++  check(cudaMalloc(&block_scales, size_t(kRows) * sizeof(float)),
++        "allocate block scales");
++#if defined(PREFIX_FULL_ENDPOINT)
++  check(cudaMalloc(&tail_output, size_t(kRows) * kHeadDim * sizeof(Element)),
++        "allocate tail output");
++  check(cudaMalloc(&final_output, size_t(kRows) * kHeadDim * sizeof(Element)),
++        "allocate final output");
++  check(cudaMalloc(&exact_output, size_t(kRows) * kHeadDim * sizeof(Element)),
++        "allocate exact output");
++  check(cudaMalloc(&tail_max, size_t(kRows) * sizeof(float)), "allocate tail max");
++  check(cudaMalloc(&tail_sum, size_t(kRows) * sizeof(float)), "allocate tail sum");
++#endif
++  size_t query_elements = size_t(kRows) * kHeadDim;
++  size_t kv_elements = size_t(kStoredKV) * kHeadDim;
++  fill_pattern<<<(query_elements + 255) / 256, 256>>>(
++      reinterpret_cast<__half*>(query), query_elements, 0x12345678u);
++  fill_pattern<<<(kv_elements + 255) / 256, 256>>>(
++      reinterpret_cast<__half*>(key), kv_elements, 0x9abcdef0u);
++  fill_pattern<<<(kv_elements + 255) / 256, 256>>>(
++      reinterpret_cast<__half*>(value), kv_elements, 0x31415926u);
++  check(cudaGetLastError(), "initialize deterministic inputs");
++
++#if defined(PREFIX_FULL_ENDPOINT)
++  void* tail_handle = dlopen(argv[3], RTLD_NOW | RTLD_LOCAL);
++  if (tail_handle == nullptr) {
++    std::cerr << "load exact-tail extension: " << dlerror() << "\n";
++    return EXIT_FAILURE;
++  }
++  dlerror();
++  auto tail_raw = reinterpret_cast<DenseTailRaw>(
++      dlsym(tail_handle, "onecat_sm70_d256_dense_state_raw"));
++  char const* symbol_error = dlerror();
++  if (symbol_error != nullptr || tail_raw == nullptr) {
++    std::cerr << "load exact-tail entry point: "
++              << (symbol_error == nullptr ? "missing symbol" : symbol_error)
++              << "\n";
++    return EXIT_FAILURE;
++  }
++#endif
++
++  std::vector<BlockOperators> operators;
++  operators.reserve(blocks);
++  for (int block = 0; block < blocks; ++block) {
++    int begin = block * block_n;
++    int width = std::min(block_n, kPrefix - begin);
++    BlockOperators operation;
++    operation.width = width;
++    typename QKGemm::Arguments arguments(
++        {kRows, width, kHeadDim},
++        1,
++        {query, QKLayoutA(kHeadDim)},
++        {key + size_t(begin) * kHeadDim, QKLayoutB(kHeadDim)},
++        {scores, typename QKGemm::LayoutC(width)},
++        {scores, typename QKGemm::LayoutC(width)},
++        {Element(0.0625f), Element(0.0f)},
++        {qk_norm, typename QKGemm::LayoutN(kRows)},
++        {qk_sum, typename QKGemm::LayoutS(kRows)},
++        {scores, typename QKGemm::LayoutSoft(width)});
++    check(operation.qk.initialize(arguments), "initialize QK");
++    operation.pv = std::make_unique<PVLauncher>(
++        scores,
++        value + size_t(begin) * kHeadDim,
++        partials,
++        kRows,
++        width);
++    operators.push_back(std::move(operation));
++  }
++
++  check(cudaMemcpyToSymbol(g_rows, &kRows, sizeof(kRows)), "set row count");
++  float const* persistent_max_ptr = qk_norm;
++  check(cudaMemcpyToSymbol(
++            g_row_max,
++            &persistent_max_ptr,
++            sizeof(persistent_max_ptr)),
++        "set persistent PV max pointer");
++#if defined(PREFIX_QK_FULL_STATS)
++  float const* persistent_inv_sum_ptr = qk_sum;
++  check(cudaMemcpyToSymbol(
++            g_row_inv_sum,
++            &persistent_inv_sum_ptr,
++            sizeof(persistent_inv_sum_ptr)),
++        "set persistent PV inverse-sum pointer");
++#endif
++  cudaStream_t stream = nullptr;
++  auto launch = [&](cudaEvent_t blocks_done,
++                    cudaEvent_t prefix_done,
++                    cudaEvent_t tail_done) {
++    for (int block = 0; block < blocks; ++block) {
++      check(operators[block].qk(stream), "launch QK max");
++#if !defined(PREFIX_QK_FULL_STATS)
++      float* sum_ptr = block_sum + size_t(block) * kRows;
++      check(cudaMemcpyToSymbolAsync(
++                g_row_sum_out,
++                &sum_ptr,
++                sizeof(sum_ptr),
++                0,
++                cudaMemcpyHostToDevice,
++                stream),
++            "set PV sum pointer");
++#endif
++      operators[block].pv->launch(stream);
++      prepare_prefix_update<<<(kRows + 255) / 256, 256, 0, stream>>>(
++          qk_norm,
++          qk_sum,
++          prefix_max,
++          prefix_sum,
++          old_scales,
++          block_scales,
++          kRows,
++          block == 0);
++      int pairs = kRows * kHeadDim / 2;
++      apply_prefix_update_half2<<<(pairs + 255) / 256, 256, 0, stream>>>(
++          reinterpret_cast<__half const*>(partials),
++          prefix_accumulator,
++          old_scales,
++          block_scales,
++          kRows,
++          block == 0);
++    }
++    if (blocks_done != nullptr) {
++      check(cudaEventRecord(blocks_done, stream), "record QK/PV blocks done");
++    }
++#if !defined(PREFIX_FULL_ENDPOINT)
++    int pairs = kRows * kHeadDim / 2;
++    finalize_prefix_accumulator<<<(pairs + 255) / 256, 256, 0, stream>>>(
++        prefix_accumulator,
++        prefix_sum,
++        reinterpret_cast<__half*>(output),
++        kRows);
++#endif
++    if (prefix_done != nullptr) {
++      check(cudaEventRecord(prefix_done, stream), "record prefix merge done");
++    }
++#if defined(PREFIX_FULL_ENDPOINT)
++    check(tail_raw(
++              query,
++              key + size_t(kPrefix) * kHeadDim,
++              value + size_t(kPrefix) * kHeadDim,
++              tail_max,
++              tail_sum,
++              tail_output,
++              kTail,
++              kTail,
++              6,
++              1,
++              0.0625f,
++              stream),
++          "launch exact causal tail");
++    if (tail_done != nullptr) {
++      check(cudaEventRecord(tail_done, stream), "record causal tail done");
++    }
++    merge_prefix_accumulator_tail<<<kRows, kHeadDim, 0, stream>>>(
++        prefix_accumulator,
++        prefix_max,
++        prefix_sum,
++        reinterpret_cast<__half const*>(tail_output),
++        tail_max,
++        tail_sum,
++        reinterpret_cast<__half*>(final_output),
++        kRows);
++#endif
++  };
++
++  launch(nullptr, nullptr, nullptr);
++  check(cudaDeviceSynchronize(), "warmup synchronize");
++  cudaEvent_t start;
++  cudaEvent_t stop;
++  check(cudaEventCreate(&start), "create start");
++  check(cudaEventCreate(&stop), "create stop");
++  check(cudaEventRecord(start), "record start");
++  for (int iteration = 0; iteration < iterations; ++iteration) {
++    launch(nullptr, nullptr, nullptr);
++  }
++  check(cudaEventRecord(stop), "record stop");
++  check(cudaEventSynchronize(stop), "synchronize stop");
++  float elapsed_ms = 0.0f;
++  check(cudaEventElapsedTime(&elapsed_ms, start, stop), "elapsed time");
++  float endpoint_ms = elapsed_ms / float(iterations);
++  constexpr double kFrozenUsefulTflop = 60.0 * 0.101581;
++#if defined(PREFIX_FULL_ENDPOINT)
++  cudaEvent_t phase_start;
++  cudaEvent_t blocks_done;
++  cudaEvent_t prefix_done;
++  cudaEvent_t tail_done;
++  cudaEvent_t phase_stop;
++  check(cudaEventCreate(&phase_start), "create phase start");
++  check(cudaEventCreate(&blocks_done), "create blocks done");
++  check(cudaEventCreate(&prefix_done), "create prefix done");
++  check(cudaEventCreate(&tail_done), "create tail done");
++  check(cudaEventCreate(&phase_stop), "create phase stop");
++  check(cudaEventRecord(phase_start, stream), "record phase start");
++  launch(blocks_done, prefix_done, tail_done);
++  check(cudaEventRecord(phase_stop, stream), "record phase stop");
++  check(cudaEventSynchronize(phase_stop), "synchronize phase stop");
++  float blocks_ms = 0.0f;
++  float prefix_merge_ms = 0.0f;
++  float tail_ms = 0.0f;
++  float final_merge_ms = 0.0f;
++  check(cudaEventElapsedTime(&blocks_ms, phase_start, blocks_done),
++        "measure QK/PV blocks");
++  check(cudaEventElapsedTime(&prefix_merge_ms, blocks_done, prefix_done),
++        "measure prefix merge");
++  check(cudaEventElapsedTime(&tail_ms, prefix_done, tail_done),
++        "measure causal tail");
++  check(cudaEventElapsedTime(&final_merge_ms, tail_done, phase_stop),
++        "measure final merge");
++  check(tail_raw(
++            query,
++            key,
++            value,
++            tail_max,
++            tail_sum,
++            exact_output,
++            kTail,
++            kTotalKV,
++            6,
++            1,
++            0.0625f,
++            stream),
++        "launch monolithic exact reference");
++  check(cudaDeviceSynchronize(), "synchronize exact reference");
++  size_t output_elements = size_t(kRows) * kHeadDim;
++  std::vector<__half> candidate_host(output_elements);
++  std::vector<__half> reference_host(output_elements);
++  check(cudaMemcpy(
++            candidate_host.data(),
++            final_output,
++            output_elements * sizeof(__half),
++            cudaMemcpyDeviceToHost),
++        "copy candidate output");
++  check(cudaMemcpy(
++            reference_host.data(),
++            exact_output,
++            output_elements * sizeof(__half),
++            cudaMemcpyDeviceToHost),
++        "copy exact output");
++  double squared_error = 0.0;
++  double squared_reference = 0.0;
++  double absolute_error = 0.0;
++  float max_absolute_error = 0.0f;
++  size_t equal_elements = 0;
++  for (size_t index = 0; index < output_elements; ++index) {
++    float candidate_value = __half2float(candidate_host[index]);
++    float reference_value = __half2float(reference_host[index]);
++    float difference = candidate_value - reference_value;
++    float absolute = std::fabs(difference);
++    squared_error += double(difference) * difference;
++    squared_reference += double(reference_value) * reference_value;
++    absolute_error += absolute;
++    max_absolute_error = std::max(max_absolute_error, absolute);
++    equal_elements += candidate_value == reference_value;
++  }
++  double relative_l2 = std::sqrt(squared_error / squared_reference);
++  double mean_absolute_error = absolute_error / double(output_elements);
++  double measured_tflops = kFrozenUsefulTflop / (endpoint_ms * 1.0e-3);
++  std::cout << "{\n"
++            << "  \"block_n\": " << block_n << ",\n"
++            << "  \"blocks\": " << blocks << ",\n"
++            << "  \"full_attention_ms\": " << endpoint_ms << ",\n"
++            << "  \"useful_causal_tflops\": " << measured_tflops << ",\n"
++            << "  \"prefix_tokens\": " << kPrefix << ",\n"
++            << "  \"causal_tail_tokens\": " << kTail << ",\n"
++            << "  \"phases_ms\": {\n"
++            << "    \"prefix_qk_pv_blocks\": " << blocks_ms << ",\n"
++            << "    \"prefix_state_and_partial_merge\": "
++            << prefix_merge_ms << ",\n"
++            << "    \"exact_causal_tail\": " << tail_ms << ",\n"
++            << "    \"prefix_tail_merge\": " << final_merge_ms << "\n"
++            << "  },\n"
++            << "  \"numerical\": {\n"
++            << "    \"max_abs_diff\": " << max_absolute_error << ",\n"
++            << "    \"mean_abs_diff\": " << mean_absolute_error << ",\n"
++            << "    \"relative_l2\": " << relative_l2 << ",\n"
++            << "    \"equal_elements\": " << equal_elements << ",\n"
++            << "    \"elements\": " << output_elements << "\n"
++            << "  },\n"
++            << "  \"partial_storage_gib\": "
++            << double(partial_elements * sizeof(Element)) / double(1ull << 30)
++            << ",\n"
++            << "  \"note\": \"measured serial prefix + exact tail state + final merge endpoint\"\n"
++            << "}\n";
++  check(cudaEventDestroy(phase_start), "destroy phase start");
++  check(cudaEventDestroy(blocks_done), "destroy blocks done");
++  check(cudaEventDestroy(prefix_done), "destroy prefix done");
++  check(cudaEventDestroy(tail_done), "destroy tail done");
++  check(cudaEventDestroy(phase_stop), "destroy phase stop");
++#else
++  double projected_full_ms = endpoint_ms + 4.83;
++  double projected_tflops = kFrozenUsefulTflop / (projected_full_ms * 1.0e-3);
++  std::cout << "{\n"
++            << "  \"block_n\": " << block_n << ",\n"
++            << "  \"blocks\": " << blocks << ",\n"
++            << "  \"prefix_ms_including_merge\": " << endpoint_ms << ",\n"
++            << "  \"accepted_tail_ms\": 4.83,\n"
++            << "  \"projected_full_ms\": " << projected_full_ms << ",\n"
++            << "  \"projected_useful_tflops\": " << projected_tflops << ",\n"
++            << "  \"partial_storage_gib\": "
++            << double(partial_elements * sizeof(Element)) / double(1ull << 30)
++            << ",\n"
++            << "  \"note\": \"prefix endpoint; prefix/tail state merge excluded\"\n"
++            << "}\n";
++#endif
++
++  check(cudaEventDestroy(start), "destroy start");
++  check(cudaEventDestroy(stop), "destroy stop");
++  check(cudaFree(query), "free Q");
++  check(cudaFree(key), "free K");
++  check(cudaFree(value), "free V");
++  check(cudaFree(scores), "free scores");
++  check(cudaFree(partials), "free partials");
++  check(cudaFree(output), "free output");
++  check(cudaFree(qk_norm), "free QK max");
++  check(cudaFree(qk_sum), "free QK sum");
++  check(cudaFree(prefix_accumulator), "free prefix accumulator");
++  check(cudaFree(prefix_max), "free prefix max");
++  check(cudaFree(prefix_sum), "free prefix sum");
++  check(cudaFree(old_scales), "free old scales");
++  check(cudaFree(block_scales), "free block scales");
++#if defined(PREFIX_FULL_ENDPOINT)
++  check(cudaFree(tail_output), "free tail output");
++  check(cudaFree(final_output), "free final output");
++  check(cudaFree(exact_output), "free exact output");
++  check(cudaFree(tail_max), "free tail max");
++  check(cudaFree(tail_sum), "free tail sum");
++  dlclose(tail_handle);
++#endif
++  return 0;
++}
++#else
++
++extern "C" cudaError_t onecat_sm70_d256_dense_state_raw(
++    const void*,
++    const void*,
++    const void*,
++    float*,
++    float*,
++    void*,
++    int,
++    int,
++    int,
++    int,
++    float,
++    cudaStream_t);
++
++namespace FLASH_NAMESPACE {
++
++struct Sm70GqaScoreWorkspace {
++  at::Tensor scores;
++  cudaEvent_t completion = nullptr;
++  bool completion_recorded = false;
++  std::mutex launch_mutex;
++
++  Sm70GqaScoreWorkspace(const at::Tensor& q, int rows, int block_n)
++      : scores(at::empty({rows, block_n}, q.options())) {
++    C10_CUDA_CHECK(
++        cudaEventCreateWithFlags(&completion, cudaEventDisableTiming));
++  }
++
++  ~Sm70GqaScoreWorkspace() {
++    if (completion != nullptr) {
++      cudaEventDestroy(completion);
++    }
++  }
++};
++
++using Sm70GqaScoreWorkspacePtr = std::shared_ptr<Sm70GqaScoreWorkspace>;
++
++std::mutex& sm70_gqa_score_cache_mutex() {
++  static std::mutex cache_mutex;
++  return cache_mutex;
++}
++
++std::map<int, Sm70GqaScoreWorkspacePtr>& sm70_gqa_score_cache() {
++  static std::map<int, Sm70GqaScoreWorkspacePtr> cache;
++  return cache;
++}
++
++Sm70GqaScoreWorkspacePtr get_sm70_gqa_score_workspace(
++    const at::Tensor& q,
++    int rows,
++    int block_n) {
++  std::lock_guard<std::mutex> lock(sm70_gqa_score_cache_mutex());
++  int device = q.get_device();
++  auto& cache = sm70_gqa_score_cache();
++  auto& workspace = cache[device];
++  if (!workspace) {
++    workspace =
++        std::make_shared<Sm70GqaScoreWorkspace>(q, rows, block_n);
++  }
++  return workspace;
++}
++
++Sm70GqaScoreWorkspacePtr find_sm70_gqa_score_workspace(int device) {
++  std::lock_guard<std::mutex> lock(sm70_gqa_score_cache_mutex());
++  auto& cache = sm70_gqa_score_cache();
++  auto found = cache.find(device);
++  return found == cache.end() ? nullptr : found->second;
++}
++
++at::Tensor sm70_d256_gqa_architecture_fwd(
++    const at::Tensor& q,
++    const at::Tensor& k,
++    const at::Tensor& v,
++    at::Tensor& out,
++    double softmax_scale,
++    bool causal) {
++  constexpr int kQuery = 8000;
++  constexpr int kRows = 48000;
++  constexpr int kHeadDim = 256;
++  constexpr int kHeadsQ = 6;
++  constexpr int kHeadsKV = 1;
++  constexpr int kTail = 8000;
++  constexpr int kMinTotalKV = 16000;
++  constexpr int kMaxTotalKV = 256000;
++  constexpr int kTotalKVStep = 8000;
++  constexpr int kBlockN = 8192;
++
++  TORCH_CHECK(q.is_cuda() && k.is_cuda() && v.is_cuda() && out.is_cuda(),
++              "SM70 GQA architecture requires CUDA tensors");
++  TORCH_CHECK(q.scalar_type() == at::ScalarType::Half
++                  && k.scalar_type() == q.scalar_type()
++                  && v.scalar_type() == q.scalar_type()
++                  && out.scalar_type() == q.scalar_type(),
++              "SM70 GQA architecture requires FP16 q, k, v, and out");
++  TORCH_CHECK(q.sizes() == at::IntArrayRef({1, kQuery, kHeadsQ, kHeadDim})
++                  && k.dim() == 4 && k.size(0) == 1
++                  && k.size(2) == kHeadsKV && k.size(3) == kHeadDim
++                  && v.sizes() == k.sizes() && out.sizes() == q.sizes(),
++              "SM70 GQA architecture only accepts the validated "
++              "Q8000/Hq6/Hkv1/D256 dense shape family");
++  const int total_kv = static_cast<int>(k.size(1));
++  TORCH_CHECK(total_kv >= kMinTotalKV && total_kv <= kMaxTotalKV
++                  && total_kv % kTotalKVStep == 0,
++              "SM70 GQA architecture requires KV in [16000, 256000] "
++              "with an 8000-token step, got ",
++              total_kv);
++  const int prefix = total_kv - kTail;
++  const int blocks = (prefix + kBlockN - 1) / kBlockN;
++  TORCH_CHECK(q.is_contiguous() && k.is_contiguous() && v.is_contiguous()
++                  && out.is_contiguous(),
++              "SM70 GQA architecture requires contiguous tensors");
++  TORCH_CHECK(q.get_device() == k.get_device()
++                  && q.get_device() == v.get_device()
++                  && q.get_device() == out.get_device(),
++              "SM70 GQA architecture tensors must share one device");
++  TORCH_CHECK(causal, "SM70 GQA architecture requires causal attention");
++  TORCH_CHECK(std::abs(softmax_scale - 0.0625) < 1.0e-8,
++              "SM70 GQA architecture requires D256 softmax scale 1/16");
++
++  const at::cuda::OptionalCUDAGuard device_guard(q.device());
++  const int qk_tiles_n =
++      (kBlockN + QKThreadblockShape::kN - 1)
++      / QKThreadblockShape::kN;
++  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
++
++  constexpr size_t kScratchAlignment = 256;
++  size_t scratch_bytes = 0;
++  auto reserve_scratch = [&](size_t bytes) {
++    scratch_bytes =
++        (scratch_bytes + kScratchAlignment - 1) & ~(kScratchAlignment - 1);
++    size_t offset = scratch_bytes;
++    scratch_bytes += bytes;
++    return offset;
++  };
++  size_t partial_offset = reserve_scratch(
++      size_t(kRows) * kHeadDim * sizeof(Element));
++  size_t prefix_accumulator_offset = reserve_scratch(
++      size_t(kRows) * kHeadDim * sizeof(float));
++  size_t tail_output_offset = reserve_scratch(
++      size_t(kRows) * kHeadDim * sizeof(Element));
++  size_t qk_norm_offset = reserve_scratch(
++      size_t(qk_tiles_n) * kRows * sizeof(float));
++  size_t qk_sum_offset = reserve_scratch(
++      size_t(qk_tiles_n) * kRows * sizeof(float));
++  size_t prefix_max_offset =
++      reserve_scratch(size_t(kRows) * sizeof(float));
++  size_t prefix_sum_offset =
++      reserve_scratch(size_t(kRows) * sizeof(float));
++  size_t old_scale_offset =
++      reserve_scratch(size_t(kRows) * sizeof(float));
++  size_t block_scale_offset =
++      reserve_scratch(size_t(kRows) * sizeof(float));
++  size_t tail_max_offset =
++      reserve_scratch(size_t(kRows) * sizeof(float));
++  size_t tail_sum_offset =
++      reserve_scratch(size_t(kRows) * sizeof(float));
++  int device = q.get_device();
++  auto score_workspace = find_sm70_gqa_score_workspace(device);
++  if (!score_workspace) {
++    constexpr size_t kRequiredPostWorkspaceHeadroom = 128 * 1024 * 1024;
++    constexpr size_t kScoreBytes =
++        size_t(kRows) * kBlockN * sizeof(Element);
++    size_t free_bytes = 0;
++    size_t total_bytes = 0;
++    C10_CUDA_CHECK(cudaMemGetInfo(&free_bytes, &total_bytes));
++    size_t required_bytes =
++        kScoreBytes + scratch_bytes + kRequiredPostWorkspaceHeadroom;
++    TORCH_CHECK_WITH(
++        OutOfMemoryError,
++        free_bytes >= required_bytes,
++        "SM70 GQA architecture requires ",
++        required_bytes / (1024 * 1024),
++        " MiB free before its first workspace allocation, including "
++        "128 MiB of downstream headroom, but only ",
++        free_bytes / (1024 * 1024),
++        " MiB remains out of ",
++        total_bytes / (1024 * 1024),
++        " MiB");
++    score_workspace =
++        get_sm70_gqa_score_workspace(q, kRows, kBlockN);
++  }
++  std::unique_lock<std::mutex> launch_lock(score_workspace->launch_mutex);
++  if (score_workspace->completion_recorded) {
++    C10_CUDA_CHECK(
++        cudaStreamWaitEvent(stream, score_workspace->completion, 0));
++  }
++  at::Tensor scratch = at::empty(
++      {static_cast<int64_t>(scratch_bytes)},
++      q.options().dtype(at::ScalarType::Byte));
++  auto* scratch_base = scratch.data_ptr<uint8_t>();
++
++  auto* query = reinterpret_cast<Element*>(q.data_ptr<at::Half>());
++  auto* key = reinterpret_cast<Element*>(k.data_ptr<at::Half>());
++  auto* value = reinterpret_cast<Element*>(v.data_ptr<at::Half>());
++  auto* score_ptr =
++      reinterpret_cast<Element*>(score_workspace->scores.data_ptr<at::Half>());
++  auto* partial_ptr =
++      reinterpret_cast<Element*>(scratch_base + partial_offset);
++  float* prefix_accumulator_ptr =
++      reinterpret_cast<float*>(scratch_base + prefix_accumulator_offset);
++  auto* tail_output_ptr =
++      reinterpret_cast<Element*>(scratch_base + tail_output_offset);
++  auto* output_ptr = reinterpret_cast<Element*>(out.data_ptr<at::Half>());
++  float* qk_norm_ptr =
++      reinterpret_cast<float*>(scratch_base + qk_norm_offset);
++  float* qk_sum_ptr =
++      reinterpret_cast<float*>(scratch_base + qk_sum_offset);
++  float* prefix_max_ptr =
++      reinterpret_cast<float*>(scratch_base + prefix_max_offset);
++  float* prefix_sum_ptr =
++      reinterpret_cast<float*>(scratch_base + prefix_sum_offset);
++  float* old_scale_ptr =
++      reinterpret_cast<float*>(scratch_base + old_scale_offset);
++  float* block_scale_ptr =
++      reinterpret_cast<float*>(scratch_base + block_scale_offset);
++  float* tail_max_ptr =
++      reinterpret_cast<float*>(scratch_base + tail_max_offset);
++  float* tail_sum_ptr =
++      reinterpret_cast<float*>(scratch_base + tail_sum_offset);
++
++  C10_CUDA_CHECK(onecat_sm70_d256_dense_state_raw(
++      query,
++      key + size_t(prefix) * kHeadDim,
++      value + size_t(prefix) * kHeadDim,
++      tail_max_ptr,
++      tail_sum_ptr,
++      tail_output_ptr,
++      kTail,
++      kTail,
++      kHeadsQ,
++      kHeadsKV,
++      static_cast<float>(softmax_scale),
++      stream));
++  C10_CUDA_CHECK(cudaMemcpyToSymbolAsync(
++      g_rows,
++      &kRows,
++      sizeof(kRows),
++      0,
++      cudaMemcpyHostToDevice,
++      stream));
++  float const* persistent_max_ptr = qk_norm_ptr;
++  C10_CUDA_CHECK(cudaMemcpyToSymbolAsync(
++      g_row_max,
++      &persistent_max_ptr,
++      sizeof(persistent_max_ptr),
++      0,
++      cudaMemcpyHostToDevice,
++      stream));
++  float const* persistent_inv_sum_ptr = qk_sum_ptr;
++  C10_CUDA_CHECK(cudaMemcpyToSymbolAsync(
++      g_row_inv_sum,
++      &persistent_inv_sum_ptr,
++      sizeof(persistent_inv_sum_ptr),
++      0,
++      cudaMemcpyHostToDevice,
++      stream));
++
++  for (int block = 0; block < blocks; ++block) {
++    int begin = block * kBlockN;
++    int width = std::min(kBlockN, prefix - begin);
++    BlockOperators operation;
++    operation.width = width;
++    typename QKGemm::Arguments arguments(
++        {kRows, width, kHeadDim},
++        1,
++        {query, QKLayoutA(kHeadDim)},
++        {key + size_t(begin) * kHeadDim, QKLayoutB(kHeadDim)},
++        {score_ptr, typename QKGemm::LayoutC(width)},
++        {score_ptr, typename QKGemm::LayoutC(width)},
++        {Element(static_cast<float>(softmax_scale)), Element(0.0f)},
++        {qk_norm_ptr, typename QKGemm::LayoutN(kRows)},
++        {qk_sum_ptr, typename QKGemm::LayoutS(kRows)},
++        {score_ptr, typename QKGemm::LayoutSoft(width)});
++    TORCH_CHECK(operation.qk.initialize(arguments) == cutlass::Status::kSuccess,
++                "initialize SM70 GQA QK block ", block, " failed");
++    operation.pv = std::make_unique<PVLauncher>(
++        score_ptr,
++        value + size_t(begin) * kHeadDim,
++        partial_ptr,
++        kRows,
++        width);
++    TORCH_CHECK(operation.qk(stream) == cutlass::Status::kSuccess,
++                "launch SM70 GQA QK block ", block, " failed");
++    operation.pv->launch(stream);
++    prepare_prefix_update<<<(kRows + 255) / 256, 256, 0, stream>>>(
++        qk_norm_ptr,
++        qk_sum_ptr,
++        prefix_max_ptr,
++        prefix_sum_ptr,
++        old_scale_ptr,
++        block_scale_ptr,
++        kRows,
++        block == 0);
++    constexpr int kPairs = kRows * kHeadDim / 2;
++    apply_prefix_update_half2<<<(kPairs + 255) / 256, 256, 0, stream>>>(
++        reinterpret_cast<__half const*>(partial_ptr),
++        prefix_accumulator_ptr,
++        old_scale_ptr,
++        block_scale_ptr,
++        kRows,
++        block == 0);
++  }
++  merge_prefix_accumulator_tail<<<kRows, kHeadDim, 0, stream>>>(
++      prefix_accumulator_ptr,
++      prefix_max_ptr,
++      prefix_sum_ptr,
++      reinterpret_cast<__half const*>(tail_output_ptr),
++      tail_max_ptr,
++      tail_sum_ptr,
++      reinterpret_cast<__half*>(output_ptr),
++      kRows);
++  C10_CUDA_KERNEL_LAUNCH_CHECK();
++  C10_CUDA_CHECK(cudaEventRecord(score_workspace->completion, stream));
++  score_workspace->completion_recorded = true;
++  return out;
++}
++
++}  // namespace FLASH_NAMESPACE
++
++#endif
+diff --git a/csrc/flash_attn/src/flash_fwd_d256_splitd_sm70.cu b/csrc/flash_attn/src/flash_fwd_d256_splitd_sm70.cu
+new file mode 100644
+index 0000000..1fd4008
+--- /dev/null
++++ b/csrc/flash_attn/src/flash_fwd_d256_splitd_sm70.cu
+@@ -0,0 +1,1449 @@
++/******************************************************************************
++ * Copyright (c) 2026, 1CatAI.
++ ******************************************************************************/
++
++#include <ATen/cuda/CUDAContext.h>
++#include <c10/cuda/CUDAGuard.h>
++#include <c10/cuda/CUDAException.h>
++#include <torch/nn/functional.h>
++
++#include <limits>
++#include <type_traits>
++
++#include <cute/tensor.hpp>
++#include <cutlass/numeric_types.h>
++
++#include "namespace_config.h"
++#include "kernel_traits.h"
++#include "utils.h"
++#include "softmax.h"
++#include "mask.h"
++
++namespace FLASH_NAMESPACE {
++
++using namespace cute;
++
++struct Sm70D256SplitDTraits {
++    using Element = cutlass::half_t;
++    using MmaAtom = MMA_Atom<SM70_8x8x4_F32F16F16F32_TN>;
++    using PvMmaAtom = MMA_Atom<SM70_8x8x4_F32F16F16F32_TT>;
++
++    static constexpr int kHeadDim = 256;
++    static constexpr int kBlockM = 64;
++    static constexpr int kBlockN = 32;
++    static constexpr int kDChunk = 64;
++    static constexpr int kDChunks = kHeadDim / kDChunk;
++    static constexpr int kOwnedDChunks = kDChunks / 2;
++    static constexpr int kNThreads = 256;
++    static constexpr int kMmaThreads = 32;
++    static constexpr int kWarpsPerGroup = 2;
++    static constexpr int kMmaGroups =
++        kNThreads / (kWarpsPerGroup * kMmaThreads);
++    static constexpr int kGroupRows = kBlockM / kMmaGroups;
++    static constexpr int kQkWarpRows = kGroupRows / kWarpsPerGroup;
++    static constexpr int kQkRowsPerThread = kQkWarpRows / 4;
++    static constexpr int kOutputRowsPerThread = kGroupRows / 4;
++
++    // Each warp in a pair owns eight distinct Q rows for QK, then the pair
++    // shares the resulting P tile and each warp owns D/2 for PV. This keeps
++    // the standard FA2 N32 online-softmax order without duplicating QK work.
++    using QkTiledMma = TiledMMA<
++        MmaAtom,
++        Layout<Shape<_1, _4, _1>>,
++        Tile<Int<kQkWarpRows>, Int<kBlockN / 4>, _4>>;
++    using PvTiledMma = TiledMMA<
++        PvMmaAtom,
++        Layout<Shape<_1, _4, _1>>,
++        Tile<Int<kGroupRows>, Int<kDChunk / 4>, _4>>;
++    static_assert(decltype(size(QkTiledMma{}))::value == kMmaThreads);
++    static_assert(decltype(size(PvTiledMma{}))::value == kMmaThreads);
++
++    using SmemLayoutAtom = decltype(composition(
++        Swizzle<3, 3, 3>{},
++        Layout<Shape<_8, _64>, Stride<_64, _1>>{}));
++    using SmemLayoutQ = decltype(tile_to_shape(
++        SmemLayoutAtom{}, Shape<Int<kBlockM>, Int<kHeadDim>>{}));
++    using SmemLayoutKV = decltype(tile_to_shape(
++        SmemLayoutAtom{}, Shape<Int<kBlockN>, Int<kDChunk>>{}));
++    // Volta HMMA.884 assigns one warp to four 8-thread quadpairs and services
++    // the 64-bit operand loads as two half-warps. Pitch 68 advances each row
++    // by one bank pair; the extra 16-half phase every 16 rows folds row bit 4
++    // into bank-pair bit 2 so every half-warp covers all 16 bank pairs once.
++    using SmemLayoutK = Layout<
++        Shape<Shape<Int<16>, Int<2>>, Int<kDChunk>>,
++        Stride<Stride<Int<kDChunk + 4>, Int<16 * (kDChunk + 4) + 16>>,
++               _1>>;
++    // TT PV consumes V as KxD. Row bit 1 is folded into D-address bit 2;
++    // the producer applies the inverse 64-bit-half swap before STS.128.
++    using SmemLayoutV = Layout<
++        Shape<Shape<_2, Int<kBlockN / 2>>,
++              Shape<_32, Int<kDChunk / 32>>>,
++        Stride<Stride<_32, Int<4 * kBlockN>>,
++               Stride<_1, _64>>>;
++    using SmemLayoutP = Layout<
++        Shape<Int<kBlockM>, Int<kBlockN>>,
++        Stride<Int<kBlockN>, _1>>;
++
++    using SmemCopyAtom =
++        Copy_Atom<AutoVectorizingCopyWithAssumedAlignment<128>, Element>;
++    using SmemCopyAtomTransposed = SmemCopyAtom;
++
++    static constexpr int kGmemElemsPerLoad = 8;
++    static constexpr int kGmemThreadsPerRow = kDChunk / kGmemElemsPerLoad;
++    using GmemLayoutAtom = Layout<
++        Shape<Int<kNThreads / kGmemThreadsPerRow>,
++              Int<kGmemThreadsPerRow>>,
++        Stride<Int<kGmemThreadsPerRow>, _1>>;
++    using GmemTiledCopy = decltype(make_tiled_copy(
++        Copy_Atom<SM70_LDG_GLOBAL_CG_128b, Element>{},
++        GmemLayoutAtom{},
++        Layout<Shape<_1, _8>>{}));
++    static constexpr int kGmemRowsPerThread =
++        kBlockN / (kNThreads / kGmemThreadsPerRow);
++    using GmemTiledCopyPaged = decltype(make_tiled_copy(
++        Copy_Atom<SM70_LDG_GLOBAL_CG_128b, Element>{},
++        GmemLayoutAtom{},
++        Layout<Shape<Int<kGmemRowsPerThread>, _8>,
++               Stride<_8, _1>>{}));
++
++    static constexpr int kGmemKElemsPerLoad = 4;
++    static constexpr int kGmemKThreadsPerRow =
++        kDChunk / kGmemKElemsPerLoad;
++    using GmemKLayoutAtom = Layout<
++        Shape<Int<kNThreads / kGmemKThreadsPerRow>,
++              Int<kGmemKThreadsPerRow>>,
++        Stride<Int<kGmemKThreadsPerRow>, _1>>;
++    using GmemKTiledCopy = decltype(make_tiled_copy(
++        Copy_Atom<UniversalCopy<uint64_t>, Element>{},
++        GmemKLayoutAtom{},
++        Layout<Shape<_1, _4>>{}));
++    static constexpr int kGmemKRowsPerThread =
++        kBlockN / (kNThreads / kGmemKThreadsPerRow);
++    using GmemKTiledCopyPaged = decltype(make_tiled_copy(
++        Copy_Atom<UniversalCopy<uint64_t>, Element>{},
++        GmemKLayoutAtom{},
++        Layout<Shape<Int<kGmemKRowsPerThread>, _4>,
++               Stride<_4, _1>>{}));
++
++    static constexpr int kQElements = size(SmemLayoutQ{});
++    static constexpr int kKVElements = size(SmemLayoutKV{});
++    static_assert(size(SmemLayoutV{}) == kKVElements);
++    // The second K stage is live only before P is materialized, so it may
++    // alias the beginning of the later P region. Keep the K stages disjoint
++    // and on the same 128-byte bank phase without moving the V/P regions.
++    static constexpr int kKStageElements = 2240;
++    static_assert(kKStageElements >= cosize(SmemLayoutK{}));
++    static_assert(
++        kKStageElements + cosize(SmemLayoutK{})
++        <= 2 * kKVElements + size(SmemLayoutP{}));
++    static constexpr int kPElements = size(SmemLayoutP{});
++    static constexpr int kExchangeRows = kMmaGroups * kGroupRows;
++    static constexpr int kTensorSmemBytes =
++        (kQElements + 2 * kKVElements + kPElements) * sizeof(Element);
++    static constexpr int kExchangeBytes =
++        2 * kExchangeRows * sizeof(float);
++    static constexpr int kSmemBytes = kTensorSmemBytes + kExchangeBytes;
++    static_assert(kSmemBytes == 45568);
++};
++
++template <typename TiledCopy, typename SrcTensor, typename DstTensor>
++__device__ __forceinline__ void copy_even_tile(
++    TiledCopy tiled_copy, const SrcTensor &src, DstTensor &dst) {
++    static_assert(decltype(rank(src))::value == 3);
++    static_assert(decltype(rank(dst))::value == 3);
++#pragma unroll
++    for (int m = 0; m < size<1>(src); ++m) {
++#pragma unroll
++        for (int k = 0; k < size<2>(src); ++k) {
++            cute::copy(tiled_copy, src(_, m, k), dst(_, m, k));
++        }
++    }
++}
++
++template <typename RegTensor, typename SmemTensor, typename CoordTensor>
++__device__ __forceinline__ void store_v_fragment_128_swizzled(
++    const RegTensor &source,
++    SmemTensor &destination,
++    const CoordTensor &coordinates) {
++    static_assert(decltype(size<0>(source))::value == 8);
++    static_assert(decltype(size<0>(destination))::value == 8);
++    static_assert(decltype(size<1>(source))::value
++                  == decltype(size<1>(destination))::value);
++    static_assert(decltype(size<2>(source))::value
++                  == decltype(size<2>(destination))::value);
++#pragma unroll
++    for (int k = 0; k < size<2>(source); ++k) {
++#pragma unroll
++        for (int m = 0; m < size<1>(source); ++m) {
++            auto words = recast<uint32_t const>(source(_, m, k));
++            const uint32_t address = static_cast<uint32_t>(
++                __cvta_generic_to_shared(&destination(0, m, k)));
++            const int row = get<0>(coordinates(0, m, k));
++            if (row & 2) {
++                asm volatile(
++                    "st.shared.v4.u32 [%0], {%1, %2, %3, %4};\n"
++                    :: "r"(address), "r"(words(2)), "r"(words(3)),
++                       "r"(words(0)), "r"(words(1)));
++            } else {
++                asm volatile(
++                    "st.shared.v4.u32 [%0], {%1, %2, %3, %4};\n"
++                    :: "r"(address), "r"(words(0)), "r"(words(1)),
++                       "r"(words(2)), "r"(words(3)));
++            }
++        }
++    }
++}
++
++template <typename SmemTensor, typename TensorB>
++__device__ __forceinline__ void load_v_fragment_tt(
++    const SmemTensor &sV,
++    TensorB &b_words,
++    int phase,
++    int lane) {
++    auto *v = sV.data().get();
++    const int d_lane = ((lane & 0x0c) << 1) | ((lane & 0x10) >> 2);
++    const int k = phase * 4 + (lane & 0x03);
++    const int offset = (d_lane ^ ((k & 0x02) << 1))
++        | ((k & 0x01) << 5) | ((k & 0x1e) << 6);
++    const uint32_t address = static_cast<uint32_t>(
++        __cvta_generic_to_shared(v + offset));
++    uint32_t word0;
++    uint32_t word1;
++    uint32_t word2;
++    uint32_t word3;
++    asm volatile(
++        "ld.shared.v2.u32 {%0, %1}, [%4];\n"
++        "ld.shared.v2.u32 {%2, %3}, [%4+128];\n"
++        : "=r"(word0), "=r"(word1), "=r"(word2), "=r"(word3)
++        : "r"(address));
++    b_words(0, 0) = word0;
++    b_words(1, 0) = word1;
++    b_words(0, 1) = word2;
++    b_words(1, 1) = word3;
++}
++
++template <int kPhase, typename TensorO, typename TensorP,
++          typename SmemTensor, typename TiledMma, typename TensorB,
++          typename TensorBWords, typename TensorBNext,
++          typename TensorBNextWords>
++__device__ __forceinline__ void splitd_pv_gemm_tt_phase(
++    TensorO &acc_o,
++    const TensorP &tPrP,
++    const SmemTensor &sV,
++    TensorB &current_b,
++    TensorBWords &current_b_words,
++    TensorBNext &next_b,
++    TensorBNextWords &next_b_words,
++    TiledMma tiled_mma,
++    int lane) {
++    constexpr int kPhases = decltype(size<2>(tPrP))::value;
++    static_assert(kPhase < kPhases);
++    if constexpr (kPhase + 1 < kPhases) {
++        load_v_fragment_tt(sV, next_b_words, kPhase + 1, lane);
++    }
++    cute::gemm(tiled_mma, tPrP(_, _, kPhase), current_b, acc_o);
++    if constexpr (kPhase + 1 < kPhases) {
++        splitd_pv_gemm_tt_phase<kPhase + 1>(
++            acc_o, tPrP, sV, next_b, next_b_words,
++            current_b, current_b_words, tiled_mma, lane);
++    }
++}
++
++template <typename TensorO, typename TensorP, typename SmemTensor,
++          typename TiledMma>
++__device__ __forceinline__ void splitd_pv_gemm_tt(
++    TensorO &acc_o,
++    const TensorP &tPrP,
++    const SmemTensor &sV,
++    TiledMma tiled_mma,
++    int lane) {
++    using Element = typename Sm70D256SplitDTraits::Element;
++    using BLayout = Layout<Shape<_4, _2>, Stride<_1, _4>>;
++    auto b0 = make_tensor<Element>(BLayout{});
++    auto b1 = make_tensor<Element>(BLayout{});
++    auto b0_words = recast<uint32_t>(b0);
++    auto b1_words = recast<uint32_t>(b1);
++    static_assert(decltype(size<2>(tPrP))::value
++                  == Sm70D256SplitDTraits::kBlockN / 4);
++    static_assert(decltype(size(b0))::value == 8);
++    static_assert(decltype(size<0>(b0_words))::value == 2);
++    static_assert(decltype(size<1>(b0_words))::value == 2);
++    load_v_fragment_tt(sV, b0_words, 0, lane);
++    splitd_pv_gemm_tt_phase<0>(
++        acc_o, tPrP, sV, b0, b0_words, b1, b1_words,
++        tiled_mma, lane);
++}
++
++template <bool PagedKV, typename Tensor>
++__device__ __forceinline__ auto reshape_kv_thread_tensor(Tensor tensor) {
++    if constexpr (PagedKV) {
++        return make_tensor(
++            tensor.data(), reshape_thread_tile(tensor.layout()));
++    } else {
++        return tensor;
++    }
++}
++
++template <typename TensorScores, typename OLayout, int kOElements>
++__device__ __forceinline__ void splitd_n32_online_softmax(
++    TensorScores &acc_s,
++    float (&o_storage)[Sm70D256SplitDTraits::kOwnedDChunks][kOElements],
++    OLayout o_layout,
++    float (&row_max)[Sm70D256SplitDTraits::kQkRowsPerThread],
++    float (&row_sum)[Sm70D256SplitDTraits::kQkRowsPerThread],
++    float *row_scale_exchange,
++    int mma_group,
++    int n_warp,
++    int lane,
++    float softmax_scale_log2,
++    bool first_tile) {
++    using Traits = Sm70D256SplitDTraits;
++    auto scores = make_tensor(
++        acc_s.data(),
++        FLASH_NAMESPACE::convert_layout_acc_rowcol(acc_s.layout()));
++    static_assert(
++        decltype(size<0>(scores))::value == Traits::kQkRowsPerThread);
++
++    float work[Traits::kQkRowsPerThread];
++    auto work_tensor = make_tensor(
++        make_rmem_ptr(&work[0]), Shape<Int<Traits::kQkRowsPerThread>>{});
++    if (first_tile) {
++        FLASH_NAMESPACE::sm70_reduce_max<true>(scores, work_tensor);
++    } else {
++#pragma unroll
++        for (int slot = 0; slot < Traits::kQkRowsPerThread; ++slot) {
++            work[slot] = row_max[slot];
++        }
++        FLASH_NAMESPACE::sm70_reduce_max<false>(scores, work_tensor);
++    }
++
++    float scores_max[Traits::kQkRowsPerThread];
++#pragma unroll
++    for (int slot = 0; slot < Traits::kQkRowsPerThread; ++slot) {
++        const float next_max = work[slot];
++        const float safe_max = next_max == -INFINITY ? 0.0f : next_max;
++        work[slot] = first_tile
++            ? 1.0f
++            : exp2f((row_max[slot] - safe_max) * softmax_scale_log2);
++        row_max[slot] = next_max;
++        scores_max[slot] = safe_max;
++        if (!first_tile) {
++            row_sum[slot] *= work[slot];
++        }
++    }
++
++    if ((lane & 0x0e) == 0) {
++#pragma unroll
++        for (int slot = 0; slot < Traits::kQkRowsPerThread; ++slot) {
++            const int row = FLASH_NAMESPACE::sm70_row_slot<
++                Traits::kQkWarpRows>(slot, lane);
++            row_scale_exchange[
++                mma_group * Traits::kGroupRows
++                + n_warp * Traits::kQkWarpRows + row] = work[slot];
++        }
++    }
++    __syncthreads();
++
++    if (!first_tile) {
++#pragma unroll
++        for (int d = 0; d < Traits::kOwnedDChunks; ++d) {
++            auto acc_o = make_tensor(make_rmem_ptr(&o_storage[d][0]), o_layout);
++            auto acc_o_rc = make_tensor(
++                acc_o.data(),
++                FLASH_NAMESPACE::convert_layout_acc_rowcol(acc_o.layout()));
++#pragma unroll
++            for (int row = 0; row < Traits::kOutputRowsPerThread; ++row) {
++                const int logical_row = FLASH_NAMESPACE::sm70_row_slot<
++                    Traits::kGroupRows>(row, lane);
++                const float row_scale = row_scale_exchange[
++                    mma_group * Traits::kGroupRows + logical_row];
++#pragma unroll
++                for (int col = 0; col < size<1>(acc_o_rc); ++col) {
++                    acc_o_rc(row, col) *= row_scale;
++                }
++            }
++        }
++    }
++
++    auto scores_max_tensor = make_tensor(
++        make_rmem_ptr(&scores_max[0]),
++        Shape<Int<Traits::kQkRowsPerThread>>{});
++    FLASH_NAMESPACE::sm70_scale_apply_exp2(
++        scores, scores_max_tensor, softmax_scale_log2);
++
++    FLASH_NAMESPACE::sm70_reduce_sum<true>(scores, work_tensor);
++#pragma unroll
++    for (int slot = 0; slot < Traits::kQkRowsPerThread; ++slot) {
++        row_sum[slot] += work[slot];
++    }
++}
++
++template <int kThreadsPerRow, int kRowsPerThread, int kElemsPerLoad>
++__device__ __forceinline__ int64_t paged_kv_thread_offset(
++    int tid,
++    int n_block,
++    int d_chunk,
++    int page_size,
++    const int *__restrict__ block_table,
++    int64_t page_stride,
++    int64_t row_stride) {
++    const int row_in_tile =
++        (tid / kThreadsPerRow) * kRowsPerThread;
++    const int logical_row = n_block * Sm70D256SplitDTraits::kBlockN
++        + row_in_tile;
++    const int physical_page = block_table[logical_row / page_size];
++    return static_cast<int64_t>(physical_page) * page_stride
++        + static_cast<int64_t>(logical_row % page_size) * row_stride
++        + d_chunk * Sm70D256SplitDTraits::kDChunk
++        + (tid % kThreadsPerRow) * kElemsPerLoad;
++}
++
++template <
++    typename Element,
++    bool PagedKV,
++    bool SplitKV3 = false,
++    bool StoreState = false>
++__global__ __launch_bounds__(Sm70D256SplitDTraits::kNThreads, 1)
++void sm70_d256_splitd_dense_kernel(
++    const Element *__restrict__ q,
++    const Element *__restrict__ k,
++    const Element *__restrict__ v,
++    Element *__restrict__ out,
++    int q_batch_stride,
++    int q_row_stride,
++    int q_head_stride,
++    int k_outer_stride,
++    int k_row_stride,
++    int k_head_stride,
++    int v_outer_stride,
++    int v_row_stride,
++    int v_head_stride,
++    int query_len,
++    int kv_len,
++    int heads_q,
++    int heads_kv,
++    float softmax_scale_log2,
++    const int *__restrict__ block_table,
++    int page_size,
++    int block_table_batch_stride,
++    float *__restrict__ partial_out,
++    float *__restrict__ partial_max,
++    float *__restrict__ partial_sum) {
++    using Traits = Sm70D256SplitDTraits;
++    constexpr int kBlockM = Traits::kBlockM;
++    constexpr int kBlockN = Traits::kBlockN;
++    constexpr int kDChunk = Traits::kDChunk;
++
++    const int tid = threadIdx.x;
++    const int warp = tid / Traits::kMmaThreads;
++    const int mma_group = warp / Traits::kWarpsPerGroup;
++    const int lane = tid % Traits::kMmaThreads;
++    const int m_block = blockIdx.x;
++    const int split = SplitKV3 ? blockIdx.y % 3 : 0;
++    const int batch = SplitKV3 ? blockIdx.y / 3 : blockIdx.y;
++    const int head_q = blockIdx.z;
++    const int head_kv = head_q / (heads_q / heads_kv);
++    const int query_row_base = m_block * kBlockM;
++    const int kv_offset = kv_len - query_len;
++    const int *sequence_block_table = PagedKV
++        ? block_table + batch * block_table_batch_stride
++        : nullptr;
++
++    extern __shared__ __align__(128) Element smem[];
++    Element *q_smem_ptr = smem;
++    Element *kv_smem_ptr = q_smem_ptr + Traits::kQElements;
++    auto sQ = make_tensor(
++        make_smem_ptr(q_smem_ptr), typename Traits::SmemLayoutQ{});
++
++    typename Traits::GmemTiledCopy gmem_copy;
++    auto gmem_thread = gmem_copy.get_thread_slice(tid);
++    using GmemVCopy = std::conditional_t<
++        PagedKV,
++        typename Traits::GmemTiledCopyPaged,
++        typename Traits::GmemTiledCopy>;
++    GmemVCopy gmem_v_copy;
++    auto gmem_v_thread = gmem_v_copy.get_thread_slice(tid);
++    using GmemKCopy = std::conditional_t<
++        PagedKV,
++        typename Traits::GmemKTiledCopyPaged,
++        typename Traits::GmemKTiledCopy>;
++    GmemKCopy gmem_k_copy;
++    auto gmem_k_thread = gmem_k_copy.get_thread_slice(tid);
++    {
++        const int64_t q_batch_offset = static_cast<int64_t>(batch)
++            * q_batch_stride;
++        auto mQ = make_tensor(
++            make_gmem_ptr(q + q_batch_offset + head_q * q_head_stride),
++            make_shape(query_len, Int<Traits::kHeadDim>{}),
++            make_stride(q_row_stride, _1{}));
++        auto gQ = local_tile(
++            mQ,
++            Shape<Int<kBlockM>, Int<Traits::kHeadDim>>{},
++            make_coord(m_block, 0));
++        auto tQgQ = gmem_thread.partition_S(gQ);
++        auto tQsQ = gmem_thread.partition_D(sQ);
++        copy_even_tile(gmem_copy, tQgQ, tQsQ);
++    }
++    __syncthreads();
++
++    typename Traits::QkTiledMma qk_tiled_mma;
++    auto qk_mma_thread = qk_tiled_mma.get_thread_slice(lane);
++    typename Traits::PvTiledMma pv_tiled_mma;
++    auto pv_mma_thread = pv_tiled_mma.get_thread_slice(lane);
++
++    using OFragment = decltype(partition_fragment_C(
++        pv_tiled_mma,
++        Shape<Int<Traits::kGroupRows>, Int<kDChunk>>{}));
++    constexpr int kOElements = decltype(size(OFragment{}))::value;
++    using OLayout = typename OFragment::layout_type;
++    float o_storage[Traits::kOwnedDChunks][kOElements];
++#pragma unroll
++    for (int d = 0; d < Traits::kOwnedDChunks; ++d) {
++#pragma unroll
++        for (int i = 0; i < kOElements; ++i) {
++            o_storage[d][i] = 0.0f;
++        }
++    }
++
++    float row_max[Traits::kQkRowsPerThread];
++    float row_sum[Traits::kQkRowsPerThread];
++#pragma unroll
++    for (int row = 0; row < Traits::kQkRowsPerThread; ++row) {
++        row_max[row] = -INFINITY;
++        row_sum[row] = 0.0f;
++    }
++
++    const int max_kv_for_tile = query_row_base + kBlockM + kv_offset;
++    const int n_block_limit = max_kv_for_tile < kv_len
++        ? max_kv_for_tile
++        : kv_len;
++    const int visible_n_blocks = cute::ceil_div(n_block_limit, kBlockN);
++    int n_block_min = 0;
++    int n_block_max = visible_n_blocks - 1;
++    if constexpr (SplitKV3) {
++        n_block_min = visible_n_blocks * split / 3;
++        n_block_max = visible_n_blocks * (split + 1) / 3 - 1;
++    }
++
++    const int64_t k_batch_offset = PagedKV
++        ? 0
++        : static_cast<int64_t>(batch)
++            * k_outer_stride;
++    auto mK = make_tensor(
++        make_gmem_ptr(k + k_batch_offset + head_kv * k_head_stride),
++        make_shape(kv_len, Int<Traits::kHeadDim>{}),
++        make_stride(k_row_stride, _1{}));
++    auto sKFirst = make_tensor(
++        make_smem_ptr(kv_smem_ptr), typename Traits::SmemLayoutK{});
++    auto tKsKFirstRaw = gmem_k_thread.partition_D(sKFirst);
++    auto tKsKFirst = reshape_kv_thread_tensor<PagedKV>(tKsKFirstRaw);
++    auto tKrKNext = make_fragment_like(tKsKFirst);
++    auto gKFirst = local_tile(
++        mK,
++        Shape<Int<kBlockN>, Int<kDChunk>>{},
++        make_coord(n_block_max, 0));
++    auto tKgKFirstRaw = gmem_k_thread.partition_S(gKFirst);
++    auto tKgKFirst = reshape_kv_thread_tensor<PagedKV>(tKgKFirstRaw);
++    int64_t k_thread_tile_base = 0;
++    if constexpr (PagedKV) {
++        k_thread_tile_base = paged_kv_thread_offset<
++            Traits::kGmemKThreadsPerRow,
++            Traits::kGmemKRowsPerThread,
++            Traits::kGmemKElemsPerLoad>(
++                tid, n_block_max, 0, page_size, sequence_block_table,
++                k_outer_stride,
++                k_row_stride);
++        tKgKFirst.data() = mK.data() + k_thread_tile_base;
++    }
++    copy_even_tile(gmem_k_copy, tKgKFirst, tKsKFirst);
++    __syncthreads();
++
++    for (int n_block = n_block_max; n_block >= n_block_min; --n_block) {
++        const int n_warp = warp & 1;
++        const int group_row_base = mma_group * Traits::kGroupRows;
++        const int qk_row_base = group_row_base
++            + n_warp * Traits::kQkWarpRows;
++        auto acc_s = partition_fragment_C(
++            qk_tiled_mma,
++            Shape<Int<Traits::kQkWarpRows>, Int<kBlockN>>{});
++        clear(acc_s);
++
++#pragma unroll
++        for (int d_chunk = 0; d_chunk < Traits::kDChunks; ++d_chunk) {
++            auto sK = make_tensor(
++                make_smem_ptr(
++                    kv_smem_ptr
++                    + (d_chunk & 1) * Traits::kKStageElements),
++                typename Traits::SmemLayoutK{});
++            if (d_chunk + 1 < Traits::kDChunks) {
++                auto gKNext = local_tile(
++                    mK,
++                    Shape<Int<kBlockN>, Int<kDChunk>>{},
++                    make_coord(n_block, d_chunk + 1));
++                auto tKgKNextRaw = gmem_k_thread.partition_S(gKNext);
++                auto tKgKNext =
++                    reshape_kv_thread_tensor<PagedKV>(tKgKNextRaw);
++                if constexpr (PagedKV) {
++                    tKgKNext.data() = mK.data()
++                        + k_thread_tile_base
++                        + (d_chunk + 1) * kDChunk;
++                }
++                copy_even_tile(gmem_k_copy, tKgKNext, tKrKNext);
++            }
++
++            auto sQChunk = local_tile(
++                sQ,
++                Shape<Int<Traits::kQkWarpRows>, Int<kDChunk>>{},
++                make_coord(
++                    mma_group * Traits::kWarpsPerGroup + n_warp,
++                    d_chunk));
++            auto tSrQ = qk_mma_thread.partition_fragment_A(sQChunk);
++            auto tSrK = qk_mma_thread.partition_fragment_B(sK);
++            auto tOsQ = qk_mma_thread.partition_A(sQChunk);
++            auto tOsK = qk_mma_thread.partition_B(sK);
++            auto smem_copy_q = make_tiled_copy_A(
++                typename Traits::SmemCopyAtom{}, qk_tiled_mma);
++            auto smem_copy_k = make_tiled_copy_B(
++                typename Traits::SmemCopyAtom{}, qk_tiled_mma);
++            auto smem_thread_q = smem_copy_q.get_thread_slice(lane);
++            auto smem_thread_k = smem_copy_k.get_thread_slice(lane);
++            auto tSsQ = smem_thread_q.retile_S(tOsQ);
++            auto tSsK = smem_thread_k.retile_S(tOsK);
++            FLASH_NAMESPACE::gemm<false, false>(
++                acc_s, tSrQ, tSrK, tSsQ, tSsK, qk_tiled_mma,
++                smem_copy_q, smem_copy_k, smem_thread_q, smem_thread_k);
++            if (d_chunk + 1 < Traits::kDChunks) {
++                auto sKNext = make_tensor(
++                    make_smem_ptr(
++                        kv_smem_ptr
++                        + ((d_chunk + 1) & 1) * Traits::kKStageElements),
++                    typename Traits::SmemLayoutK{});
++                auto tKsKNextRaw = gmem_k_thread.partition_D(sKNext);
++                auto tKsKNext =
++                    reshape_kv_thread_tensor<PagedKV>(tKsKNextRaw);
++                cute::copy(tKrKNext, tKsKNext);
++                __syncthreads();
++            }
++        }
++
++        const int64_t v_batch_offset = PagedKV
++            ? 0
++            : static_cast<int64_t>(batch)
++                * v_outer_stride;
++        auto mV = make_tensor(
++            make_gmem_ptr(v + v_batch_offset + head_kv * v_head_stride),
++            make_shape(kv_len, Int<Traits::kHeadDim>{}),
++            make_stride(v_row_stride, _1{}));
++        auto sV0 = make_tensor(
++            make_smem_ptr(kv_smem_ptr),
++            typename Traits::SmemLayoutV{});
++        auto sV1 = make_tensor(
++            make_smem_ptr(kv_smem_ptr + Traits::kKVElements),
++            typename Traits::SmemLayoutV{});
++        auto tVsV0Raw = gmem_v_thread.partition_D(sV0);
++        auto tVsV1Raw = gmem_v_thread.partition_D(sV1);
++        auto tVsV0 = reshape_kv_thread_tensor<PagedKV>(tVsV0Raw);
++        auto tVsV1 = reshape_kv_thread_tensor<PagedKV>(tVsV1Raw);
++        auto tVrV0 = make_fragment_like(tVsV0);
++        auto tVrV1 = make_fragment_like(tVsV1);
++        auto cV = make_identity_tensor(
++            Shape<Int<kBlockN>, Int<kDChunk>>{});
++        auto tVcVRaw = gmem_v_thread.partition_S(cV);
++        auto tVcV = reshape_kv_thread_tensor<PagedKV>(tVcVRaw);
++        auto gV0 = local_tile(
++            mV,
++            Shape<Int<kBlockN>, Int<kDChunk>>{},
++            make_coord(n_block, 0));
++        auto gV2 = local_tile(
++            mV,
++            Shape<Int<kBlockN>, Int<kDChunk>>{},
++            make_coord(n_block, Int<Traits::kOwnedDChunks>{}));
++        auto tVgV0Raw = gmem_v_thread.partition_S(gV0);
++        auto tVgV2Raw = gmem_v_thread.partition_S(gV2);
++        auto tVgV0 = reshape_kv_thread_tensor<PagedKV>(tVgV0Raw);
++        auto tVgV2 = reshape_kv_thread_tensor<PagedKV>(tVgV2Raw);
++        int64_t v_thread_tile_base = 0;
++        if constexpr (PagedKV) {
++            v_thread_tile_base = paged_kv_thread_offset<
++                Traits::kGmemThreadsPerRow,
++                Traits::kGmemRowsPerThread,
++                Traits::kGmemElemsPerLoad>(
++                    tid, n_block, 0, page_size, sequence_block_table,
++                    v_outer_stride, v_row_stride);
++            tVgV0.data() = mV.data() + v_thread_tile_base;
++            tVgV2.data() = mV.data()
++                + v_thread_tile_base
++                + Traits::kOwnedDChunks * kDChunk;
++        }
++        copy_even_tile(gmem_v_copy, tVgV0, tVrV0);
++        copy_even_tile(gmem_v_copy, tVgV2, tVrV1);
++
++        FLASH_NAMESPACE::Mask<true, false, false> mask(
++            kv_len, query_len, -1, 0, 0.0f);
++        mask.template apply_mask<true, true>(
++            acc_s,
++            n_block * kBlockN,
++            query_row_base + qk_row_base,
++            0);
++        Element *p_smem_ptr =
++            kv_smem_ptr + 2 * Traits::kKVElements;
++        float *row_scale_exchange = reinterpret_cast<float *>(
++            p_smem_ptr + Traits::kPElements);
++        splitd_n32_online_softmax(
++            acc_s, o_storage, OLayout{}, row_max, row_sum,
++            row_scale_exchange, mma_group, n_warp, lane,
++            softmax_scale_log2, n_block == n_block_max);
++
++        store_v_fragment_128_swizzled(tVrV0, tVsV0, tVcV);
++        store_v_fragment_128_swizzled(tVrV1, tVsV1, tVcV);
++
++        auto sP = make_tensor(
++            make_smem_ptr(p_smem_ptr), typename Traits::SmemLayoutP{});
++        auto cS = make_identity_tensor(
++            Shape<Int<Traits::kQkWarpRows>, Int<kBlockN>>{});
++        auto tScS = qk_mma_thread.partition_C(cS);
++#pragma unroll
++        for (int i = 0; i < size(acc_s); ++i) {
++            const int row = get<0>(tScS(i));
++            const int col = get<1>(tScS(i));
++            sP(qk_row_base + row, col) = Element(acc_s(i));
++        }
++        __syncthreads();
++
++        auto gV1 = local_tile(
++            mV,
++            Shape<Int<kBlockN>, Int<kDChunk>>{},
++            make_coord(n_block, 1));
++        auto gV3 = local_tile(
++            mV,
++            Shape<Int<kBlockN>, Int<kDChunk>>{},
++            make_coord(n_block, Int<Traits::kOwnedDChunks + 1>{}));
++        auto tVgV1Raw = gmem_v_thread.partition_S(gV1);
++        auto tVgV3Raw = gmem_v_thread.partition_S(gV3);
++        auto tVgV1 = reshape_kv_thread_tensor<PagedKV>(tVgV1Raw);
++        auto tVgV3 = reshape_kv_thread_tensor<PagedKV>(tVgV3Raw);
++        if constexpr (PagedKV) {
++            tVgV1.data() = mV.data()
++                + v_thread_tile_base + kDChunk;
++            tVgV3.data() = mV.data()
++                + v_thread_tile_base
++                + (Traits::kOwnedDChunks + 1) * kDChunk;
++        }
++        copy_even_tile(gmem_v_copy, tVgV1, tVrV0);
++        copy_even_tile(gmem_v_copy, tVgV3, tVrV1);
++
++        auto sPGroup = local_tile(
++            sP,
++            Shape<Int<Traits::kGroupRows>, Int<kBlockN>>{},
++            make_coord(mma_group, 0));
++        auto tPrP = pv_mma_thread.partition_fragment_A(sPGroup);
++        auto tOsP = pv_mma_thread.partition_A(sPGroup);
++        auto smem_copy_p = make_tiled_copy_A(
++            typename Traits::SmemCopyAtom{}, pv_tiled_mma);
++        auto smem_thread_p = smem_copy_p.get_thread_slice(lane);
++        auto tPsP = smem_thread_p.retile_S(tOsP);
++        auto tPrPView = smem_thread_p.retile_D(tPrP);
++#pragma unroll
++        for (int k_tile = 0; k_tile < size<2>(tPrP); ++k_tile) {
++            cute::copy(
++                smem_copy_p,
++                tPsP(_, _, k_tile),
++                tPrPView(_, _, k_tile));
++        }
++
++#pragma unroll
++        for (int d_local = 0; d_local < Traits::kOwnedDChunks; ++d_local) {
++            auto acc_o = make_tensor(
++                make_rmem_ptr(&o_storage[d_local][0]), OLayout{});
++            auto sV = make_tensor(
++                make_smem_ptr(
++                    kv_smem_ptr + n_warp * Traits::kKVElements),
++                typename Traits::SmemLayoutV{});
++            splitd_pv_gemm_tt(
++                acc_o, tPrP, sV, pv_tiled_mma, lane);
++            __syncthreads();
++            if (d_local + 1 < Traits::kOwnedDChunks) {
++                store_v_fragment_128_swizzled(tVrV0, tVsV0, tVcV);
++                store_v_fragment_128_swizzled(tVrV1, tVsV1, tVcV);
++                __syncthreads();
++                if (n_block > n_block_min) {
++                    auto gKNextBlock = local_tile(
++                        mK,
++                        Shape<Int<kBlockN>, Int<kDChunk>>{},
++                        make_coord(n_block - 1, 0));
++                    auto tKgKNextBlockRaw =
++                        gmem_k_thread.partition_S(gKNextBlock);
++                    auto tKgKNextBlock =
++                        reshape_kv_thread_tensor<PagedKV>(
++                            tKgKNextBlockRaw);
++                    if constexpr (PagedKV) {
++                        k_thread_tile_base = paged_kv_thread_offset<
++                            Traits::kGmemKThreadsPerRow,
++                            Traits::kGmemKRowsPerThread,
++                            Traits::kGmemKElemsPerLoad>(
++                                tid, n_block - 1, 0, page_size,
++                                sequence_block_table,
++                                k_outer_stride,
++                                k_row_stride);
++                        tKgKNextBlock.data() =
++                            mK.data() + k_thread_tile_base;
++                    }
++                    copy_even_tile(
++                        gmem_k_copy, tKgKNextBlock, tKrKNext);
++                }
++            }
++        }
++        if (n_block > n_block_min) {
++            auto sKNextBlock = make_tensor(
++                make_smem_ptr(kv_smem_ptr),
++                typename Traits::SmemLayoutK{});
++            auto tKsKNextBlockRaw =
++                gmem_k_thread.partition_D(sKNextBlock);
++            auto tKsKNextBlock =
++                reshape_kv_thread_tensor<PagedKV>(tKsKNextBlockRaw);
++            cute::copy(tKrKNext, tKsKNextBlock);
++            __syncthreads();
++        }
++    }
++
++    const int n_warp = warp & 1;
++    const int group_row_base = mma_group * Traits::kGroupRows;
++    Element *p_smem_ptr = kv_smem_ptr + 2 * Traits::kKVElements;
++    float *row_sum_exchange = reinterpret_cast<float *>(
++        p_smem_ptr + Traits::kPElements)
++        + Traits::kExchangeRows;
++    SumOp<float> sum_op;
++#pragma unroll
++    for (int slot = 0; slot < Traits::kQkRowsPerThread; ++slot) {
++        row_sum[slot] = FLASH_NAMESPACE::sm70_row_allreduce_8(
++            row_sum[slot], sum_op);
++    }
++    if constexpr (SplitKV3) {
++        const int64_t split_row_stride =
++            static_cast<int64_t>(gridDim.y / 3) * query_len * heads_q;
++        if ((lane & 0x0e) == 0) {
++#pragma unroll
++            for (int slot = 0; slot < Traits::kQkRowsPerThread; ++slot) {
++                const int row = FLASH_NAMESPACE::sm70_row_slot<
++                    Traits::kQkWarpRows>(slot, lane);
++                const int query_row = query_row_base
++                    + group_row_base + n_warp * Traits::kQkWarpRows + row;
++                const int64_t row_offset =
++                    (static_cast<int64_t>(batch) * query_len + query_row)
++                        * heads_q
++                    + head_q;
++                const int64_t partial_row =
++                    split * split_row_stride + row_offset;
++                partial_max[partial_row] = row_max[slot];
++                partial_sum[partial_row] = row_sum[slot];
++            }
++        }
++
++#pragma unroll
++        for (int d_local = 0; d_local < Traits::kOwnedDChunks; ++d_local) {
++            auto acc_o = make_tensor(
++                make_rmem_ptr(&o_storage[d_local][0]), OLayout{});
++            auto cO = make_identity_tensor(
++                Shape<Int<Traits::kGroupRows>, Int<kDChunk>>{});
++            auto tOcO = pv_mma_thread.partition_C(cO);
++#pragma unroll
++            for (int i = 0; i < size(acc_o); ++i) {
++                const int row = get<0>(tOcO(i));
++                const int col = get<1>(tOcO(i));
++                const int query_row = query_row_base + group_row_base + row;
++                const int64_t row_offset =
++                    (static_cast<int64_t>(batch) * query_len + query_row)
++                        * heads_q
++                    + head_q;
++                const int64_t partial_row =
++                    split * split_row_stride + row_offset;
++                const int d =
++                    (n_warp * Traits::kOwnedDChunks + d_local) * kDChunk + col;
++                partial_out[partial_row * Traits::kHeadDim + d] = acc_o(i);
++            }
++        }
++    } else {
++        if constexpr (StoreState) {
++            if ((lane & 0x0e) == 0) {
++#pragma unroll
++                for (int slot = 0; slot < Traits::kQkRowsPerThread; ++slot) {
++                    const int row = FLASH_NAMESPACE::sm70_row_slot<
++                        Traits::kQkWarpRows>(slot, lane);
++                    const int query_row = query_row_base
++                        + group_row_base
++                        + n_warp * Traits::kQkWarpRows + row;
++                    const int64_t state_row =
++                        (static_cast<int64_t>(batch) * query_len + query_row)
++                            * heads_q
++                        + head_q;
++                    // The standalone prefix path stores maxima after applying
++                    // softmax_scale.  Export the dense-tail state in the same
++                    // natural-log coordinate so the two states can be merged
++                    // directly with exp(prefix_max - global_max).
++                    partial_max[state_row] = row_max[slot]
++                        * (softmax_scale_log2 * float(M_LN2));
++                    partial_sum[state_row] = row_sum[slot];
++                }
++            }
++        }
++        if ((lane & 0x0e) == 0) {
++#pragma unroll
++            for (int slot = 0; slot < Traits::kQkRowsPerThread; ++slot) {
++                const int row = FLASH_NAMESPACE::sm70_row_slot<
++                    Traits::kQkWarpRows>(slot, lane);
++                row_sum_exchange[
++                    mma_group * Traits::kGroupRows
++                    + n_warp * Traits::kQkWarpRows + row] = row_sum[slot];
++            }
++        }
++        __syncthreads();
++
++        const int64_t out_batch_offset = static_cast<int64_t>(batch)
++            * query_len * heads_q * Traits::kHeadDim;
++#pragma unroll
++        for (int d_local = 0; d_local < Traits::kOwnedDChunks; ++d_local) {
++            auto acc_o = make_tensor(
++                make_rmem_ptr(&o_storage[d_local][0]), OLayout{});
++            auto acc_o_rc = make_tensor(
++                acc_o.data(),
++                FLASH_NAMESPACE::convert_layout_acc_rowcol(acc_o.layout()));
++#pragma unroll
++            for (int row = 0; row < Traits::kOutputRowsPerThread; ++row) {
++                const int logical_row = FLASH_NAMESPACE::sm70_row_slot<
++                    Traits::kGroupRows>(row, lane);
++                const float inv_sum = 1.0f / row_sum_exchange[
++                    mma_group * Traits::kGroupRows + logical_row];
++#pragma unroll
++                for (int col = 0; col < size<1>(acc_o_rc); ++col) {
++                    acc_o_rc(row, col) *= inv_sum;
++                }
++            }
++
++            auto cO = make_identity_tensor(
++                Shape<Int<Traits::kGroupRows>, Int<kDChunk>>{});
++            auto tOcO = pv_mma_thread.partition_C(cO);
++#pragma unroll
++            for (int i = 0; i < size(acc_o); ++i) {
++                const int row = get<0>(tOcO(i));
++                const int col = get<1>(tOcO(i));
++                const int query_row = query_row_base + group_row_base + row;
++                const int64_t offset = out_batch_offset
++                    + static_cast<int64_t>(query_row) * heads_q
++                        * Traits::kHeadDim
++                    + head_q * Traits::kHeadDim
++                    + (n_warp * Traits::kOwnedDChunks + d_local) * kDChunk
++                    + col;
++                out[offset] = Element(acc_o(i));
++            }
++        }
++    }
++}
++
++template <typename Element>
++__global__ __launch_bounds__(Sm70D256SplitDTraits::kHeadDim, 1)
++void sm70_d256_splitkv3_merge_kernel(
++    const float *__restrict__ partial_out,
++    const float *__restrict__ partial_max,
++    const float *__restrict__ partial_sum,
++    Element *__restrict__ out,
++    int64_t rows,
++    float softmax_scale_log2) {
++    const int64_t row = blockIdx.x;
++    const int d = threadIdx.x;
++    __shared__ float merge[4];
++    if (d == 0) {
++        const float max0 = partial_max[row];
++        const float max1 = partial_max[rows + row];
++        const float max2 = partial_max[2 * rows + row];
++        const float global_max = fmaxf(fmaxf(max2, max1), max0);
++        const float scale2 = exp2f((max2 - global_max) * softmax_scale_log2);
++        const float scale1 = exp2f((max1 - global_max) * softmax_scale_log2);
++        const float scale0 = exp2f((max0 - global_max) * softmax_scale_log2);
++        const float denominator =
++            (partial_sum[2 * rows + row] * scale2
++             + partial_sum[rows + row] * scale1)
++            + partial_sum[row] * scale0;
++        merge[0] = scale0;
++        merge[1] = scale1;
++        merge[2] = scale2;
++        merge[3] = 1.0f / denominator;
++    }
++    __syncthreads();
++
++    const int64_t element = row * Sm70D256SplitDTraits::kHeadDim + d;
++    const int64_t split_stride = rows * Sm70D256SplitDTraits::kHeadDim;
++    const float numerator =
++        (partial_out[2 * split_stride + element] * merge[2]
++         + partial_out[split_stride + element] * merge[1])
++        + partial_out[element] * merge[0];
++    out[element] = Element(numerator * merge[3]);
++}
++
++at::Tensor sm70_d256_splitd_dense_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    at::Tensor &out,
++    double softmax_scale,
++    bool causal) {
++    TORCH_CHECK(q.is_cuda() && k.is_cuda() && v.is_cuda() && out.is_cuda(),
++                "q, k, v, and out must be CUDA tensors");
++    TORCH_CHECK(q.scalar_type() == at::ScalarType::Half
++                    && k.scalar_type() == q.scalar_type()
++                    && v.scalar_type() == q.scalar_type()
++                    && out.scalar_type() == q.scalar_type(),
++                "SM70 D256 Split-D requires FP16 q, k, v, and out");
++    TORCH_CHECK(q.dim() == 4 && k.dim() == 4 && v.dim() == 4,
++                "q, k, and v must use [batch, sequence, heads, head_dim]");
++    TORCH_CHECK(q.stride(3) == 1 && k.stride(3) == 1 && v.stride(3) == 1,
++                "SM70 D256 Split-D requires unit inner strides");
++    TORCH_CHECK(q.stride(0) <= std::numeric_limits<int>::max()
++                    && q.stride(1) <= std::numeric_limits<int>::max()
++                    && q.stride(2) <= std::numeric_limits<int>::max()
++                    && k.stride(0) <= std::numeric_limits<int>::max()
++                    && k.stride(1) <= std::numeric_limits<int>::max()
++                    && k.stride(2) <= std::numeric_limits<int>::max()
++                    && v.stride(0) <= std::numeric_limits<int>::max()
++                    && v.stride(1) <= std::numeric_limits<int>::max()
++                    && v.stride(2) <= std::numeric_limits<int>::max(),
++                "SM70 D256 Split-D tensor strides exceed int32 addressing");
++    TORCH_CHECK(q.size(0) == k.size(0) && k.sizes() == v.sizes(),
++                "q, k, and v batch/KV shapes must match");
++    TORCH_CHECK(out.sizes() == q.sizes() && out.is_contiguous(),
++                "SM70 D256 Split-D requires contiguous out matching q");
++    TORCH_CHECK(q.size(3) == 256 && k.size(3) == 256,
++                "SM70 D256 Split-D requires head_dim 256");
++    TORCH_CHECK(q.size(2) % k.size(2) == 0,
++                "query heads must be divisible by KV heads");
++    TORCH_CHECK(q.size(1) <= k.size(1),
++                "query length must not exceed KV length");
++    TORCH_CHECK(q.size(1) % Sm70D256SplitDTraits::kBlockM == 0
++                    && k.size(1) % Sm70D256SplitDTraits::kBlockN == 0,
++                "exact path requires query and KV lengths divisible by their "
++                "kernel tiles");
++    TORCH_CHECK(causal, "exact path requires causal attention");
++    TORCH_CHECK(q.get_device() == k.get_device()
++                    && q.get_device() == v.get_device()
++                    && q.get_device() == out.get_device(),
++                "q, k, v, and out must be on one CUDA device");
++
++    const at::cuda::OptionalCUDAGuard device_guard(q.device());
++    const dim3 block(Sm70D256SplitDTraits::kNThreads);
++    const dim3 grid(
++        q.size(1) / Sm70D256SplitDTraits::kBlockM,
++        q.size(0),
++        q.size(2));
++    auto stream = at::cuda::getCurrentCUDAStream();
++    auto kernel =
++        sm70_d256_splitd_dense_kernel<cutlass::half_t, false>;
++    C10_CUDA_CHECK(cudaFuncSetAttribute(
++        kernel,
++        cudaFuncAttributeMaxDynamicSharedMemorySize,
++        Sm70D256SplitDTraits::kSmemBytes));
++    kernel<<<grid, block, Sm70D256SplitDTraits::kSmemBytes, stream>>>(
++        reinterpret_cast<const cutlass::half_t *>(q.data_ptr()),
++        reinterpret_cast<const cutlass::half_t *>(k.data_ptr()),
++        reinterpret_cast<const cutlass::half_t *>(v.data_ptr()),
++        reinterpret_cast<cutlass::half_t *>(out.data_ptr()),
++        static_cast<int>(q.stride(0)),
++        static_cast<int>(q.stride(1)),
++        static_cast<int>(q.stride(2)),
++        static_cast<int>(k.stride(0)),
++        static_cast<int>(k.stride(1)),
++        static_cast<int>(k.stride(2)),
++        static_cast<int>(v.stride(0)),
++        static_cast<int>(v.stride(1)),
++        static_cast<int>(v.stride(2)),
++        q.size(1),
++        k.size(1),
++        q.size(2),
++        k.size(2),
++        static_cast<float>(softmax_scale * M_LOG2E),
++        nullptr,
++        0,
++        0,
++        nullptr,
++        nullptr,
++        nullptr);
++    C10_CUDA_KERNEL_LAUNCH_CHECK();
++    return out;
++}
++
++at::Tensor sm70_d256_splitd_dense_state_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    at::Tensor &state_max,
++    at::Tensor &state_sum,
++    at::Tensor &out,
++    double softmax_scale,
++    bool causal) {
++    TORCH_CHECK(q.is_cuda() && k.is_cuda() && v.is_cuda()
++                    && state_max.is_cuda() && state_sum.is_cuda()
++                    && out.is_cuda(),
++                "dense-state inputs must be CUDA tensors");
++    TORCH_CHECK(q.scalar_type() == at::ScalarType::Half
++                    && k.scalar_type() == q.scalar_type()
++                    && v.scalar_type() == q.scalar_type()
++                    && out.scalar_type() == q.scalar_type(),
++                "dense-state requires FP16 q, k, v, and out");
++    TORCH_CHECK(state_max.scalar_type() == at::ScalarType::Float
++                    && state_sum.scalar_type() == at::ScalarType::Float,
++                "dense-state statistics must use FP32");
++    TORCH_CHECK(q.dim() == 4 && k.dim() == 4 && v.dim() == 4
++                    && q.size(0) == k.size(0) && k.sizes() == v.sizes(),
++                "dense-state q, k, and v shapes are invalid");
++    TORCH_CHECK(q.size(3) == Sm70D256SplitDTraits::kHeadDim
++                    && k.size(3) == Sm70D256SplitDTraits::kHeadDim
++                    && q.size(2) % k.size(2) == 0,
++                "dense-state requires D256 and valid GQA heads");
++    TORCH_CHECK(q.size(1) <= k.size(1)
++                    && q.size(1) % Sm70D256SplitDTraits::kBlockM == 0
++                    && k.size(1) % Sm70D256SplitDTraits::kBlockN == 0,
++                "dense-state lengths do not match the exact tiles");
++    TORCH_CHECK(out.sizes() == q.sizes() && out.is_contiguous()
++                    && state_max.is_contiguous() && state_sum.is_contiguous(),
++                "dense-state outputs must be contiguous");
++    const int64_t rows = q.size(0) * q.size(1) * q.size(2);
++    TORCH_CHECK(state_max.numel() == rows && state_sum.numel() == rows,
++                "dense-state statistic shapes are invalid");
++    TORCH_CHECK(causal, "dense-state requires causal attention");
++
++    const at::cuda::OptionalCUDAGuard device_guard(q.device());
++    const dim3 block(Sm70D256SplitDTraits::kNThreads);
++    const dim3 grid(
++        q.size(1) / Sm70D256SplitDTraits::kBlockM,
++        q.size(0),
++        q.size(2));
++    auto stream = at::cuda::getCurrentCUDAStream();
++    auto kernel = sm70_d256_splitd_dense_kernel<
++        cutlass::half_t, false, false, true>;
++    C10_CUDA_CHECK(cudaFuncSetAttribute(
++        kernel,
++        cudaFuncAttributeMaxDynamicSharedMemorySize,
++        Sm70D256SplitDTraits::kSmemBytes));
++    kernel<<<grid, block, Sm70D256SplitDTraits::kSmemBytes, stream>>>(
++        reinterpret_cast<const cutlass::half_t *>(q.data_ptr()),
++        reinterpret_cast<const cutlass::half_t *>(k.data_ptr()),
++        reinterpret_cast<const cutlass::half_t *>(v.data_ptr()),
++        reinterpret_cast<cutlass::half_t *>(out.data_ptr()),
++        static_cast<int>(q.stride(0)),
++        static_cast<int>(q.stride(1)),
++        static_cast<int>(q.stride(2)),
++        static_cast<int>(k.stride(0)),
++        static_cast<int>(k.stride(1)),
++        static_cast<int>(k.stride(2)),
++        static_cast<int>(v.stride(0)),
++        static_cast<int>(v.stride(1)),
++        static_cast<int>(v.stride(2)),
++        q.size(1),
++        k.size(1),
++        q.size(2),
++        k.size(2),
++        static_cast<float>(softmax_scale * M_LOG2E),
++        nullptr,
++        0,
++        0,
++        nullptr,
++        state_max.data_ptr<float>(),
++        state_sum.data_ptr<float>());
++    C10_CUDA_KERNEL_LAUNCH_CHECK();
++    return out;
++}
++
++// Raw fixed-layout entry point for the task-local end-to-end architecture
++// harness.  Keeping this in the same cubin guarantees that the measured tail
++// is the exact production candidate kernel rather than a reimplemented proxy.
++extern "C" cudaError_t onecat_sm70_d256_dense_state_raw(
++    const void *q,
++    const void *k,
++    const void *v,
++    float *state_max,
++    float *state_sum,
++    void *out,
++    int query_len,
++    int kv_len,
++    int heads_q,
++    int heads_kv,
++    float softmax_scale,
++    cudaStream_t stream) {
++    if (q == nullptr || k == nullptr || v == nullptr || state_max == nullptr
++        || state_sum == nullptr || out == nullptr || query_len <= 0
++        || kv_len < query_len || heads_q <= 0 || heads_kv <= 0
++        || heads_q % heads_kv != 0
++        || query_len % Sm70D256SplitDTraits::kBlockM != 0
++        || kv_len % Sm70D256SplitDTraits::kBlockN != 0) {
++        return cudaErrorInvalidValue;
++    }
++    const dim3 block(Sm70D256SplitDTraits::kNThreads);
++    const dim3 grid(
++        query_len / Sm70D256SplitDTraits::kBlockM,
++        1,
++        heads_q);
++    auto kernel = sm70_d256_splitd_dense_kernel<
++        cutlass::half_t, false, false, true>;
++    cudaError_t result = cudaFuncSetAttribute(
++        kernel,
++        cudaFuncAttributeMaxDynamicSharedMemorySize,
++        Sm70D256SplitDTraits::kSmemBytes);
++    if (result != cudaSuccess) {
++        return result;
++    }
++    kernel<<<grid, block, Sm70D256SplitDTraits::kSmemBytes, stream>>>(
++        static_cast<const cutlass::half_t *>(q),
++        static_cast<const cutlass::half_t *>(k),
++        static_cast<const cutlass::half_t *>(v),
++        static_cast<cutlass::half_t *>(out),
++        query_len * heads_q * Sm70D256SplitDTraits::kHeadDim,
++        heads_q * Sm70D256SplitDTraits::kHeadDim,
++        Sm70D256SplitDTraits::kHeadDim,
++        kv_len * heads_kv * Sm70D256SplitDTraits::kHeadDim,
++        heads_kv * Sm70D256SplitDTraits::kHeadDim,
++        Sm70D256SplitDTraits::kHeadDim,
++        kv_len * heads_kv * Sm70D256SplitDTraits::kHeadDim,
++        heads_kv * Sm70D256SplitDTraits::kHeadDim,
++        Sm70D256SplitDTraits::kHeadDim,
++        query_len,
++        kv_len,
++        heads_q,
++        heads_kv,
++        softmax_scale * float(M_LOG2E),
++        nullptr,
++        0,
++        0,
++        nullptr,
++        state_max,
++        state_sum);
++    return cudaPeekAtLastError();
++}
++
++at::Tensor sm70_d256_splitd_dense_splitkv3_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    at::Tensor &partial_out,
++    at::Tensor &partial_max,
++    at::Tensor &partial_sum,
++    at::Tensor &out,
++    double softmax_scale,
++    bool causal) {
++    TORCH_CHECK(q.is_cuda() && k.is_cuda() && v.is_cuda()
++                    && partial_out.is_cuda() && partial_max.is_cuda()
++                    && partial_sum.is_cuda() && out.is_cuda(),
++                "split-KV3 inputs and workspaces must be CUDA tensors");
++    TORCH_CHECK(q.scalar_type() == at::ScalarType::Half
++                    && k.scalar_type() == q.scalar_type()
++                    && v.scalar_type() == q.scalar_type()
++                    && out.scalar_type() == q.scalar_type(),
++                "split-KV3 requires FP16 q, k, v, and out");
++    TORCH_CHECK(partial_out.scalar_type() == at::ScalarType::Float
++                    && partial_max.scalar_type() == at::ScalarType::Float
++                    && partial_sum.scalar_type() == at::ScalarType::Float,
++                "split-KV3 workspaces must use FP32");
++    TORCH_CHECK(q.dim() == 4 && k.dim() == 4 && v.dim() == 4,
++                "split-KV3 q, k, and v must be rank four");
++    TORCH_CHECK(q.size(0) == k.size(0) && k.sizes() == v.sizes(),
++                "split-KV3 batch and K/V shapes must match");
++    TORCH_CHECK(out.sizes() == q.sizes() && out.is_contiguous(),
++                "split-KV3 out must be contiguous and match q");
++    TORCH_CHECK(q.size(3) == Sm70D256SplitDTraits::kHeadDim
++                    && k.size(3) == Sm70D256SplitDTraits::kHeadDim,
++                "split-KV3 requires D256");
++    TORCH_CHECK(q.size(2) % k.size(2) == 0,
++                "split-KV3 query heads must be divisible by KV heads");
++    TORCH_CHECK(k.size(1) > q.size(1),
++                "split-KV3 requires prefix prefill");
++    TORCH_CHECK(q.size(1) % Sm70D256SplitDTraits::kBlockM == 0
++                    && k.size(1) % Sm70D256SplitDTraits::kBlockN == 0,
++                "split-KV3 lengths must match the exact N32 tiles");
++    TORCH_CHECK(q.stride(3) == 1 && k.stride(3) == 1 && v.stride(3) == 1,
++                "split-KV3 requires unit inner strides");
++    TORCH_CHECK(q.stride(0) <= std::numeric_limits<int>::max()
++                    && q.stride(1) <= std::numeric_limits<int>::max()
++                    && q.stride(2) <= std::numeric_limits<int>::max()
++                    && k.stride(0) <= std::numeric_limits<int>::max()
++                    && k.stride(1) <= std::numeric_limits<int>::max()
++                    && k.stride(2) <= std::numeric_limits<int>::max()
++                    && v.stride(0) <= std::numeric_limits<int>::max()
++                    && v.stride(1) <= std::numeric_limits<int>::max()
++                    && v.stride(2) <= std::numeric_limits<int>::max(),
++                "split-KV3 strides exceed int32 addressing");
++    TORCH_CHECK(causal, "split-KV3 exact path requires causal attention");
++
++    const int64_t rows = q.size(0) * q.size(1) * q.size(2);
++    TORCH_CHECK(partial_out.is_contiguous()
++                    && partial_out.numel()
++                        == 3 * rows * Sm70D256SplitDTraits::kHeadDim,
++                "split-KV3 partial_out shape is invalid");
++    TORCH_CHECK(partial_max.is_contiguous() && partial_sum.is_contiguous()
++                    && partial_max.numel() == 3 * rows
++                    && partial_sum.numel() == 3 * rows,
++                "split-KV3 partial stats shapes are invalid");
++    TORCH_CHECK(q.get_device() == k.get_device()
++                    && q.get_device() == v.get_device()
++                    && q.get_device() == out.get_device()
++                    && q.get_device() == partial_out.get_device()
++                    && q.get_device() == partial_max.get_device()
++                    && q.get_device() == partial_sum.get_device(),
++                "split-KV3 tensors must be on one CUDA device");
++
++    const at::cuda::OptionalCUDAGuard device_guard(q.device());
++    auto stream = at::cuda::getCurrentCUDAStream();
++    const dim3 block(Sm70D256SplitDTraits::kNThreads);
++    const dim3 grid(
++        q.size(1) / Sm70D256SplitDTraits::kBlockM,
++        q.size(0) * 3,
++        q.size(2));
++    auto partial_kernel =
++        sm70_d256_splitd_dense_kernel<cutlass::half_t, false, true>;
++    C10_CUDA_CHECK(cudaFuncSetAttribute(
++        partial_kernel,
++        cudaFuncAttributeMaxDynamicSharedMemorySize,
++        Sm70D256SplitDTraits::kSmemBytes));
++    const float softmax_scale_log2 =
++        static_cast<float>(softmax_scale * M_LOG2E);
++    partial_kernel<<<grid, block, Sm70D256SplitDTraits::kSmemBytes, stream>>>(
++        reinterpret_cast<const cutlass::half_t *>(q.data_ptr()),
++        reinterpret_cast<const cutlass::half_t *>(k.data_ptr()),
++        reinterpret_cast<const cutlass::half_t *>(v.data_ptr()),
++        reinterpret_cast<cutlass::half_t *>(out.data_ptr()),
++        static_cast<int>(q.stride(0)),
++        static_cast<int>(q.stride(1)),
++        static_cast<int>(q.stride(2)),
++        static_cast<int>(k.stride(0)),
++        static_cast<int>(k.stride(1)),
++        static_cast<int>(k.stride(2)),
++        static_cast<int>(v.stride(0)),
++        static_cast<int>(v.stride(1)),
++        static_cast<int>(v.stride(2)),
++        q.size(1),
++        k.size(1),
++        q.size(2),
++        k.size(2),
++        softmax_scale_log2,
++        nullptr,
++        0,
++        0,
++        partial_out.data_ptr<float>(),
++        partial_max.data_ptr<float>(),
++        partial_sum.data_ptr<float>());
++    C10_CUDA_KERNEL_LAUNCH_CHECK();
++
++    sm70_d256_splitkv3_merge_kernel<cutlass::half_t>
++        <<<static_cast<unsigned>(rows),
++           Sm70D256SplitDTraits::kHeadDim,
++           0,
++           stream>>>(
++            partial_out.data_ptr<float>(),
++            partial_max.data_ptr<float>(),
++            partial_sum.data_ptr<float>(),
++            reinterpret_cast<cutlass::half_t *>(out.data_ptr()),
++            rows,
++            softmax_scale_log2);
++    C10_CUDA_KERNEL_LAUNCH_CHECK();
++    return out;
++}
++
++at::Tensor sm70_d256_splitd_paged_fwd(
++    const at::Tensor &q,
++    const at::Tensor &k,
++    const at::Tensor &v,
++    const at::Tensor &block_table,
++    at::Tensor &out,
++    int64_t kv_len,
++    double softmax_scale,
++    bool causal) {
++    TORCH_CHECK(q.is_cuda() && k.is_cuda() && v.is_cuda()
++                    && block_table.is_cuda() && out.is_cuda(),
++                "q, paged k/v, block_table, and out must be CUDA tensors");
++    TORCH_CHECK(q.scalar_type() == at::ScalarType::Half
++                    && k.scalar_type() == q.scalar_type()
++                    && v.scalar_type() == q.scalar_type()
++                    && out.scalar_type() == q.scalar_type(),
++                "SM70 D256 Split-D paged path requires FP16 q, k, v, and out");
++    TORCH_CHECK(block_table.scalar_type() == at::ScalarType::Int,
++                "block_table must use int32 indices");
++    TORCH_CHECK(q.dim() == 4 && k.dim() == 4 && v.dim() == 4
++                    && block_table.dim() == 2,
++                "paged q/k/v/block_table ranks are invalid");
++    TORCH_CHECK(q.stride(3) == 1 && k.stride(3) == 1 && v.stride(3) == 1
++                    && block_table.stride(1) == 1,
++                "SM70 D256 Split-D paged path requires unit inner strides");
++    TORCH_CHECK(q.stride(0) <= std::numeric_limits<int>::max()
++                    && q.stride(1) <= std::numeric_limits<int>::max()
++                    && q.stride(2) <= std::numeric_limits<int>::max()
++                    && k.stride(0) <= std::numeric_limits<int>::max()
++                    && k.stride(1) <= std::numeric_limits<int>::max()
++                    && k.stride(2) <= std::numeric_limits<int>::max()
++                    && v.stride(0) <= std::numeric_limits<int>::max()
++                    && v.stride(1) <= std::numeric_limits<int>::max()
++                    && v.stride(2) <= std::numeric_limits<int>::max(),
++                "SM70 D256 Split-D paged strides exceed int32 addressing");
++    TORCH_CHECK(k.sizes() == v.sizes()
++                    && q.size(0) == block_table.size(0),
++                "paged k/v and batch/block-table shapes must match");
++    TORCH_CHECK(out.sizes() == q.sizes() && out.is_contiguous(),
++                "SM70 D256 Split-D paged path requires contiguous out matching q");
++    TORCH_CHECK(q.size(3) == 256 && k.size(3) == 256,
++                "SM70 D256 Split-D paged path requires head_dim 256");
++    TORCH_CHECK(q.size(2) % k.size(2) == 0,
++                "query heads must be divisible by KV heads");
++    TORCH_CHECK(q.size(1) <= kv_len
++                    && kv_len <= block_table.size(1) * k.size(1),
++                "paged KV length is outside the block table capacity");
++    TORCH_CHECK(q.size(1) % Sm70D256SplitDTraits::kBlockM == 0
++                    && kv_len % Sm70D256SplitDTraits::kBlockN == 0,
++                "paged exact path requires query and KV lengths divisible by "
++                "their kernel tiles");
++    TORCH_CHECK(k.size(1) % Sm70D256SplitDTraits::kGmemKRowsPerThread == 0,
++                "paged KV page size must preserve vectorized row slices");
++    TORCH_CHECK(causal, "paged exact path requires causal attention");
++    TORCH_CHECK(q.get_device() == k.get_device()
++                    && q.get_device() == v.get_device()
++                    && q.get_device() == out.get_device()
++                    && q.get_device() == block_table.get_device(),
++                "paged inputs must be on one CUDA device");
++
++    const at::cuda::OptionalCUDAGuard device_guard(q.device());
++    const dim3 block(Sm70D256SplitDTraits::kNThreads);
++    const dim3 grid(
++        q.size(1) / Sm70D256SplitDTraits::kBlockM,
++        q.size(0),
++        q.size(2));
++    auto stream = at::cuda::getCurrentCUDAStream();
++    auto kernel =
++        sm70_d256_splitd_dense_kernel<cutlass::half_t, true>;
++    C10_CUDA_CHECK(cudaFuncSetAttribute(
++        kernel,
++        cudaFuncAttributeMaxDynamicSharedMemorySize,
++        Sm70D256SplitDTraits::kSmemBytes));
++    kernel<<<grid, block, Sm70D256SplitDTraits::kSmemBytes, stream>>>(
++        reinterpret_cast<const cutlass::half_t *>(q.data_ptr()),
++        reinterpret_cast<const cutlass::half_t *>(k.data_ptr()),
++        reinterpret_cast<const cutlass::half_t *>(v.data_ptr()),
++        reinterpret_cast<cutlass::half_t *>(out.data_ptr()),
++        static_cast<int>(q.stride(0)),
++        static_cast<int>(q.stride(1)),
++        static_cast<int>(q.stride(2)),
++        static_cast<int>(k.stride(0)),
++        static_cast<int>(k.stride(1)),
++        static_cast<int>(k.stride(2)),
++        static_cast<int>(v.stride(0)),
++        static_cast<int>(v.stride(1)),
++        static_cast<int>(v.stride(2)),
++        q.size(1),
++        static_cast<int>(kv_len),
++        q.size(2),
++        k.size(2),
++        static_cast<float>(softmax_scale * M_LOG2E),
++        block_table.data_ptr<int>(),
++        k.size(1),
++        block_table.stride(0),
++        nullptr,
++        nullptr,
++        nullptr);
++    C10_CUDA_KERNEL_LAUNCH_CHECK();
++    return out;
++}
++
++}  // namespace FLASH_NAMESPACE

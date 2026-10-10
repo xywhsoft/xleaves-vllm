@@ -1,0 +1,395 @@
+{
+  "status": "scheduler_source209_cpu_gates_passed",
+  "utc": "2026-10-08T09:45:25Z",
+  "checks": [
+    {
+      "full": {
+        "protected": true,
+        "budget": 32,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [
+          {
+            "reserved_blocks": 14,
+            "running": 0
+          },
+          {
+            "reserved_blocks": 12,
+            "running": 2
+          },
+          {
+            "reserved_blocks": 12,
+            "running": 3
+          },
+          {
+            "reserved_blocks": 12,
+            "running": 4
+          },
+          {
+            "reserved_blocks": 6,
+            "running": 6
+          }
+        ],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      },
+      "hybrid": {
+        "budget": 32,
+        "protected": true,
+        "coordinator": "HybridKVCacheCoordinator",
+        "cache_mode": "align",
+        "groups": [
+          "fullattention",
+          "mamba"
+        ],
+        "initial_cached": [
+          64,
+          64,
+          64,
+          64
+        ],
+        "admission_cached": [
+          64,
+          64,
+          64,
+          64
+        ],
+        "hot_prefills_completed": true,
+        "cancelled_waiting": false,
+        "injected_exception": false,
+        "reservations": [
+          {
+            "reserved_blocks": 20,
+            "running": 0
+          },
+          {
+            "reserved_blocks": 20,
+            "running": 2
+          },
+          {
+            "reserved_blocks": 20,
+            "running": 4
+          },
+          {
+            "reserved_blocks": 10,
+            "running": 6
+          }
+        ],
+        "all_refs_released": true,
+        "free_count_restored": 44
+      }
+    },
+    {
+      "full": {
+        "protected": true,
+        "budget": 128,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [
+          {
+            "reserved_blocks": 14,
+            "running": 0
+          },
+          {
+            "reserved_blocks": 6,
+            "running": 6
+          }
+        ],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      },
+      "hybrid": {
+        "budget": 128,
+        "protected": true,
+        "coordinator": "HybridKVCacheCoordinator",
+        "cache_mode": "align",
+        "groups": [
+          "fullattention",
+          "mamba"
+        ],
+        "initial_cached": [
+          64,
+          64,
+          64,
+          64
+        ],
+        "admission_cached": [
+          64,
+          64,
+          64,
+          64
+        ],
+        "hot_prefills_completed": true,
+        "cancelled_waiting": false,
+        "injected_exception": false,
+        "reservations": [
+          {
+            "reserved_blocks": 20,
+            "running": 0
+          }
+        ],
+        "all_refs_released": true,
+        "free_count_restored": 44
+      }
+    },
+    {
+      "full": {
+        "protected": true,
+        "budget": 256,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [
+          {
+            "reserved_blocks": 14,
+            "running": 0
+          }
+        ],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      },
+      "hybrid": {
+        "budget": 256,
+        "protected": true,
+        "coordinator": "HybridKVCacheCoordinator",
+        "cache_mode": "align",
+        "groups": [
+          "fullattention",
+          "mamba"
+        ],
+        "initial_cached": [
+          64,
+          64,
+          64,
+          64
+        ],
+        "admission_cached": [
+          64,
+          64,
+          64,
+          64
+        ],
+        "hot_prefills_completed": true,
+        "cancelled_waiting": false,
+        "injected_exception": false,
+        "reservations": [
+          {
+            "reserved_blocks": 20,
+            "running": 0
+          }
+        ],
+        "all_refs_released": true,
+        "free_count_restored": 44
+      }
+    }
+  ],
+  "pressure_old": {
+    "old_prototype": true,
+    "initial_cached": [
+      48,
+      48,
+      48,
+      48,
+      48,
+      48
+    ],
+    "steps": [
+      {
+        "scheduled": 0,
+        "running": 0,
+        "cold_computed": 0
+      },
+      {
+        "scheduled": 0,
+        "running": 0,
+        "cold_computed": 0
+      }
+    ],
+    "reservations": [
+      {
+        "reserved_blocks": 18,
+        "running": 0,
+        "candidate_count": 7
+      },
+      {
+        "reserved_blocks": 18,
+        "running": 0,
+        "candidate_count": 7
+      }
+    ],
+    "all_refs_released": true,
+    "free_count_restored": 24
+  },
+  "pressure_new": {
+    "old_prototype": false,
+    "initial_cached": [
+      48,
+      48,
+      48,
+      48,
+      48,
+      48
+    ],
+    "steps": [
+      {
+        "scheduled": 128,
+        "running": 2,
+        "cold_computed": 112
+      },
+      {
+        "scheduled": 128,
+        "running": 4,
+        "cold_computed": 112
+      }
+    ],
+    "reservations": [
+      {
+        "reserved_blocks": 18,
+        "running": 0
+      },
+      {
+        "pressure_retry": true,
+        "released_blocks": 18
+      },
+      {
+        "reserved_blocks": 12,
+        "running": 2
+      },
+      {
+        "pressure_retry": true,
+        "released_blocks": 12
+      }
+    ],
+    "all_refs_released": true,
+    "free_count_restored": 24
+  },
+  "cancellation": {
+    "budget": 128,
+    "protected": true,
+    "coordinator": "HybridKVCacheCoordinator",
+    "cache_mode": "align",
+    "groups": [
+      "fullattention",
+      "mamba"
+    ],
+    "initial_cached": [
+      64,
+      64,
+      64,
+      64
+    ],
+    "admission_cached": [
+      64,
+      64,
+      64
+    ],
+    "hot_prefills_completed": true,
+    "cancelled_waiting": true,
+    "injected_exception": false,
+    "reservations": [
+      {
+        "reserved_blocks": 15,
+        "running": 0
+      }
+    ],
+    "all_refs_released": true,
+    "free_count_restored": 44
+  },
+  "exception_cleanup": {
+    "budget": 128,
+    "protected": true,
+    "coordinator": "HybridKVCacheCoordinator",
+    "cache_mode": "align",
+    "groups": [
+      "fullattention",
+      "mamba"
+    ],
+    "initial_cached": [
+      64,
+      64,
+      64,
+      64
+    ],
+    "admission_cached": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hot_prefills_completed": false,
+    "cancelled_waiting": false,
+    "injected_exception": true,
+    "reservations": [
+      {
+        "reserved_blocks": 20,
+        "running": 0
+      }
+    ],
+    "all_refs_released": true,
+    "free_count_restored": 44
+  },
+  "preemption": {
+    "preemptions": 1,
+    "resumed_computed": 72,
+    "cached_stat_preserved": 64,
+    "reservations": [
+      {
+        "reserved_blocks": 20,
+        "running": 0
+      },
+      {
+        "reserved_blocks": 5,
+        "running": 3
+      }
+    ],
+    "all_refs_released": true,
+    "free_count_restored": 44
+  },
+  "partial_touch_exception": {
+    "partial_touch_exception": true,
+    "all_refs_released": true,
+    "free_count_restored": 44
+  },
+  "script_sha256": "861b502ac0810bf34ea402c4c38c0615228c30622a576c2897d532dac05903d4",
+  "candidate_sha256": "0d0ac21791373bfb55deeaa75622d5eb7df4efea5848da04867a061f1af44632",
+  "serving_base_sha256": "441af671c70dd0764a0012630e05227426baf5b92ffece33a3c3b0108a2cc8cf",
+  "cuda_initialized": false,
+  "model_requests_sent": 0,
+  "serving_source_mutation": false,
+  "scope": "Actual isolated Scheduler source with direct waiting-stage guard, joint FullAttention/Mamba CPU metadata. No manager monkeypatch for guard; trace subclass and allocation-error injection are fixture-only. No Ornith GPU/MM/numerics/TPS qualification."
+}

@@ -1,0 +1,107 @@
+{
+  "status": "sampler258_gpu_pressure_completed",
+  "utc": "2026-10-08T21:17:38Z",
+  "device": 0,
+  "gpu_name": "Tesla V100-PCIE-32GB",
+  "torch_version": "2.10.0+cu128",
+  "vocab": 248320,
+  "script_sha256": "cf9c16b6c3500560552332634a549f226f700a40312fa896ee893cd71bb9dcc6",
+  "original_sha256": "35c2aa9437444104df8f23f3c1b6abe2efaa6e6909257e6a7cdebd4aeb8b3dd3",
+  "candidate_sha256": "dbd0c827ebb7ca431e9cb26ceff1f8401abe11a396220023da98a61366e70922",
+  "helper_sha256": "ab2ee9e52cc229ced835e840cb90cea3a1d7ed2d927d86507b670b532a56d52f",
+  "cpu_proof_sha256": "57de58f126ca8cd64c6916d100942a33e3b9302288e4b424225f26429de803a8",
+  "terminal_jobs": [
+    {
+      "job": "workspace187",
+      "pid": 825019,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa189",
+      "pid": 847219,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "boundary200",
+      "pid": 879195,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "cache210",
+      "pid": 901473,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "layer216",
+      "pid": 917416,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa223-observer",
+      "pid": 926536,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa226-freezer",
+      "pid": 931031,
+      "same_birth": false,
+      "state": "missing"
+    }
+  ],
+  "restored_runs": [
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_high_and_full_capacity.jsonl",
+      "sha256": "44377ee0016bce6dfa015443c5dbd82478169d85b6bfa0d085c43437fac7502b",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_numa189.jsonl",
+      "sha256": "8fce772119320bd3bdf29a6d2aa3d68252f7a294cc8cc25b193a41548914d68f",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_boundary200.jsonl",
+      "sha256": "20e3473e3e7090624ecb78061f885c518cac8c4b49edba379d8a747e42bffe4b",
+      "run_passed": false
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler_guard210.jsonl",
+      "sha256": "95955ecc4738b345da217de55b00f0fb0c73d2ef7387feebc06580fb3ea1464a",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/llama_exact_layer216.jsonl",
+      "sha256": "66c751c11c69a30bc9e34758be87789983bc0b3c3b61560d198f5760e1cf4c6c",
+      "run_passed": true
+    },
+    {
+      "corrected_numa_freezes": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/numa226-frozen-qualification-results.json",
+      "sha256": "b098bfaafd1da25d96fd822be26ee15c6dc2b1ab1ff533aa530c930b2b3099fd"
+    }
+  ],
+  "checks": [],
+  "measurements": [
+    {
+      "variant": "candidate",
+      "batch": 176,
+      "vocab": 248320,
+      "ballast_bytes": 32929480704,
+      "free_before": 576978944,
+      "total_memory": 34072559616,
+      "oom": false,
+      "error": null,
+      "peak_extra_allocated": 386631680,
+      "scope": "Synthetic free-memory pressure on actual full filter; no model weights or whole-service capacity proof."
+    }
+  ],
+  "source_mutation_performed": false,
+  "model_requests_sent": 0,
+  "deployment_performed": false,
+  "scope": "Actual sampler operator checks on one idle V100, original/candidate source and full GGUF vocabulary. No whole-model TPS, concurrency capacity or theoretical ceiling proof. Pressure mode reports observations and does not assert an expected winner."
+}

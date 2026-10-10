@@ -1,0 +1,233 @@
+{
+  "status": "scheduler_cache204_instance_prototype_cpu_passed",
+  "utc": "2026-10-08T09:05:49Z",
+  "checks": [
+    {
+      "baseline": {
+        "protected": false,
+        "budget": 32,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      },
+      "prototype": {
+        "protected": true,
+        "budget": 32,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [
+          {
+            "reserved_blocks": 14,
+            "running": 0,
+            "candidate_count": 8
+          },
+          {
+            "reserved_blocks": 12,
+            "running": 2,
+            "candidate_count": 6
+          },
+          {
+            "reserved_blocks": 12,
+            "running": 3,
+            "candidate_count": 5
+          },
+          {
+            "reserved_blocks": 12,
+            "running": 4,
+            "candidate_count": 4
+          },
+          {
+            "reserved_blocks": 6,
+            "running": 6,
+            "candidate_count": 2
+          }
+        ],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      }
+    },
+    {
+      "baseline": {
+        "protected": false,
+        "budget": 128,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      },
+      "prototype": {
+        "protected": true,
+        "budget": 128,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [
+          {
+            "reserved_blocks": 14,
+            "running": 0,
+            "candidate_count": 8
+          },
+          {
+            "reserved_blocks": 6,
+            "running": 6,
+            "candidate_count": 2
+          }
+        ],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      }
+    },
+    {
+      "baseline": {
+        "protected": false,
+        "budget": 256,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      },
+      "prototype": {
+        "protected": true,
+        "budget": 256,
+        "initial_cached_tokens": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "cached_tokens_at_admission": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "all_hot_prefills_scheduled": true,
+        "exception_injected": false,
+        "reservations": [
+          {
+            "reserved_blocks": 14,
+            "running": 0,
+            "candidate_count": 8
+          }
+        ],
+        "all_refs_released": true,
+        "free_pool_restored": 24
+      }
+    }
+  ],
+  "exception_cleanup": {
+    "protected": true,
+    "budget": 128,
+    "initial_cached_tokens": [
+      48,
+      48,
+      48,
+      48
+    ],
+    "cached_tokens_at_admission": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "all_hot_prefills_scheduled": false,
+    "exception_injected": true,
+    "reservations": [
+      {
+        "reserved_blocks": 14,
+        "running": 0,
+        "candidate_count": 8
+      }
+    ],
+    "all_refs_released": true,
+    "free_pool_restored": 24
+  },
+  "sources": [
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/core/sched/scheduler.py",
+      "sha256": "441af671c70dd0764a0012630e05227426baf5b92ffece33a3c3b0108a2cc8cf"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/core/kv_cache_manager.py",
+      "sha256": "55c7e9aecc160e86600818a13d7bb90d699f4ebf8cecec01c508cf265c700799"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/core/block_pool.py",
+      "sha256": "effc213954d7f703c07cb55591c7da2a4fbbc3a7c9d1426461f3cbc8ad2f4bdc"
+    }
+  ],
+  "script_sha256": "03af30c803782f4cd6e69674963d23c634854725863c018d83ee95f02e1d0072",
+  "cuda_initialized": false,
+  "model_requests_sent": 0,
+  "source_mutation_performed": false,
+  "scope": "RealScheduler/CacheManager/BlockPool withofficialCPUplatform andsmallOPT fullattention fixtures; instance-only temporaryref protection atwaitingallocation. Not Ornithhybrid/MM/numeric/GPU/performance qualification, not exact failed24 chronology.",
+  "required_next_gates": [
+    "HybridMamba coordinator cases",
+    "Preemption/cancellation and constrained-admission cases",
+    "Source review/hooks inisolated candidate afterallliveGPUjobs",
+    "Full model qualification and performance comparison"
+  ]
+}

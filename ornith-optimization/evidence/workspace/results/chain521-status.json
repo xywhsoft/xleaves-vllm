@@ -1,0 +1,11 @@
+{
+  "status": "chain521_completed_actual_balanced_result_requires_wholemodel_decision",
+  "utc": "2026-10-09T03:20:15Z",
+  "gpu_work_in_controller": false,
+  "serving_source_mutation": false,
+  "proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler511-gpu-operator-proof.json",
+  "sha256": "6d0f07f9cac1bb8ac3c74a071fe4830ba2528f589961c3b2589b4567168d7e2e",
+  "operator_status": "sampler511_gpu_operator_checks_passed",
+  "failure": null,
+  "helper400_installed": false
+}

@@ -1,0 +1,43 @@
+{
+  "status": "compare229_actual_cohort_arithmetic_and_negative_cpu_gates_passed",
+  "utc": "2026-10-08T12:03:25Z",
+  "accepted_cohorts": 8,
+  "profile": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-high201-profile.json",
+    "sha256": "22033477ddebbcda0ea01d8544ceb54d55167950a76afc0165c43d9fb431279d"
+  },
+  "validation": {
+    "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+    "minimum_full_contexts": 16,
+    "max_context_per_request": 240128,
+    "verified_files": 80,
+    "source_coverage": {
+      "changed_files": 48,
+      "unbound_source": [],
+      "mismatched_source": [],
+      "source_matches": true
+    },
+    "verified_mixed_active_sequences": 144,
+    "verified_full_contexts": 16,
+    "uncached_full_context_concurrency": 16
+  },
+  "exact_input_proof": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/exact-layer215-input-proof.json",
+    "sha256": "42e95b5ba635f3ba6028103c89bd11fe57336426fc053070ac4f10366d104525"
+  },
+  "rejected_cpu_negatives": [
+    "input_token_arrays_sha256",
+    "input_tokens_per_request",
+    "output_tokens",
+    "common_decode_window_tokens",
+    "aggregate_e2e_output_tps",
+    "request_event_output_count",
+    "incomplete_or_failed_baseline"
+  ],
+  "script_sha256": "362c6197d217fbd8ff1fce997af1ec84ffb93bf97b9d55e699c74e7a551b576e",
+  "comparison_script_sha256": "64537b36532e9cf89a8da43b3be1d18003e8ab62d190850f4457d49c8b2ac7b6",
+  "model_requests_sent": 0,
+  "actual_baseline_complete": false,
+  "actual_speedup_comparison_created": false,
+  "scope": "Eight actual accepted 1Cat records recomputed from individual streaming token events; token identity/length and metrics checked. Corrupted CPU copies and an incomplete baseline fixture rejected. Real layer216 baseline still pending; no speedup reported."
+}

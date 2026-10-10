@@ -1,0 +1,69 @@
+{
+  "status": "noise529_actual_firstrequest_gqa_workspace_OOM_no_TPS",
+  "parent_proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/noise529-short-sampling-proof.json",
+  "parent_sha256": "e5c6a46b9ca8f3bfdd7357a85f660e119f9d67bf20def762644e677f67df989e",
+  "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/noise529_short_sampling_noise529_tp2_c176_ctx240128_short_sampling_screen.log",
+  "log_sha256": "e5bf3b2d55d0b7acdef9838e8967164edd41feb01548ac76f0a3a3d7d170d3ed",
+  "errors": [
+    {
+      "line": 467,
+      "text": "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 280.00 MiB. GPU 1 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.64 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.66 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    {
+      "line": 553,
+      "text": "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 280.00 MiB. GPU 1 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.64 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.66 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    {
+      "line": 641,
+      "text": "(Worker_TP0 pid=1175832) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 280.00 MiB. GPU 0 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.64 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.66 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    {
+      "line": 727,
+      "text": "(Worker_TP0 pid=1175832) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 280.00 MiB. GPU 0 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.64 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.66 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    {
+      "line": 2192,
+      "text": "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 310.00 MiB. GPU 1 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.65 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.43 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    {
+      "line": 2278,
+      "text": "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 310.00 MiB. GPU 1 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.65 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.43 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    {
+      "line": 2367,
+      "text": "(Worker_TP0 pid=1175832) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 310.00 MiB. GPU 0 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.65 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.43 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    {
+      "line": 2453,
+      "text": "(Worker_TP0 pid=1175832) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 310.00 MiB. GPU 0 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.65 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.43 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    }
+  ],
+  "first_failure_stack": [
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980]   File \"/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/attention/backends/turboquant_attn.py\", line 1584, in _decode_attention",
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980]     result = decode_op(",
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980]              ^^^^^^^^^^",
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980]   File \"/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/attention/ops/turboquant_sm70_gqa.py\", line 296, in gqa_turboquant_decode",
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980]     workspace, partition_size = _get_gqa_decode_workspace(",
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980]                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980]   File \"/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/attention/ops/turboquant_sm70_gqa.py\", line 72, in _get_gqa_decode_workspace",
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980]     torch.empty(",
+    "(Worker_TP1 pid=1175833) ERROR 10-09 03:37:33 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 280.00 MiB. GPU 1 has a total capacity of 31.73 GiB of which 266.25 MiB is free. Including non-PyTorch memory, this process has 31.47 GiB memory in use. Of the allocated memory 30.64 GiB is allocated by PyTorch, with 28.00 MiB allocated in private pools (e.g., CUDA Graphs), and 181.66 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+  ],
+  "original_restored": {
+    "kind": "restored",
+    "pid": 1176993,
+    "startup_s": 9.862981583923101,
+    "original_command_reused": true,
+    "api_key_preserved": true,
+    "verification": {
+      "passed": true,
+      "slots": 16,
+      "context": 240128
+    }
+  },
+  "final_helper_sha256": "ab2ee9e52cc229ced835e840cb90cea3a1d7ed2d927d86507b670b532a56d52f",
+  "software_next": "LowerKV17.125GiBto16.5GiB, equaltoqualified160, preserveCLI240128/min16; actual530 test required.",
+  "model_requests_sent": 0,
+  "source_mutation": false,
+  "hardware_changes": false
+}

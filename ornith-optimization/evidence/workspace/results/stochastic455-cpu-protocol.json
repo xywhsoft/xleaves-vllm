@@ -1,0 +1,106 @@
+{
+  "status": "stochastic455_actual_cpu_sse_protocol_fixtures_passed",
+  "cohort_module_sha256": "51327f0bc7372d5a752a5c48d4a2a3e1a908520a5df6d4fd268005235d8af625",
+  "script_sha256": "2b3b82a9fe40cc2e66d550478cd5c5465e8301a5e675de35b9c8d95ace64020e",
+  "checks": [
+    {
+      "concurrency": 1,
+      "sampling": {},
+      "one_chunk": false,
+      "synthetic_fixture": true,
+      "accounting_passed": true
+    },
+    {
+      "concurrency": 16,
+      "sampling": {},
+      "one_chunk": false,
+      "synthetic_fixture": true,
+      "accounting_passed": true
+    },
+    {
+      "concurrency": 1,
+      "sampling": {
+        "temperature": 0.7,
+        "top_k": -1,
+        "top_p": 1.0
+      },
+      "one_chunk": false,
+      "synthetic_fixture": true,
+      "accounting_passed": true
+    },
+    {
+      "concurrency": 16,
+      "sampling": {
+        "temperature": 0.7,
+        "top_k": -1,
+        "top_p": 1.0
+      },
+      "one_chunk": false,
+      "synthetic_fixture": true,
+      "accounting_passed": true
+    },
+    {
+      "concurrency": 1,
+      "sampling": {
+        "temperature": 0.7,
+        "top_k": 50,
+        "top_p": 0.95
+      },
+      "one_chunk": false,
+      "synthetic_fixture": true,
+      "accounting_passed": true
+    },
+    {
+      "concurrency": 16,
+      "sampling": {
+        "temperature": 0.7,
+        "top_k": 50,
+        "top_p": 0.95
+      },
+      "one_chunk": false,
+      "synthetic_fixture": true,
+      "accounting_passed": true
+    },
+    {
+      "concurrency": 1,
+      "sampling": {
+        "temperature": 0.7,
+        "top_k": 50,
+        "top_p": 0.95
+      },
+      "one_chunk": true,
+      "synthetic_fixture": true,
+      "accounting_passed": true
+    },
+    {
+      "concurrency": 16,
+      "sampling": {
+        "temperature": 0.7,
+        "top_k": 50,
+        "top_p": 0.95
+      },
+      "one_chunk": true,
+      "synthetic_fixture": true,
+      "accounting_passed": true
+    },
+    {
+      "concurrency": 1,
+      "sampling": {
+        "temperature": 0.7,
+        "top_k": 50,
+        "top_p": 0.95
+      },
+      "negative_missing_token_rejected": true,
+      "synthetic_fixture": true
+    },
+    {
+      "negative_sampling_override_rejected": true
+    }
+  ],
+  "synthetic_responses": true,
+  "real_model_requests_sent": 0,
+  "gpu_tests_run": false,
+  "throughput_measurement": false,
+  "serving_source_mutation": false,
+  "scope": "Payload sampling only changes temperature/topk/topp. Actual parser runs againstsyntheticSSE; independent229 auditor validates closedtoken event math including nooverlap and missingtoken rejection. No modelperformance claim."
+}

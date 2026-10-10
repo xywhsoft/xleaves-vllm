@@ -15,6 +15,20 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 from vllm.envs_metadata import env_var
 
 if TYPE_CHECKING:
+    VLLM_SM70_ORNITH_REUSE_PADDED_KV: str = "0"
+    VLLM_SM70_MOE_COMPACT_GROUPS: str | None = "0"
+    VLLM_SM70_MOE_STREAM_UNROUTE: str | None = "0"
+    VLLM_SM70_ORNITH_PADDED_PREFILL: str | None = "0"
+    VLLM_SM70_ORNITH_H8_PREFILL: str | None = "0"
+    VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY: str | None = ""
+    VLLM_SM70_ORNITH_PREFILL_PREALLOCATE: str | None = "0"
+    VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE: str | None = "0"
+    VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS: str | None = "0"
+    VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY: str | None = ""
+    VLLM_SM70_TURBOQUANT_GQA_TC: str | None = "0"
+    VLLM_SM70_TURBOQUANT_GQA_TILE: str | None = "16"
+    VLLM_SM70_TURBOQUANT_GQA_WARPS: str | None = "8"
+    VLLM_SM70_TURBOQUANT_GQA_LIBRARY: str | None = None
     VLLM_SM70_DEBUG: set[str] = set()
     VLLM_SM70_E4M3_LONG_ATTENTION: str | None = None
     VLLM_CPU_CI_ENV: str | None = None
@@ -1345,6 +1359,200 @@ def _resolve_rust_frontend_path() -> str | None:
 
 
 environment_variables: dict[str, Callable[[], Any]] = {
+    "VLLM_SM70_ORNITH_REUSE_PADDED_KV": env_var(
+        lambda: os.getenv("VLLM_SM70_ORNITH_REUSE_PADDED_KV", "0"),
+        description=(
+            "Reuse aligned K/V prefix backing storage in the SM70 Ornith "
+            "continuation route. Disabled by default; the H8/H1 FP16 route requires "
+            "numerical, memory and serving qualification."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=False,
+    ),
+    "VLLM_SM70_MOE_COMPACT_GROUPS": env_var(
+        lambda: os.getenv("VLLM_SM70_MOE_COMPACT_GROUPS", "0"),
+        description=(
+            "Use only active Ornith experts in small grouped projections. "
+            "Disabled by default; enable for the qualified H2048/inter256/E256 "
+            "SM70 workload."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_MOE_STREAM_UNROUTE": env_var(
+        lambda: os.getenv("VLLM_SM70_MOE_STREAM_UNROUTE", "0"),
+        description=(
+            "Accumulate weighted expert output in token order without the large "
+            "FP32 gathered temporary. Disabled by default; enable for qualified "
+            "FP16 Ornith routing."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_ORNITH_PADDED_PREFILL": env_var(
+        lambda: os.getenv("VLLM_SM70_ORNITH_PADDED_PREFILL", "0"),
+        description=(
+            "Pad rectangular cached-prefix attention to native tile boundaries. "
+            "Disabled by default; enable only for qualified SM70 H8/H1 D256 "
+            "causal continuation."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_ORNITH_H8_PREFILL": env_var(
+        lambda: os.getenv("VLLM_SM70_ORNITH_H8_PREFILL", "0"),
+        description=(
+            "Use the eight-head continuation specialization. Disabled by default;"
+            " enable with its qualified native library and workspace "
+            "preallocation."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY": env_var(
+        lambda: os.getenv("VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY", ""),
+        description=(
+            "Path to the qualified H8 or H8k4 native prefill library. Empty by "
+            "default because the route is opt-in; set after building the matching"
+            " checked-in source."
+        ),
+        category="experimental",
+        declared_default="''",
+        effective_default="''",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_ORNITH_PREFILL_PREALLOCATE": env_var(
+        lambda: os.getenv("VLLM_SM70_ORNITH_PREFILL_PREALLOCATE", "0"),
+        description=(
+            "Count persistent continuation scratch during GPU memory profiling "
+            "before sizing KV storage. Disabled by default; enable with the "
+            "Ornith continuation route to preserve the physical context capacity "
+            "budget."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE": env_var(
+        lambda: os.getenv("VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE", "0"),
+        description=(
+            "Append the canonical FP32 key correction to unchanged K4/V4 bytes in"
+            " a 268-byte record. Disabled by default; enable only with the "
+            "compatible qualified SM70 H8/H1 decoder."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS": env_var(
+        lambda: os.getenv("VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS", "0"),
+        description=(
+            "Adapt active packed-cache partitions to context length. Disabled by "
+            "default; enable for the qualified SM70 D256 K4/V4 NC decoder."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY": env_var(
+        lambda: os.getenv("VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY", ""),
+        description=(
+            "Path to the qualified adaptive packed-cache decoder. Empty by "
+            "default; override only with a rebuilt compatible extension."
+        ),
+        category="experimental",
+        declared_default="''",
+        effective_default="''",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_TURBOQUANT_GQA_TC": env_var(
+        lambda: os.getenv("VLLM_SM70_TURBOQUANT_GQA_TC", "0"),
+        description=(
+            "Share packed KV unpacking between eight query heads and use Volta "
+            "tensor cores. Disabled by default pending numerical and quality "
+            "qualification for each supported model shape."
+        ),
+        category="experimental",
+        declared_default="'0'",
+        effective_default="'0'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_TURBOQUANT_GQA_TILE": env_var(
+        lambda: os.getenv("VLLM_SM70_TURBOQUANT_GQA_TILE", "16"),
+        description=(
+            "Tile of the experimental Triton grouped-query fallback. Defaults to "
+            "16; native extensions select their own fixed qualified tile."
+        ),
+        category="experimental",
+        declared_default="'16'",
+        effective_default="'16'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_TURBOQUANT_GQA_WARPS": env_var(
+        lambda: os.getenv("VLLM_SM70_TURBOQUANT_GQA_WARPS", "8"),
+        description=(
+            "Warp count of the experimental Triton grouped-query fallback. "
+            "Defaults to 8; native extensions select their own fixed qualified "
+            "warp count."
+        ),
+        category="experimental",
+        declared_default="'8'",
+        effective_default="'8'",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
+    "VLLM_SM70_TURBOQUANT_GQA_LIBRARY": env_var(
+        lambda: os.getenv("VLLM_SM70_TURBOQUANT_GQA_LIBRARY", None),
+        description=(
+            "Path to the qualified native grouped-query decoder. None selects the"
+            " Triton fallback; cached FP32 key correction requires its matching "
+            "native extension."
+        ),
+        category="experimental",
+        declared_default="None",
+        effective_default="None",
+        automatic_conditions=(),
+        acceleration_paths=("sm70_ornith_throughput",),
+        user_visible=True,
+    ),
     "VLLM_SM70_E4M3_LONG_ATTENTION": env_var(
         lambda: os.getenv("VLLM_SM70_E4M3_LONG_ATTENTION"),
         description=(

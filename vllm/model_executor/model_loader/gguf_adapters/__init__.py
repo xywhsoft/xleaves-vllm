@@ -5,6 +5,21 @@
 
 def get_gguf_adapter(config, tp_size=1):
     text = config.get_text_config()
+    if getattr(config, "vision_config", None) is not None and text.model_type in (
+        "qwen3_5_moe_text",
+        "qwen3_5_text",
+    ):
+        from .qwen35_multimodal import (
+            Qwen35MoeMultimodalAdapter,
+            Qwen35MultimodalAdapter,
+        )
+
+        adapter_cls = (
+            Qwen35MoeMultimodalAdapter
+            if text.model_type == "qwen3_5_moe_text"
+            else Qwen35MultimodalAdapter
+        )
+        return adapter_cls(config, tp_size=tp_size)
     if getattr(text, "gguf_architecture", None) == "dflash" or "DFlash2DraftModel" in (
         getattr(text, "architectures", None) or []
     ):

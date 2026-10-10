@@ -1,0 +1,77 @@
+{
+  "status": "freeze416_actual_complete_profiles_compared",
+  "profiles": [
+    {
+      "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c160_kv17716740096_b1024_full16_none_graph2048_adaptive393",
+      "profile": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-adaptive416-0-final.json",
+      "sha256": "5bda6a4ce279232c3cc5f49b99a4e1443e13e2016a13a2f6395c89de4fa0d43d",
+      "validation": {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c160_kv17716740096_b1024_full16_none_graph2048_adaptive393",
+        "minimum_full_contexts": 16,
+        "max_context_per_request": 240128,
+        "verified_files": 136,
+        "source_coverage": {
+          "changed_files": 49,
+          "unbound_source": [],
+          "mismatched_source": [],
+          "source_matches": true
+        },
+        "verified_mixed_active_sequences": 160,
+        "verified_full_contexts": 16,
+        "uncached_full_context_concurrency": 16
+      },
+      "maximum_active_sequences": 160,
+      "minimum_full_contexts": 16
+    },
+    {
+      "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c26_kv18522046464_b2048_full26_full_guard210_adaptive393",
+      "profile": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-adaptive416-1-final.json",
+      "sha256": "9a628ef4496bf6ede3a9f5ae759b9fd802b07ff419aaaf824f2e796ff4e9b0f1",
+      "validation": {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c26_kv18522046464_b2048_full26_full_guard210_adaptive393",
+        "minimum_full_contexts": 26,
+        "max_context_per_request": 240128,
+        "verified_files": 136,
+        "source_coverage": {
+          "changed_files": 49,
+          "unbound_source": [],
+          "mismatched_source": [],
+          "source_matches": true
+        },
+        "verified_mixed_active_sequences": 26,
+        "verified_full_contexts": 26,
+        "uncached_full_context_concurrency": 16
+      },
+      "maximum_active_sequences": 26,
+      "minimum_full_contexts": 26
+    }
+  ],
+  "comparison": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/exact-layer416-qualified-comparison.json",
+  "comparison_sha256": "fcdb69c5cf717e48b9a43f169398707ad9f4b9b3bfa46c0e64f71e3f55b32158",
+  "script_sha256": "f40a2a9236757c04f48365d0ce3883ff04d820e01dac73a5b5eed33b7f4a1313",
+  "parent_restoration": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/adaptive393-whole-model-proof.json",
+    "sha256": "96c1d075626c7a7c7defdcf8f465393b0f98882cee2649d74d8e6d587a51a49d",
+    "final_source_sha256": "7e1e04a7af6badc8012cfbcae920495672a57d3a30b07d547adc82f8d8177c52",
+    "restored": {
+      "kind": "restored",
+      "pid": 1141617,
+      "startup_s": 9.615420393180102,
+      "original_command_reused": true,
+      "api_key_preserved": true,
+      "verification": {
+        "passed": true,
+        "slots": 16,
+        "context": 240128
+      }
+    },
+    "qualified_cases": [
+      "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c160_kv17716740096_b1024_full16_none_graph2048_adaptive393",
+      "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c26_kv18522046464_b2048_full26_full_guard210_adaptive393"
+    ]
+  },
+  "whole_model_proof_sha256": "96c1d075626c7a7c7defdcf8f465393b0f98882cee2649d74d8e6d587a51a49d",
+  "serving_source_mutation": false,
+  "model_requests_sent": 0,
+  "public_deployment_performed": false
+}

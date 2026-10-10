@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "candidate_sha256": "7e1e04a7af6badc8012cfbcae920495672a57d3a30b07d547adc82f8d8177c52",
+  "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/adaptive393-source-hooks.log",
+  "log_sha256": "fb00f3a517ab206cc009774b2903716ef715cc72aef138b66d051571f7a1bb7e",
+  "returncode": 0
+}

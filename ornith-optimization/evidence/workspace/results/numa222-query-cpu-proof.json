@@ -1,0 +1,81 @@
+{
+  "status": "numa222_cpu_mixed_mapping_and_real_remote_negative_passed",
+  "utc": "2026-10-08T11:19:56Z",
+  "script_sha256": "94018e5ea7378580e2c75432fd1ca4a11cca76998dbdf9343be1be55d918071a",
+  "reader_sha256": "765e24f4c974f6eb95bd43f356866449f08baa7dfa8aacfad9ba3a932d2c48cf",
+  "fixtures": [
+    {
+      "negative": false,
+      "passed": true,
+      "local_anon": 6659,
+      "remote_anon": 0,
+      "ambiguous": 0,
+      "mixed_file_page_nodes": {
+        "1": 1,
+        "0": 4095
+      },
+      "private_cow_nodes": [
+        1
+      ],
+      "reader_result": {
+        "pid": 925980,
+        "rank": 1,
+        "birth": "233002833",
+        "cpus": "1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,55,57,59,61,63,65,67,69,71,73,75,77,79,81,83,85,87",
+        "expected_cpus": "1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,55,57,59,61,63,65,67,69,71,73,75,77,79,81,83,85,87",
+        "mems": "0-1",
+        "worker_method": "spawn",
+        "bound_anon_pages": 6659,
+        "remote_pages_in_bound_anon": 0,
+        "all_anon_pages": 6659,
+        "anonymous_policies": [
+          "bind:1"
+        ],
+        "ambiguous_anonymous_pages": 0,
+        "passed": true,
+        "query_nodes_argument": null,
+        "query_flags": 0,
+        "observation_elapsed_seconds": 0.0028675273060798645
+      }
+    },
+    {
+      "negative": true,
+      "passed": false,
+      "local_anon": 6661,
+      "remote_anon": 4106,
+      "ambiguous": 0,
+      "mixed_file_page_nodes": {
+        "1": 1,
+        "0": 4095
+      },
+      "private_cow_nodes": [
+        1
+      ],
+      "reader_result": {
+        "pid": 925981,
+        "rank": 1,
+        "birth": "233002843",
+        "cpus": "1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,55,57,59,61,63,65,67,69,71,73,75,77,79,81,83,85,87",
+        "expected_cpus": "1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,55,57,59,61,63,65,67,69,71,73,75,77,79,81,83,85,87",
+        "mems": "0-1",
+        "worker_method": "spawn",
+        "bound_anon_pages": 6661,
+        "remote_pages_in_bound_anon": 4106,
+        "all_anon_pages": 10767,
+        "anonymous_policies": [
+          "bind:1"
+        ],
+        "ambiguous_anonymous_pages": 0,
+        "passed": false,
+        "query_nodes_argument": null,
+        "query_flags": 0,
+        "observation_elapsed_seconds": 0.011205791961401701
+      }
+    }
+  ],
+  "model_requests_sent": 0,
+  "serving_source_mutation": false,
+  "live_worker_mutation": false,
+  "gpu_work": false,
+  "scope": "Isolated CPUchildren: cached file pages onnode0 + privateCOW/pool onnode1 accepted; actual16MiB anonymous allocation onnode0 followedby policybind1 rejected. Queries nodes=NULL/flags0. Policy changes confinedtoCPUnegativefixture; originalmodel workers unmodified."
+}

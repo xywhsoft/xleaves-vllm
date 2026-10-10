@@ -1,0 +1,8 @@
+{
+  "status": "chain482_stopped_requires_actual_result_review",
+  "utc": "2026-10-09T02:00:19Z",
+  "gpu_work": false,
+  "source_mutation": false,
+  "error_type": "FileNotFoundError",
+  "error": "[Errno 2] No such file or directory: '/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/stoch465-short-sampling-proof.json'"
+}

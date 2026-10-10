@@ -1,0 +1,674 @@
+{
+  "status": "qualified",
+  "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16_guard210",
+  "cwd": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140",
+  "command": [
+    "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/.venv/bin/python",
+    "-m",
+    "vllm.entrypoints.cli.main",
+    "serve",
+    "/data/models/Ornith-1.5-35B-CRACK/Ornith-1.5-35B-A3B-CRACK-Q4_K_M.gguf",
+    "--load-format",
+    "gguf",
+    "--dtype",
+    "half",
+    "--tensor-parallel-size",
+    "2",
+    "--max-model-len",
+    "240128",
+    "--max-num-seqs",
+    "144",
+    "--max-num-batched-tokens",
+    "2048",
+    "--kv-cache-dtype",
+    "turboquant_4bit_nc",
+    "--gpu-memory-utilization",
+    "0.94",
+    "--disable-custom-all-reduce",
+    "--served-model-name",
+    "ornith-1.5-35b",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8096",
+    "--compilation-config",
+    "{\"mode\": 0, \"cudagraph_mode\": \"FULL\", \"cudagraph_capture_sizes\": [1, 16, 64, 144]}",
+    "--hf-config-path",
+    "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal",
+    "--tokenizer",
+    "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal",
+    "--limit-mm-per-prompt",
+    "{\"image\":2,\"video\":0}",
+    "--mm-processor-kwargs",
+    "{\"max_pixels\":589824,\"min_pixels\":4096}",
+    "--enable-prompt-tokens-details",
+    "--mixed-prefill-step-latency-ms",
+    "0",
+    "--kv-cache-memory-bytes",
+    "17045651456"
+  ],
+  "env": {
+    "CUDA_HOME": "/usr/local/cuda-12.8",
+    "CUDA_VISIBLE_DEVICES": "0,1",
+    "GGML_CUDA_SM70_Q4KV_VECTOR": "0",
+    "LD_LIBRARY_PATH": "/home/xs/codex-work/ornith-opt-20261006/envs/onecat/lib/python3.12/site-packages/nvidia/nccl/lib:/usr/local/cuda-12.8/lib64",
+    "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+    "PYTHONPATH": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140",
+    "PYTORCH_ALLOC_CONF": "backend:native,expandable_segments:True",
+    "PYTORCH_CUDA_ALLOC_CONF": "backend:native,expandable_segments:True",
+    "TOKENIZERS_PARALLELISM": "false",
+    "VLLM_SERVER_DEV_MODE": "0",
+    "VLLM_SM70_FLASHQLA_INDEXED_PREFILL": "1",
+    "VLLM_SM70_FLASHQLA_ORIGINAL_PREFILL": "1",
+    "VLLM_SM70_MOE_COMPACT_GROUPS": "1",
+    "VLLM_SM70_MOE_STREAM_UNROUTE": "1",
+    "VLLM_SM70_ORNITH_H8_PREFILL": "1",
+    "VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_prefill_h8k2_sm70/ornith_prefill_h8k2_sm70.so",
+    "VLLM_SM70_ORNITH_PADDED_PREFILL": "1",
+    "VLLM_SM70_ORNITH_PREFILL_PREALLOCATE": "1",
+    "VLLM_SM70_ORNITH_REUSE_PADDED_KV": "1",
+    "VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_adaptive_sm70/ornith_tq_adaptive_sm70.so",
+    "VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS": "1",
+    "VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE": "1",
+    "VLLM_SM70_TURBOQUANT_GQA_LIBRARY": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_gqa_wmma8aliasvalue80_sm70/ornith_tq_gqa_wmma8aliasvalue80_sm70.so",
+    "VLLM_SM70_TURBOQUANT_GQA_TC": "1",
+    "VLLM_SM70_TURBOQUANT_GQA_TILE": "16",
+    "VLLM_SM70_TURBOQUANT_GQA_WARPS": "8"
+  },
+  "minimum_full_contexts": 16,
+  "maximum_active_sequences": 144,
+  "max_context_per_request": 240128,
+  "image_count": 2,
+  "maximum_pixels_per_image": 589824,
+  "source_commit": "0dc468217feda5a5a50dfc87e4d9525a1daf5574",
+  "model_identity": [
+    {
+      "path": "/data/models/Ornith-1.5-35B-CRACK/Ornith-1.5-35B-A3B-CRACK-Q4_K_M.gguf",
+      "bytes": 21713462848,
+      "mtime_ns": 1790882489206540330,
+      "inode": 32375263,
+      "device": 2065
+    },
+    {
+      "path": "/data/models/Ornith-1.5-35B-CRACK/mmproj-Ornith-1.5-35B-A3B-f16.gguf",
+      "bytes": 902822240,
+      "mtime_ns": 1790882571868543887,
+      "inode": 32375264,
+      "device": 2065
+    }
+  ],
+  "evidence": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/frozen-qualification78-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16_guard210.jsonl",
+    "sha256": "bc0fc1d83835771afb4fc0de9a9498dd6685f982d58e782c694fc7f4b014359d",
+    "source_journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler_guard210.jsonl",
+    "source_journal_sha256_at_freeze": "4ec2291a833a109964e0066e16305dbe8636daba03bfb5bfa514a13194165c2f"
+  },
+  "file_manifest": [
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith-native-manifest.json",
+      "bytes": 9631,
+      "sha256": "ce96a684ec2defc7eee56d979f00035c7f50ef95667802b3183976adbcaa0251"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_prefill_h8k2_sm70/ornith_prefill_h8k2_sm70.so",
+      "bytes": 1517800,
+      "sha256": "bfede316e8e327d6f9110de21b920e0a17c6d6bbdb506c31522b5351abc62d76"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_adaptive_sm70/ornith_tq_adaptive_sm70.so",
+      "bytes": 391016,
+      "sha256": "3dd5385146afc33421023bdb279643bf5e7e55aa44dacb93ee8837a8f0ea014c"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_gqa_wmma8aliasvalue80_sm70/ornith_tq_gqa_wmma8aliasvalue80_sm70.so",
+      "bytes": 654296,
+      "sha256": "7a4890fda7ad1d5a91f30c1bd1efc02c59ab02007ccd9557ce453afcbbd475d2"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/cache210-source-hooks-0.log",
+      "bytes": 3709,
+      "sha256": "fb00f3a517ab206cc009774b2903716ef715cc72aef138b66d051571f7a1bb7e"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal/chat_template.jinja",
+      "bytes": 7764,
+      "sha256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal/config.json",
+      "bytes": 3365,
+      "sha256": "2f19eabe462fb2e062510f8d6c6380496a5f7a76425e62ead9271708dbc2917f"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal/processor_config.json",
+      "bytes": 1218,
+      "sha256": "23c1e448698aba93038c7c77680c8e5ccd8ecffbd343f5f6a542a4fa3918821d"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal/tokenizer.json",
+      "bytes": 19997691,
+      "sha256": "3d1ea23b61648cec8b3062e999ae5e3668a872cd96b9df701655da4f669871e4"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal/tokenizer_config.json",
+      "bytes": 860,
+      "sha256": "c0ea7adfedca0e57af7a921707df1127c16c58d4f27d0d970ba3f1e67c3ea5fe"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/cache210-source-hooks.json",
+      "bytes": 358,
+      "sha256": "691186c157fd2932b1336896f332aa10d41165ccf2f1597fe423ef5def3edcdf"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/frozen-qualification78-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c26_kv18522046464_b2048_full26_full.jsonl",
+      "bytes": 8552565,
+      "sha256": "e3ca0aff125da45190e6e8b1372cf87a208eae3eae954cfd5722e0f9f49e6804"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/frozen-qualification78-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16.jsonl",
+      "bytes": 30285835,
+      "sha256": "0322e67a4a813c4288df6666a7dfdc4230f9e4f3d4ccf31a0ef7a671b82985e8"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/frozen-qualification78-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c32_kv16106127360_b4096_full22.jsonl",
+      "bytes": 9256449,
+      "sha256": "f53cd420cadf0d766622c4f2c6b19a222d0c7768e7739907c6329c1938e3af55"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-cache210-parent-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c26_kv18522046464_b2048_full26_full-command201.json",
+      "bytes": 26512,
+      "sha256": "e7a9a74d37b7b6a7fff44cca2fa219f6ca0d522c701373c4f58f2f69f44dbc66"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-cache210-parent-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16-command201.json",
+      "bytes": 26423,
+      "sha256": "cc739ef61bde4f03e794af8fd024c37a48f61edfe919c047fb77fc1b997a2326"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-cache210-parent-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c32_kv16106127360_b4096_full22-command201.json",
+      "bytes": 26412,
+      "sha256": "0141906804251d4564f3cf4020f4d4d62cc8fcb0849da4ff6afe1b410a8e8ebf"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-guard-high318-command-locality201.json",
+      "bytes": 989,
+      "sha256": "5d7ee3c477c0d4c551d5a3cfc288f320036b76e28cb2a4b913728a5da10af03b"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-guard-high318-profile-inputs192.json",
+      "bytes": 11505,
+      "sha256": "02800d43a8c46d07a18beef40ba74d39b9f87e58b3cfc2d7c5ffd470cf3e4420"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler-cache204-cpu-proof.json",
+      "bytes": 5786,
+      "sha256": "961b4181e543e73e4a6fad733c58241e1d743f9782d542af3f3e2797717bafc2"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler-hybrid205-cpu-proof.json",
+      "bytes": 6891,
+      "sha256": "46f993fe1520b7469d9e9464513be2a06e2bc2c3c698b57cdb4a4c599d342d67"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler-layout211-cpu-proof.json",
+      "bytes": 7974,
+      "sha256": "307430ab18bf02fdf8723ee7dd65dc0461eaf6dc5e2ed9461177fe9e3b9b380d"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler-progress206-cpu-proof.json",
+      "bytes": 8707,
+      "sha256": "733dd4ccfbeab9eea106a476b2e4768be6bb4f0098c1875216716ed327b6ce08"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler-source209-cpu-proof.json",
+      "bytes": 8310,
+      "sha256": "c3bd152b7d2a3e6c93e80b86580e5b5aecdc6c2cd30a5bfa0abea2c21316b293"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler_guard210_short_inputs.json",
+      "bytes": 514830,
+      "sha256": "3f573f1472e278eafc6c2e657524c608618520fbad4a8e03e0c9b9ba46d4bb8e"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace186-operator.json",
+      "bytes": 16014,
+      "sha256": "576e8ad3bd116caa5a5c8951faf383e338a66243ffc729ed3d43f5118b8cc1dc"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187-source-hooks.json",
+      "bytes": 540,
+      "sha256": "59bbfb4b2b57470a04e2d95a282f3f8f660f92f0f3d7721cf9e48b20c5a1b9b7"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/cache210-plan.json",
+      "bytes": 40203,
+      "sha256": "714d2b3e8214f6ee85894149164bc14948550003383810b8e03d64b6bf854ecc"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/cache211-layout149.json",
+      "bytes": 27461,
+      "sha256": "faf33d28aae4b23f2a64138199db2d995396f8be71edc912030bfdb3d4343c3a"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/candidate_cache_guard206.py",
+      "bytes": 3540,
+      "sha256": "c8657960b166e6cee53c265effa5575798c4ad9b326bf277c55e07d60a9dbfb8"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/diverse_prompts144_187.json",
+      "bytes": 874882,
+      "sha256": "5c8634b5b9ea74abd189100797cf833beb111e02950ffe72894ae92cd67c453e"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/freeze_qualified193.py",
+      "bytes": 2876,
+      "sha256": "232ba98404824272ec23c29c8262e9fe4260d3d4de428b69bf3707c5a8000ec1"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/guard_profile213.py",
+      "bytes": 8576,
+      "sha256": "9a41721e825da4456f7bd6bb5f4ae8a81aaf728989eba82458fbcf3aa7c12e84"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/long_independent_cold_prefixes62.json",
+      "bytes": 21998240,
+      "sha256": "4b987acfd90241aea38cc4f2197ecb87d66cce962951fa5c38ebb79692441651"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/long_independent_prompts28_194.json",
+      "bytes": 31801869,
+      "sha256": "0d52a2e42ecfbe214b062e7d6f01b18458ea74cfd7a18edc5401bcb5c41e3804"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/make_serving_profile156.py",
+      "bytes": 3921,
+      "sha256": "6ab9eea4b1f9805abda5188ad44e9bf2dafa1abf1e66d5564325f737676a07a3"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/manage_onecat71.py",
+      "bytes": 16760,
+      "sha256": "32a7bce124a57cff8b0b1c4d9cf69d19ff943394cd4f39aa48a225d40694f583"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/onecat_qualified_runner139.py",
+      "bytes": 32143,
+      "sha256": "01f36917804c07758408f7ffd0c789aebe47c612ea2c4491e7cec19baecd5fcb"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/pipeline_cache210.py",
+      "bytes": 12421,
+      "sha256": "6854731691bc1247e6e1eb228ae23457f5faae17ff7a4a3e7d200b6ad8e8a068"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/profile_locality201.py",
+      "bytes": 3399,
+      "sha256": "04be019c1547749a13899dbc6500a80a31a37e85954eae13250f44f553d6e83a"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/qualification_artifacts78.py",
+      "bytes": 2827,
+      "sha256": "7605ff24a560e3c36c2a411044892a500ef1a8695d00dda46b8a83192cf12685"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/qualified_profile189.py",
+      "bytes": 4612,
+      "sha256": "6d80b7fffeb28987899b315288db4eea1b09aa726b53dc713f82db27d6cfd6c1"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/replay_inputs192.py",
+      "bytes": 8048,
+      "sha256": "3455578974bb4b77be6f4690101514a8d89d72b75c36634b5e157afb41c19ed3"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/review_source_drift180.py",
+      "bytes": 2712,
+      "sha256": "dc93aac7031f8348aa9b31c177de11fbcf7dcba1ae319ee65fe6862307f99b0d"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/scheduler_cache204_cpu.py",
+      "bytes": 7819,
+      "sha256": "03af30c803782f4cd6e69674963d23c634854725863c018d83ee95f02e1d0072"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/scheduler_cache209_candidate.py",
+      "bytes": 136628,
+      "sha256": "0d0ac21791373bfb55deeaa75622d5eb7df4efea5848da04867a061f1af44632"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/scheduler_hybrid205_cpu.py",
+      "bytes": 6684,
+      "sha256": "c077337c8f6490a9b75774259e0ab5eb8404f8e2d98708019101fad8945ded0b"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/scheduler_layout211_cpu.py",
+      "bytes": 8094,
+      "sha256": "94faf759fbcd5755ed196118134a913fe799bf0fab22702b3b4b091a0a92f078"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/scheduler_progress206_cpu.py",
+      "bytes": 7755,
+      "sha256": "badfc53c79c14c95a8fe34974ea430f5bb1b5e754937471f7e055e2003d9c610"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/scheduler_source209_cpu.py",
+      "bytes": 6341,
+      "sha256": "861b502ac0810bf34ea402c4c38c0615228c30622a576c2897d532dac05903d4"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8/bindings.cpp",
+      "bytes": 449,
+      "sha256": "1eac7b9165d40ea2ff67397e81fd080d92836c205ea75174a279b0acdf62f94b"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8/epilogue_visitor_with_softmax.h",
+      "bytes": 19302,
+      "sha256": "fb41f007b116059d0a99cc136fe854524a6831980da392a597752dd5657bebcc"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8/gemm_with_softmax.h",
+      "bytes": 18240,
+      "sha256": "afdd50496f10c6eff279d14b1861c3d8dbe1dcba7c48e4e4d1ae8ee675f99851"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8/prefill.cu",
+      "bytes": 29231,
+      "sha256": "08dae46a733223eebcf1ac2b6fdf4a1aef8ee5532d5693856f4426d0559ddb1e"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8/reduce_softmax_final.h",
+      "bytes": 9203,
+      "sha256": "0e1d7c2fac5c1eaf5b0b0cf4b86f10cdbdb75d3d32fef65cdfe40dec0bd146d1"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8/tail.cu",
+      "bytes": 40418,
+      "sha256": "8f7431036b013d488510528776bacab9b3f848c76cf21b907809cc251f9ec657"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k2/bindings.cpp",
+      "bytes": 494,
+      "sha256": "304f6d7f2b8eba4b77521b59ac2304349d1a3c7f44f3f1365e0c2105c891c6fe"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k2/epilogue_visitor_with_softmax.h",
+      "bytes": 19302,
+      "sha256": "21519283d04489e1ac6daed6e5d47ca2422098c7c552b363b8697278bff50b32"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k2/gemm_with_softmax.h",
+      "bytes": 18240,
+      "sha256": "afdd50496f10c6eff279d14b1861c3d8dbe1dcba7c48e4e4d1ae8ee675f99851"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k2/prefill.cu",
+      "bytes": 29241,
+      "sha256": "96f05cde6543463061e752ec0cb1607ada5d2142e6d2ccec7eeb91db016985ae"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k2/reduce_softmax_final.h",
+      "bytes": 9203,
+      "sha256": "7f4a806c328bc57fa194529058df411fc0a4031a982e0b12417461b659ec4a61"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k2/tail.cu",
+      "bytes": 40424,
+      "sha256": "aed9a17f093b9cba8898641fa8d82df1f6b68fd04e92dbb4964512e1e7ca1fc8"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k4/bindings.cpp",
+      "bytes": 457,
+      "sha256": "00e484fea7294599956b2ad104c0d3ea626b7396db2ea2777f05d773774d5b6c"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k4/epilogue_visitor_with_softmax.h",
+      "bytes": 19302,
+      "sha256": "5c86771bf948b9498780807a999fc2ea597d44675fe0963d4f53ef202558e84e"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k4/gemm_with_softmax.h",
+      "bytes": 18240,
+      "sha256": "afdd50496f10c6eff279d14b1861c3d8dbe1dcba7c48e4e4d1ae8ee675f99851"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k4/prefill.cu",
+      "bytes": 29241,
+      "sha256": "2574ac5504d8135a967c9d763433f44e1bb835c376b2ee7b4624b33774330849"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k4/reduce_softmax_final.h",
+      "bytes": 9203,
+      "sha256": "6a3e2b41131d683927f9b6b3dcfd32d532bb5a426f0c6fdc1e6fe8e100957878"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/attention/ornith_h8k4/tail.cu",
+      "bytes": 40424,
+      "sha256": "7f1c4ba38818318d786caec8513b0aa67724b77ab48b00a31e05599a1c08e4a5"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_adaptive.cu",
+      "bytes": 20836,
+      "sha256": "f25bef00a82233839e88465711249d5e7925f03e58f9e177d190ffef2c4a343f"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_gqa.cu",
+      "bytes": 27993,
+      "sha256": "1b71bee3a9503130e2c975d9d5703b466a99473f081bb225d086a3fb0b78ee72"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_gqa_wmma.cu",
+      "bytes": 34921,
+      "sha256": "d983a432210bc1679662a712b94fc7404b2aa4a6d525482b0cda75d0322e3bce"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_gqa_wmma8.cu",
+      "bytes": 34924,
+      "sha256": "91baf1a14612e19abddb2d70d0b6431bb4b99d012ac212faaa9b485f68b19612"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_gqa_wmma8aliasvalue80.cu",
+      "bytes": 42297,
+      "sha256": "b2c0ff65a25ce5706c1336beb11491d5bca62e6e4bbee82d8dbd705f0812709b"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_gqa_wmma8c.cu",
+      "bytes": 36196,
+      "sha256": "9c9e3590a81c849c987c5ca7345c325b8d928d79f02d63411df514cdb1a850f4"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_gqa_wmma8halfpre.cu",
+      "bytes": 41824,
+      "sha256": "facdce2e0d95ff02511a4784d1a52b44179ba3e95ca1f2fe029e8bebfb1b2f33"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_gqa_wmma8p.cu",
+      "bytes": 35774,
+      "sha256": "ea8d097551fb5ddda5dd033ca85c8ce203d9453b54b07734dd08e077a979dd6a"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/csrc/ornith_tq_gqa_wmma8u.cu",
+      "bytes": 38795,
+      "sha256": "67f84a7ae33ce4fbd4f0de887043d3f4a0ac985c2df38cd8d0ef9e59f1471c52"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/docs/configuration/env_var_reference.md",
+      "bytes": 95833,
+      "sha256": "1be032f11374c9f7333afd92adcd1b7f850847af884ea97721b74762704a1574"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/flash_qla/ops/gated_delta_rule/chunk/hopper/fused_fwd.py",
+      "bytes": 46464,
+      "sha256": "4e6a1f326dac6e53a9f7502ea930da1c023c219b4261a9f452b4186a26c82c2c"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/tests/v1/core/test_cold_prefill_accounting.py",
+      "bytes": 2849,
+      "sha256": "0e27ac1f284a9d3a61db096745c36aaee760b7583ce372f794f9f73dda3fe2b1"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/tools/build_ornith_sm70.py",
+      "bytes": 4539,
+      "sha256": "3e5b0318bf99172867971701889fcab83e7a177384e84243969a93619fe791fa"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/_C.abi3.so",
+      "bytes": 326682520,
+      "sha256": "3c608811c8291f71f46288c37142f3ea03637d99c04d621857ff03f06db8bc9c"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/envs.py",
+      "bytes": 798843,
+      "sha256": "fbf5d9c677e38c18f62b5c35191d2b695498618d360fe1085a37d97059a4933b"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/layers/fused_moe/sm70_compact_groups.py",
+      "bytes": 2771,
+      "sha256": "0697683de601afb883df7dc2aacd49ac9985146b5de2a53f25b1abc409262cc8"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/layers/fused_moe/sm70_small_routing.py",
+      "bytes": 8342,
+      "sha256": "217a7d16a1e38311a790f9414648f7cabf81f5bc44e7a54cbd79ff0443f2f660"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+      "bytes": 313617,
+      "sha256": "594ff8507248d2e878fee0d2580c4922db9cc03f61ec168d153c4c22fc11db07"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/layers/quantization/gguf.py",
+      "bytes": 46642,
+      "sha256": "20aee5216a2d95c6728e38a72e7c1d387aeb500cf687a1211a066e2b73210bf4"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/layers/quantization/gguf_turbomind_moe.py",
+      "bytes": 29719,
+      "sha256": "8ba500093f63db25106a692b65731e3ca2275373ab0bda97166f3bd0525d3e5b"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/layers/quantization/turboquant/config.py",
+      "bytes": 10060,
+      "sha256": "6a8176b38135af8b117bf913ab9fe58779bd6f1143f23ded48c94688f02e75f9"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/model_loader/gguf_adapters/__init__.py",
+      "bytes": 1563,
+      "sha256": "f7bd9036b853dbd9fdb3f5d30f3a63b9b69095f9f615cfb6b9562e1a4e6ce84d"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/model_loader/gguf_adapters/qwen35_multimodal.py",
+      "bytes": 5871,
+      "sha256": "2999124509521f7927ec3eabd4081ef5b2c3ce6ffe0717d6cf27edd37dabb479"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/model_executor/model_loader/gguf_loader.py",
+      "bytes": 24218,
+      "sha256": "e732831c9df819713d945470daa0677122c288f57786c670b276a10937642b63"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/attention/backends/flash_attn_v100.py",
+      "bytes": 392305,
+      "sha256": "8f63de5c88e190541ed23d633fec91457a28d67aaafba3fcd345b5e2e9b24b7f"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/attention/backends/turboquant_attn.py",
+      "bytes": 64571,
+      "sha256": "96d3dc669d023ed85cce4da04aa02c969ad335fcfa5551a15552a7ee0f053393"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/attention/ops/sm70_ornith_h8_prefill.py",
+      "bytes": 2595,
+      "sha256": "e6f7679195fddf86435f0d7478016e51243bd45eaeb8962fa5926cf495f96cf1"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/attention/ops/turboquant_sm70.py",
+      "bytes": 1452,
+      "sha256": "19afcd9a651a642411c11b6de88ec6effe200873cbb4317eccbe698d074a6fdc"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/attention/ops/turboquant_sm70_gqa.py",
+      "bytes": 12151,
+      "sha256": "75232a5095410c3a6ec0d56c4d299f1f554e1fd95196ea10f900171ddbc990f9"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/core/sched/scheduler.py",
+      "bytes": 136628,
+      "sha256": "0d0ac21791373bfb55deeaa75622d5eb7df4efea5848da04867a061f1af44632"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/worker/gpu_worker.py",
+      "bytes": 69071,
+      "sha256": "afa0ed413227b8f0680ff9b432bdc1c90395e2118893aee55c3a2807ca1de2e9"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/vllm_flash_attn/_vllm_fa2_C.abi3.so",
+      "bytes": 28863672,
+      "sha256": "d9e36323c5b0bff42f4a7b324a5d200783990f119fbdb9656e5561d52ee51ed1"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/flash_attn_interface.py",
+      "bytes": 63244,
+      "sha256": "87f6e192b6cffea01a9e75e294110aec7b73d3fe473d1b41978ea9fec223fc1f"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/flash_attn_v100_cuda.cpython-312-x86_64-linux-gnu.so",
+      "bytes": 28910464,
+      "sha256": "4099c4b8c5cad67b5d9f91cdd993ee585f2fe3675d4c60ca5a836e1183439d46"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/paged_kv_utils.cpython-312-x86_64-linux-gnu.so",
+      "bytes": 239704,
+      "sha256": "420356036c8a4a947324ed10934b0c510e195f66fa7dbb2bbaf4eb0d85fb7841"
+    }
+  ],
+  "created_utc": "2026-10-08T17:44:34Z",
+  "extended_validation189": {
+    "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16_guard210",
+    "minimum_full_contexts": 16,
+    "max_context_per_request": 240128,
+    "verified_files": 71,
+    "source_coverage": {
+      "changed_files": 48,
+      "unbound_source": [],
+      "mismatched_source": [],
+      "source_matches": true
+    },
+    "verified_mixed_active_sequences": 144,
+    "verified_full_contexts": 16,
+    "uncached_full_context_concurrency": 16
+  },
+  "input_replay192": {
+    "proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-guard-high318-profile-inputs192.json",
+    "sha256": "02800d43a8c46d07a18beef40ba74d39b9f87e58b3cfc2d7c5ffd470cf3e4420",
+    "checks": 34
+  },
+  "command_locality201": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-guard-high318-command-locality201.json",
+    "sha256": "5d7ee3c477c0d4c551d5a3cfc288f320036b76e28cb2a4b913728a5da10af03b",
+    "enabled": false
+  },
+  "guard_validation213": {
+    "cpu209_proof_sha256": "c3bd152b7d2a3e6c93e80b86580e5b5aecdc6c2cd30a5bfa0abea2c21316b293",
+    "cpu211_proof_sha256": "307430ab18bf02fdf8723ee7dd65dc0461eaf6dc5e2ed9461177fe9e3b9b380d",
+    "source_sha256": "0d0ac21791373bfb55deeaa75622d5eb7df4efea5848da04867a061f1af44632",
+    "actual_command_locality": {
+      "enabled": false,
+      "scope": "Measured command has noNUMA binding; no workerlocality claim."
+    },
+    "whole_model_validation": {
+      "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16_guard210",
+      "minimum_full_contexts": 16,
+      "max_context_per_request": 240128,
+      "verified_files": 80,
+      "source_coverage": {
+        "changed_files": 48,
+        "unbound_source": [],
+        "mismatched_source": [],
+        "source_matches": true
+      },
+      "verified_mixed_active_sequences": 144,
+      "verified_full_contexts": 16,
+      "uncached_full_context_concurrency": 16
+    },
+    "scope": "Wholemodel/profile/source/input/multimodal/capacity gates plus immutable schedulerCPU/hook/source provenance. CPU timing is notmodelTPS."
+  }
+}

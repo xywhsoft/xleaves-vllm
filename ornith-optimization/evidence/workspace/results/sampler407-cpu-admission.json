@@ -1,0 +1,9 @@
+{
+  "status": "sampler406_cpu_guard_rejected",
+  "reason": "Active optimization job adaptive393: 1091925",
+  "prerequisites": null,
+  "script_sha256": "3142ffa84033b75b58d54008f55e5b64557ca915c6ffce01ddb7a0f17213d09d",
+  "torch_imported": false,
+  "serving_source_mutation": false,
+  "gpu_tests_run": false
+}

@@ -1952,7 +1952,12 @@ def flashqla_sm70_chunk_gated_delta_rule(
     v_arg = v if v_contiguous else v.contiguous()
     g_arg = g if g_contiguous else g.contiguous()
     beta_arg = beta if beta_contiguous else beta.contiguous()
-    state_arg = initial_state if state_contiguous else initial_state.contiguous()
+    # Indexed kernels must update the real paged cache, never a contiguous copy.
+    state_arg = (
+        initial_state
+        if state_contiguous or state_indices is not None
+        else initial_state.contiguous()
+    )
     cu_arg = cu_seqlens if cu_seqlens.is_contiguous() else cu_seqlens.contiguous()
     _sm70_gdn_prefill_profile_end(
         "flashqla",

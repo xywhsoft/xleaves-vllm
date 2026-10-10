@@ -136,6 +136,20 @@ class GGUFModelLoader(BaseModelLoader):
             local = self._prepare_weights(model_config)
             self._native_adapter = adapter
             self._native_tensors = gguf_tensor_index(gguf_shard_paths(local))
+            if getattr(adapter, "requires_mmproj", False):
+                mmproj_file = detect_gguf_multimodal(local)
+                if mmproj_file is None:
+                    raise ValueError("Qwen3.5 multimodal GGUF requires an mmproj file")
+                vision_tensors = gguf_tensor_index(gguf_shard_paths(mmproj_file))
+                duplicates = self._native_tensors.keys() & vision_tensors.keys()
+                if duplicates:
+                    raise ValueError(
+                        f"Duplicate GGUF/mmproj tensor names: {duplicates}"
+                    )
+                self._native_tensors.update(vision_tensors)
+                logger.info(
+                    "Loading native Qwen3.5 mmproj weights from %s", mmproj_file
+                )
             return adapter.build_name_map(self._native_tensors)
         # Get text config to handle both nested (multimodal) and flat
         # (text-only) config structures. For multimodal models like

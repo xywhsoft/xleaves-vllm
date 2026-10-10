@@ -1,0 +1,10 @@
+{
+  "status": "chain447_stopped_requires_actual_result_review",
+  "utc": "2026-10-09T01:43:51Z",
+  "torch_imported": false,
+  "gpu_work_in_controller": false,
+  "serving_source_mutation_in_controller": false,
+  "public_deployment_performed": false,
+  "error_type": "AssertionError",
+  "error": "Actual408 result requires review before installing helper400"
+}

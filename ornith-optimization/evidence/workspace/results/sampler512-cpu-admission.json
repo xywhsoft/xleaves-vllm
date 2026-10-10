@@ -1,0 +1,9 @@
+{
+  "status": "sampler510_cpu_guard_rejected",
+  "reason": "Active optimization job stoch490: 1147543",
+  "prerequisites": null,
+  "script_sha256": "fcedd06aff117f3830c7ea739ec738e8ad37d84e0a2b39c7ed6cb1acaef2ccc5",
+  "torch_imported": false,
+  "serving_source_mutation": false,
+  "gpu_tests_run": false
+}

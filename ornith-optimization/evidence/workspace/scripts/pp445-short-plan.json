@@ -1,0 +1,411 @@
+{
+  "cases": [
+    {
+      "command": [
+        "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/.venv/bin/python",
+        "-m",
+        "vllm.entrypoints.cli.main",
+        "serve",
+        "/data/models/Ornith-1.5-35B-CRACK/Ornith-1.5-35B-A3B-CRACK-Q4_K_M.gguf",
+        "--load-format",
+        "gguf",
+        "--dtype",
+        "half",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "240128",
+        "--max-num-seqs",
+        "160",
+        "--max-num-batched-tokens",
+        "2048",
+        "--kv-cache-dtype",
+        "turboquant_4bit_nc",
+        "--gpu-memory-utilization",
+        "0.94",
+        "--disable-custom-all-reduce",
+        "--served-model-name",
+        "ornith-1.5-35b",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "{PORT}",
+        "--api-key",
+        "{KEY}",
+        "--compilation-config",
+        "{\"mode\": 0, \"cudagraph_mode\": \"FULL\", \"cudagraph_capture_sizes\": [1, 16, 64, 160]}",
+        "--hf-config-path",
+        "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal",
+        "--tokenizer",
+        "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/models/ornith-multimodal",
+        "--limit-mm-per-prompt",
+        "{\"image\":2,\"video\":0}",
+        "--mm-processor-kwargs",
+        "{\"max_pixels\":589824,\"min_pixels\":4096}",
+        "--enable-prompt-tokens-details",
+        "--mixed-prefill-step-latency-ms",
+        "0",
+        "--kv-cache-memory-bytes",
+        "17716740096",
+        "--pipeline-parallel-size",
+        "2",
+        "--distributed-executor-backend",
+        "mp"
+      ],
+      "env": {
+        "LD_LIBRARY_PATH": "/home/xs/codex-work/ornith-opt-20261006/envs/onecat/lib/python3.12/site-packages/nvidia/nccl/lib:/usr/local/cuda-12.8/lib64",
+        "CUDA_VISIBLE_DEVICES": "0,1",
+        "CUDA_HOME": "/usr/local/cuda-12.8",
+        "TOKENIZERS_PARALLELISM": "false",
+        "VLLM_SERVER_DEV_MODE": "0",
+        "PYTHONPATH": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140",
+        "VLLM_SM70_TURBOQUANT_ADAPTIVE_LIBRARY": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_adaptive_sm70/ornith_tq_adaptive_sm70.so",
+        "VLLM_SM70_TURBOQUANT_ADAPTIVE_SPLITS": "1",
+        "VLLM_SM70_TURBOQUANT_GQA_TC": "1",
+        "VLLM_SM70_TURBOQUANT_GQA_LIBRARY": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_gqa_wmma8aliasvalue80_sm70/ornith_tq_gqa_wmma8aliasvalue80_sm70.so",
+        "VLLM_SM70_TURBOQUANT_GQA_TILE": "16",
+        "VLLM_SM70_TURBOQUANT_GQA_WARPS": "8",
+        "VLLM_SM70_MOE_COMPACT_GROUPS": "1",
+        "VLLM_SM70_ORNITH_PADDED_PREFILL": "1",
+        "VLLM_SM70_ORNITH_H8_PREFILL": "1",
+        "VLLM_SM70_ORNITH_H8_PREFILL_LIBRARY": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_prefill_h8k2_sm70/ornith_prefill_h8k2_sm70.so",
+        "VLLM_SM70_MOE_STREAM_UNROUTE": "1",
+        "VLLM_SM70_TURBOQUANT_CACHED_KEYSCALE": "1",
+        "VLLM_SM70_ORNITH_PREFILL_PREALLOCATE": "1",
+        "PYTORCH_ALLOC_CONF": "backend:native,expandable_segments:True",
+        "PYTORCH_CUDA_ALLOC_CONF": "backend:native,expandable_segments:True",
+        "VLLM_SM70_ORNITH_REUSE_PADDED_KV": "1",
+        "VLLM_SM70_FLASHQLA_INDEXED_PREFILL": "1",
+        "VLLM_SM70_FLASHQLA_ORIGINAL_PREFILL": "1",
+        "VLLM_WORKER_MULTIPROC_METHOD": "spawn"
+      },
+      "name": "pp445_tp1_pp2_c160_ctx240128_short_screen",
+      "readiness_timeout": 2400,
+      "cwd": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140",
+      "image_checks": true,
+      "cuda_profile": false,
+      "long_pilot": false,
+      "gpu_precheck_timeout": 900,
+      "long_residency": false,
+      "gpu_precheck": [
+        [
+          "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/test_backend_cached_scale44.py"
+        ]
+      ],
+      "resident_concurrencies": [
+        1,
+        16
+      ],
+      "minimum_full_contexts": 16,
+      "extra_image_checks": true,
+      "extra_diverse_cohorts": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/diverse_prompts176_199.json",
+      "profile_short_concurrency": 16,
+      "max_image_probe": true,
+      "image_after_long": false,
+      "required_cached_tokens": 236944,
+      "diverse_count": 160,
+      "long_input_count": 16,
+      "mixed_long_count": 16,
+      "mixed_short_count": 144,
+      "tests": [
+        {
+          "concurrency": 1,
+          "input_tokens": 512,
+          "output_tokens": 1024,
+          "repeats": 2
+        },
+        {
+          "concurrency": 16,
+          "input_tokens": 512,
+          "output_tokens": 1024,
+          "repeats": 2
+        },
+        {
+          "concurrency": 64,
+          "input_tokens": 512,
+          "output_tokens": 1024,
+          "repeats": 2
+        },
+        {
+          "concurrency": 160,
+          "input_tokens": 512,
+          "output_tokens": 1024,
+          "repeats": 2
+        }
+      ],
+      "admission_group": "pp445_screen_only",
+      "require_fresh_images_after_long": false,
+      "cold_concurrent_inputs": false,
+      "workspace186_prerequisite": {
+        "proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace186-operator.json",
+        "proof_sha256": "576e8ad3bd116caa5a5c8951faf383e338a66243ffc729ed3d43f5118b8cc1dc",
+        "candidate_sha256": "75232a5095410c3a6ec0d56c4d299f1f554e1fd95196ea10f900171ddbc990f9",
+        "external_interface": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/flash_attn_interface.py",
+        "external_interface_sha256": "87f6e192b6cffea01a9e75e294110aec7b73d3fe473d1b41978ea9fec223fc1f",
+        "hooks": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187-source-hooks.json",
+        "hooks_sha256": "59bbfb4b2b57470a04e2d95a282f3f8f660f92f0f3d7721cf9e48b20c5a1b9b7",
+        "baseline185_qualified_cases": []
+      },
+      "boundary200_prerequisite": {
+        "qualified_baselines": [
+          "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-high193-profile.json",
+          "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-boundary200-parent-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c32_kv16106127360_b4096_full22.json"
+        ],
+        "binding": {
+          "enabled": false,
+          "paired_ratios": {},
+          "criterion": "Both144naturalE2E and16residentdecode >3% with wholecase/locality PASS; otherwise baseline unbound. Not a statistical significance claim."
+        },
+        "high_input_proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/diverse176-199-cpu-proof.json",
+        "full_input_proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/long28-194-cpu-proof.json",
+        "scope": "Runtime-only KV/batch/capture boundary. No source, weights, dtype, context, image limits or hardware changes."
+      },
+      "adaptive393_runtime_scope": "GraphFULL and batch2048 with prior independent KV/state reservation retained. Capture memory and whole capacity/performance are measured; neither160 nor176 is assumed to fit.",
+      "guard209_prerequisite": {
+        "proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler-source209-cpu-proof.json",
+        "proof_sha256": "c3bd152b7d2a3e6c93e80b86580e5b5aecdc6c2cd30a5bfa0abea2c21316b293",
+        "script": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/scheduler_source209_cpu.py",
+        "script_sha256": "861b502ac0810bf34ea402c4c38c0615228c30622a576c2897d532dac05903d4",
+        "candidate": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/scheduler_cache209_candidate.py",
+        "candidate_sha256": "0d0ac21791373bfb55deeaa75622d5eb7df4efea5848da04867a061f1af44632",
+        "baseline_source_sha256": "441af671c70dd0764a0012630e05227426baf5b92ffece33a3c3b0108a2cc8cf",
+        "parent_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+        "parent_plan": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/workspace187-plan.json",
+        "parent_journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_high_and_full_capacity.jsonl",
+        "frozen_parents": [
+          {
+            "profile": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-cache210-parent-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16-command201.json",
+            "sha256": "cc739ef61bde4f03e794af8fd024c37a48f61edfe919c047fb77fc1b997a2326"
+          },
+          {
+            "profile": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-cache210-parent-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c32_kv16106127360_b4096_full22-command201.json",
+            "sha256": "0141906804251d4564f3cf4020f4d4d62cc8fcb0849da4ff6afe1b410a8e8ebf"
+          },
+          {
+            "profile": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-cache210-parent-mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c26_kv18522046464_b2048_full26_full-command201.json",
+            "sha256": "e7a9a74d37b7b6a7fff44cca2fa219f6ca0d522c701373c4f58f2f69f44dbc66"
+          }
+        ],
+        "scope": "Only scheduler waiting-prefix eviction protection with pressure release/retry. Failed24 TPS excluded; correctness/capacity/MM/cache/cold/performance gates remain unchanged.",
+        "hooks": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/cache210-source-hooks.json",
+        "hooks_sha256": "691186c157fd2932b1336896f332aa10d41165ccf2f1597fe423ef5def3edcdf"
+      },
+      "screen445_scope": "Startup reported16full-context capacity, MM/text functionality and short throughput only; not a full-context qualification."
+    }
+  ],
+  "run": "pp445_short_screen",
+  "tests": [
+    {
+      "concurrency": 1,
+      "input_tokens": 512,
+      "output_tokens": 1024,
+      "repeats": 2
+    },
+    {
+      "concurrency": 16,
+      "input_tokens": 512,
+      "output_tokens": 1024,
+      "repeats": 2
+    },
+    {
+      "concurrency": 64,
+      "input_tokens": 512,
+      "output_tokens": 1024,
+      "repeats": 2
+    },
+    {
+      "concurrency": 160,
+      "input_tokens": 512,
+      "output_tokens": 1024,
+      "repeats": 2
+    }
+  ],
+  "wait_for_gpu_lock": false,
+  "long_inputs": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/long_independent_prompts28_194.json",
+  "omitted_known_failure": {
+    "case": "mm_aliasvalue80_h8k2_c32_u952_full24",
+    "reason": "Mixed32 lost a required236944-token prefix; the metadata correction does not fix that capacity/LRU failure."
+  },
+  "initial_cache_accounting_qualification": {
+    "status": "source_and_actual_scheduler_tests_passed",
+    "checks": [
+      {
+        "command": [
+          "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/.venv/bin/python",
+          "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/source_policies59.py"
+        ],
+        "returncode": 0,
+        "reused_completed_policy_pass": true,
+        "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/cold_prefill_accounting119-check0.txt",
+        "log_sha256": "50149ad0ba6a404567a120fd4de4bc6a79a0285c838ec0c98a1f9d484275a14d"
+      },
+      {
+        "command": [
+          "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/.venv/bin/python",
+          "-m",
+          "pytest",
+          "--noconftest",
+          "-q",
+          "--show-capture=no",
+          "--tb=short",
+          "tests/v1/core/test_cold_prefill_accounting.py"
+        ],
+        "returncode": 0,
+        "reused_completed_policy_pass": false,
+        "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/cold_prefill_accounting119-check1.txt",
+        "log_sha256": "16a9476f78e9b9929fb75d9b178c24706a1ba740000398823e9b31019a773761"
+      }
+    ],
+    "unchanged_native_modules": 8,
+    "scheduler_sha256": "441af671c70dd0764a0012630e05227426baf5b92ffece33a3c3b0108a2cc8cf",
+    "test_sha256": "0e27ac1f284a9d3a61db096745c36aaee760b7583ce372f794f9f73dda3fe2b1",
+    "timestamp_utc": "2026-10-07T11:07:27Z"
+  },
+  "status": "prepared_after_actual_strided_gdn178_pass",
+  "candidate_source_sha256": {
+    "vllm/v1/attention/backends/flash_attn_v100.py": "8f63de5c88e190541ed23d633fec91457a28d67aaafba3fcd345b5e2e9b24b7f",
+    "vllm/v1/attention/backends/turboquant_attn.py": "96d3dc669d023ed85cce4da04aa02c969ad335fcfa5551a15552a7ee0f053393",
+    "vllm/envs.py": "fbf5d9c677e38c18f62b5c35191d2b695498618d360fe1085a37d97059a4933b",
+    "vllm/model_executor/layers/quantization/gguf_turbomind_moe.py": "8ba500093f63db25106a692b65731e3ca2275373ab0bda97166f3bd0525d3e5b",
+    "flash_qla/ops/gated_delta_rule/chunk/hopper/fused_fwd.py": "4e6a1f326dac6e53a9f7502ea930da1c023c219b4261a9f452b4186a26c82c2c",
+    "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py": "594ff8507248d2e878fee0d2580c4922db9cc03f61ec168d153c4c22fc11db07",
+    "vllm/v1/attention/ops/turboquant_sm70_gqa.py": "75232a5095410c3a6ec0d56c4d299f1f554e1fd95196ea10f900171ddbc990f9",
+    "vllm/v1/core/sched/scheduler.py": "0d0ac21791373bfb55deeaa75622d5eb7df4efea5848da04867a061f1af44632",
+    "vllm/v1/sample/ops/topk_topp_triton.py": "7e1e04a7af6badc8012cfbcae920495672a57d3a30b07d547adc82f8d8177c52",
+    "vllm/v1/sample/ops/topk_topp_sampler.py": "ab2ee9e52cc229ced835e840cb90cea3a1d7ed2d927d86507b670b532a56d52f"
+  },
+  "candidate_source_hook_proof": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/moe-lifetime163-hooks.json",
+    "sha256": "7dfc1fd8736af0ebb415610353b0971d5a48f2504d013a6611c66828a3481826"
+  },
+  "qualification_prerequisite": {
+    "operator_proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/padded_kv151_operator.json",
+    "operator_journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/padded_kv151_operator_run.jsonl",
+    "operator_source": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/bench_padded_kv151.py",
+    "operator_source_sha256": "3eafada7ce21e5f93c1e953ab6b8589580a155ddb003e5da91ced02911a3b484",
+    "required_status": "padded_kv151_operator_qualified"
+  },
+  "original_plan_sha256": "ff7b743b767309baf39075190e26bc5610463fe992ed4de61c415bcfea2f2a1d",
+  "kv_reservation_reason": "Reserve 15GiB per GPU explicitly so reduced activation peaks are not automatically consumed by a larger KV pool. Original failing u94 pool was approximately15.7GiB; 16 full contexts require approximately10.59GiB. Actual residency, cache, images and cold16 remain required.",
+  "parent_failed_run": "padding_reuse140_high64_cold16_152",
+  "moe_qualification_prerequisite": {
+    "proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/moe-lifetime165-operator.json",
+    "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/moe-lifetime165-operator-run.jsonl",
+    "benchmark": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/bench_moe_lifetime165.py",
+    "benchmark_sha256": "5c4771d6cd5e5562dacb363a40ed6171a44db64de3256d61d3268bc8cdf170e6"
+  },
+  "parent_qualification": {
+    "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/moe_lifetime163_high64_cold16_166.jsonl",
+    "sha256": "ddfd1be14475afef6eadaeaa0dd69461102a9dc0756c41011ff1725d7baf7db4",
+    "qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_c64_kv15g_full16"
+  },
+  "saturation_scope": "128 first, 96 fallback; each must preserve16 independent240K total contexts and pass images and fresh cold16; Explicit15GiB KV cap and utilization0.94 retained; additional graph overhead is qualified empirically.",
+  "failure_basis": {
+    "run": "moe_lifetime163_saturation167",
+    "case": "mm_aliasvalue80_acc119_pad135_moe163_c128_kv15g_full16",
+    "log_sha256": "4e549660c3235545a6a91964429a709d4248ef7a1bc0533caa80994ae894d54c",
+    "observed_error": "(Worker_TP1 pid=750003) ERROR 10-08 01:51:23 [multiproc_executor.py:980] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 36.00 MiB. GPU 1 has a total capacity of 31.73 GiB of which 28.25 MiB is free. Including non-PyTorch memory, this process has 31.70 GiB memory in use. Of the allocated memory 30.67 GiB is allocated by PyTorch, with 30.00 MiB allocated in private pools (e.g., CUDA Graphs), and 266.57 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+  },
+  "memory_tuning_scope": "128KV15.125GiB b2048,112KV14.75GiB b2048,96KV14.25GiB b4096 fallback; sparse graph buckets [1,16,64,max] instead of every intermediate batch. No hardware or arithmetic changes.",
+  "strided_gdn_qualification_prerequisite": {
+    "proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/strided-gdn178-operator.json",
+    "proof_sha256": "89fb90cc8b0a157a4e73e9be1a2b478330d152ddeb5048fab6854512a9992bfe",
+    "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/strided-gdn178-operator-run.jsonl",
+    "benchmark": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/bench_strided_gdn178.py",
+    "benchmark_sha256": "ed8b281a1721ead2d25067786fb3b39a5666bad55a3621e7c847d3ea3a87da2d"
+  },
+  "graph_budget185": {
+    "actual_failure_logs_sha256": {
+      "strided_gdn177_capacity179_mm_aliasvalue80_acc119_pad135_moe163_str177_c96_kv16106127360_b4096_full16.log": "0d598b5e3efa443370a71f765a74ad3d63c0d33ece70a14853256e2fb57fc929",
+      "strided177_route_memory128_182_mm_aliasvalue80_acc119_pad135_moe163_str177_c128_kv16374562816_b1024_full16.log": "e8b683cd8cac188c5c4f143db40225ac5da9e45dd790ff0bedb787e5208e585c"
+    },
+    "estimated_mixed_layout_budget": [
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_gb185_c128_kv16240345088_b2048_full16",
+        "kv_budget_bytes": 16240345088,
+        "estimated_mixed_bytes": 16187371520,
+        "remaining_bytes": 52973568,
+        "scope": "Sizing estimate from actual baseline149 paged layout; not runtime capacity proof. Whole mixed/cold/image gates remain mandatory."
+      },
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_gb185_c112_kv15837691904_b2048_full16",
+        "kv_budget_bytes": 15837691904,
+        "estimated_mixed_bytes": 15498547200,
+        "remaining_bytes": 339144704,
+        "scope": "Sizing estimate from actual baseline149 paged layout; not runtime capacity proof. Whole mixed/cold/image gates remain mandatory."
+      },
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_gb185_c96_kv15300820992_b4096_full16",
+        "kv_budget_bytes": 15300820992,
+        "estimated_mixed_bytes": 14809722880,
+        "remaining_bytes": 491098112,
+        "scope": "Sizing estimate from actual baseline149 paged layout; not runtime capacity proof. Whole mixed/cold/image gates remain mandatory."
+      }
+    ],
+    "scope": "Runtime-only pruning of capture buckets and smaller explicitKV reserve. Preserve source177, weights, dtype, max240128, sixteen independent full contexts, images and uncachedcold16. Actualwhole-model gates determine feasibility; no predicted TPS claim."
+  },
+  "workspace186_prerequisite": {
+    "proof": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace186-operator.json",
+    "proof_sha256": "576e8ad3bd116caa5a5c8951faf383e338a66243ffc729ed3d43f5118b8cc1dc",
+    "candidate_sha256": "75232a5095410c3a6ec0d56c4d299f1f554e1fd95196ea10f900171ddbc990f9",
+    "external_interface": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/flash_attn_interface.py",
+    "external_interface_sha256": "87f6e192b6cffea01a9e75e294110aec7b73d3fe473d1b41978ea9fec223fc1f",
+    "hooks": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187-source-hooks.json",
+    "hooks_sha256": "59bbfb4b2b57470a04e2d95a282f3f8f660f92f0f3d7721cf9e48b20c5a1b9b7",
+    "baseline185_qualified_cases": []
+  },
+  "workspace187_scope": {
+    "configurations": [
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+        "full_bytes": 11365601280,
+        "mixed_bytes": 16876195840,
+        "kv_budget_bytes": 17045651456,
+        "scope": "Actual149 layout sizing estimate only; source187 full residency/MM/mixed/cold gates decide qualification"
+      },
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c128_kv16374562816_b4096_full16",
+        "full_bytes": 11365601280,
+        "mixed_bytes": 16187371520,
+        "kv_budget_bytes": 16374562816,
+        "scope": "Actual149 layout sizing estimate only; source187 full residency/MM/mixed/cold gates decide qualification"
+      },
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c112_kv15837691904_b4096_full16",
+        "full_bytes": 11365601280,
+        "mixed_bytes": 15498547200,
+        "kv_budget_bytes": 15837691904,
+        "scope": "Actual149 layout sizing estimate only; source187 full residency/MM/mixed/cold gates decide qualification"
+      },
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c32_kv17179869184_b4096_full24",
+        "full_bytes": 17048401920,
+        "mixed_bytes": 12054425600,
+        "kv_budget_bytes": 17179869184,
+        "scope": "Actual149 layout sizing estimate only; source187 full residency/MM/mixed/cold gates decide qualification"
+      },
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c32_kv16642998272_b4096_full23",
+        "full_bytes": 16338051840,
+        "mixed_bytes": 12054425600,
+        "kv_budget_bytes": 16642998272,
+        "scope": "Actual149 layout sizing estimate only; source187 full residency/MM/mixed/cold gates decide qualification"
+      },
+      {
+        "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c32_kv16106127360_b4096_full22",
+        "full_bytes": 15627701760,
+        "mixed_bytes": 12054425600,
+        "kv_budget_bytes": 16106127360,
+        "scope": "Actual149 layout sizing estimate only; source187 full residency/MM/mixed/cold gates decide qualification"
+      }
+    ],
+    "scope": "One high mixed-throughput profile and one higher full240K concurrency profile, each first-passed fallback. Same weights/math/native library/context/MM gates; real uncachedcold remains16 requests. No hardware changes and no predicted TPS claims."
+  },
+  "adaptive370_scope": "Only sampler source changes from current guard-qualified source. GraphFULL/b2048 high176/160/144 fallback plus full26 must each pass applicable whole-model gates. Failed measurements excluded; source retention is for final review, not public deployment.",
+  "long_residency": false,
+  "qualification_scope": "Startup reported16full-context capacity, MM/text functionality and short throughput only; not a full-context qualification."
+}

@@ -1,0 +1,26 @@
+Qualified 1Cat-vLLM / Ornith1.5 / dual V100 source and evidence
+Base repository: https://github.com/1CatAI/1Cat-vLLM.git at source-environment.json base_commit.
+Apply onecat-serving.patch and restore the changed/untracked files under workspace/src.
+Use uv-managed Python3.12, PyTorch2.10 cu128 and CUDA12.8; update local editable
+paths in runtime-requirements.txt to the restored paths. Do not use system pip.
+Eight native modules, final qualified sampler source and numerical/operator/whole-model evidence are included. Original core engine/attention
+binaries were reused; the complete engine has not been qualified from a clean build.
+Portable module rebuild uses tools/build_ornith_sm70.py, pinned CUTLASS4.4.2 and
+patched FA2; rerun numerical and model gates after source/dependency changes.
+The selected profile records exact command, environment, source and model gates.
+Original absolute paths map to packaged files in source-environment.json.
+Common lab_runner and recursively discovered project-owned script imports are included.
+Historical PID/job admission guards are evidence from this machine; create fresh
+registered jobs for new qualification runs on another host, not recycled PIDs.
+Weights are not bundled. Supply API credentials at runtime.
+All requests keep240128 total context. Configured active sequences and verified
+full-length contexts are separate limits; do not claim all active slots are240K.
+Long warm measurements reuse236944 input tokens and exclude initial prefill.
+Cold end-to-end TPS includes input processing, waits and output; common-window
+decode TPS is a different metric and can be undefined or a brief overlap sample.
+Layer comparison matches exact token arrays/concurrency/greedy1024output policy;
+different quantization backends are documented. Two repeats are not significance.
+The deployment proof binds public smoke checks, precise worker locality ifenabled,
+source hashes and terminal restored test runs. No cooling/power/clock modifications.
+Snapshot hashes prove the copied files; they do not guarantee future hardware
+conditions, changed dependency behavior or a universal theoretical throughput limit.

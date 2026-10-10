@@ -1,0 +1,33 @@
+{
+  "status": "stoch465_actual_failed404_and_emit_contract_restoration_closed492",
+  "screen_completed": false,
+  "sampling_cohort_count": 0,
+  "restored": {
+    "kind": "restored",
+    "pid": 1146782,
+    "startup_s": 9.868279467802495,
+    "original_command_reused": true,
+    "api_key_preserved": true,
+    "verification": {
+      "passed": true,
+      "slots": 16,
+      "context": 240128
+    }
+  },
+  "current_public": {
+    "pid": 1146782,
+    "original_command_reused": true,
+    "api_key_preserved": true
+  },
+  "job_descriptor_sha256": "03bd50904f39f9b6f37258ab8052c9a496c37ed19570d88a231540cbdb2c2ce2",
+  "script_sha256": "1accd43d7cee435c990442c45fc3ec215a184070deaae955ff87fc9b47acfc32",
+  "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/stoch465_short_sampling.jsonl",
+  "journal_sha256": "713e3acbcf49afc5e94e8af2d8fbe98fec16dd0c458fe44efe761988991df0d0",
+  "plan": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/stoch465-short-plan.json",
+  "plan_sha256": "0e547a95b2b9a17421f8e3957f8f9240688834856f007a3728e45ab24b6e190a",
+  "pipeline_log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/stoch465-pipeline.log",
+  "pipeline_log_sha256": "3d739966ea868196658ec3e5c37291c3382353edb25c1a6162c897e3f937b115",
+  "serving_source_mutation": false,
+  "public_deployment_performed": false,
+  "scope": "Separate actual CPU closure492.465 driver proof absent due its finalizer expecting sample terminal: wrapper usedTextIOWrapper but originalemit expectsPath. No1024 sampling cohort executed; originalpublic restoration verifiedby139. Never qualified or performance evidence."
+}

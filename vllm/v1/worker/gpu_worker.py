@@ -535,6 +535,35 @@ class Worker(WorkerBase):
         )
         try:
             with warmup_allocator:
+                if (
+                    os.getenv("VLLM_SM70_ORNITH_PREFILL_PREALLOCATE", "0") == "1"
+                    and current_platform.is_cuda()
+                    and current_platform.is_device_capability(70)
+                ):
+                    # Dummy attention returns early without touching the TQ cache.
+                    # Reserve its real continuation scratch now; the persistent
+                    # warmup residual below must include it in the KV budget.
+                    before = torch.accelerator.memory_allocated(self.device)
+                    reserved_impls = 0
+                    for module in self.model_runner.model.modules():
+                        impl = getattr(module, "impl", None)
+                        reserve = getattr(
+                            impl, "_reserve_continuation_prefill_workspace", None
+                        )
+                        if reserve is not None:
+                            reserve()
+                            reserved_impls += 1
+                    if reserved_impls == 0:
+                        raise RuntimeError(
+                            "SM70 prefill preallocation found no attention workspace"
+                        )
+                    logger.info(
+                        "SM70 preallocated continuation scratch for %d attention "
+                        "implementations: %.2f MiB before KV memory profiling.",
+                        reserved_impls,
+                        (torch.accelerator.memory_allocated(self.device) - before)
+                        / 2**20,
+                    )
                 self.model_runner.profile_run()
         except torch.AcceleratorError:
             stats = {}

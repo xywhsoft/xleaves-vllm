@@ -1,0 +1,50 @@
+{
+  "repositories": [
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat",
+      "commit": "0dc468217feda5a5a50dfc87e4d9525a1daf5574",
+      "remote": "https://github.com/1CatAI/1Cat-vLLM.git"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src",
+      "commit": "c2eda5e6115b98c3ba4bfd181570668742eece22",
+      "remote": "https://github.com/zhinianqin/flash-attention-v100.git"
+    }
+  ],
+  "native_libraries": [
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/vllm/_C.abi3.so",
+      "resolved_path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/vllm/_C.abi3.so",
+      "bytes": 326682520,
+      "sha256": "3c608811c8291f71f46288c37142f3ea03637d99c04d621857ff03f06db8bc9c"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/vllm/vllm_flash_attn/_vllm_fa2_C.abi3.so",
+      "resolved_path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/vllm/vllm_flash_attn/_vllm_fa2_C.abi3.so",
+      "bytes": 28863672,
+      "sha256": "d9e36323c5b0bff42f4a7b324a5d200783990f119fbdb9656e5561d52ee51ed1"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/flash_attn_v100_cuda.cpython-312-x86_64-linux-gnu.so",
+      "resolved_path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/flash_attn_v100_cuda.cpython-312-x86_64-linux-gnu.so",
+      "bytes": 28910464,
+      "sha256": "4099c4b8c5cad67b5d9f91cdd993ee585f2fe3675d4c60ca5a836e1183439d46"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/paged_kv_utils.cpython-312-x86_64-linux-gnu.so",
+      "resolved_path": "/home/xs/codex-work/ornith-opt-20261006/src/onecat/flash-attention-v100/flash_attn_v100/paged_kv_utils.cpython-312-x86_64-linux-gnu.so",
+      "bytes": 239704,
+      "sha256": "420356036c8a4a947324ed10934b0c510e195f66fa7dbb2bbaf4eb0d85fb7841"
+    }
+  ],
+  "cutlass": {
+    "path": "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2",
+    "distribution": "4.4.2",
+    "headers": 822,
+    "manifest_sha256": "4640c99b67207fe4112d2ebab076ae98a31b4caa5a794310f540b9fd0d427e39"
+  },
+  "external_patch": {
+    "bytes": 142069,
+    "sha256": "c9ec91fc6c49b6c8468042852bfca7c06feb13e8860b8a5db097e98463b6be62"
+  }
+}

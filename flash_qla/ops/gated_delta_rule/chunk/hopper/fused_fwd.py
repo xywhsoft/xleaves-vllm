@@ -592,6 +592,9 @@ def tilelang_fused_chunk_gdr_fwd_sm70(
         b_shape = (batch_size, num_tokens, H)
         h_shape = (batch_size, num_chunks, H, DK, DV)
     h0_batch = state_cache_size if indexed_state else batch_size
+    # Hybrid Mamba pages contain convolution state and padding between SSM rows.
+    h0_page_stride = T.dynamic("state_cache_stride") if indexed_state else H * DK * DV
+    h0_strides = (h0_page_stride, DK * DV, DV, 1)
     h0_shape = (h0_batch, H, DK, DV)
     ht_shape = (raw_batch_size, H, DK, DV)
 
@@ -603,7 +606,7 @@ def tilelang_fused_chunk_gdr_fwd_sm70(
         a: T.Tensor(a_shape, dtype=qkva_dtype),
         g: T.Tensor(g_shape, dtype=g_dtype),
         b: T.Tensor(b_shape, dtype=b_dtype),
-        h0: T.Tensor(h0_shape, dtype=h0_dtype),
+        h0: T.StridedTensor(h0_shape, strides=h0_strides, dtype=h0_dtype),
         cu_seqlens: T.Tensor([batch_size + 1], dtype=seqlen_dtype),
         chunk_offsets: T.Tensor([batch_size + 1], dtype=seqlen_dtype),
         cp_seq_map: T.Tensor([batch_size], dtype=seqlen_dtype),
@@ -1014,9 +1017,22 @@ def fused_gdr_fwd(
         raw_cu_seqlens = torch.empty(
             (real_batch_size + 1,), dtype=seqlen_dtype, device=k.device
         )
-        final_state = torch.empty(
-            (real_batch_size, H, K, V), dtype=torch.float32, device=k.device
-        )
+        if (
+            indexed_state
+            and initial_state.dtype == torch.float32
+            and initial_state.stride()[1:] == (K * V, V, 1)
+            and initial_state.stride(0) >= H * K * V
+            and initial_state.shape[0] >= real_batch_size
+        ):
+            # Indexed SM70 writes h0 directly; the ht argument is never accessed.
+            # Keep its expected shape and dtype without another state allocation.
+            final_state = initial_state.as_strided(
+                (real_batch_size, H, K, V), (H * K * V, K * V, V, 1)
+            )
+        else:
+            final_state = torch.empty(
+                (real_batch_size, H, K, V), dtype=torch.float32, device=k.device
+            )
     else:
         final_state = torch.empty(
             (raw_cu_seqlens.shape[0] - 1, H, K, V), dtype=torch.float32, device=k.device

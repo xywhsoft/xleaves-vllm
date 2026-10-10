@@ -51,6 +51,7 @@ from vllm.v1.attention.ops.sm70_fp16_grouped import (
     grouped_fp16_fp32_reason,
     load_grouped_fp16_fp32,
 )
+from vllm.v1.attention.ops.sm70_ornith_h8_prefill import h8_prefill_module
 from vllm.v1.kv_cache_interface import PrefixAnchoredSWASpec
 from vllm.v1.worker.gpu.spec_decode import uses_dflash_selector_engine
 
@@ -2450,6 +2451,134 @@ def flash_v100_dense_prefill(
         run_start = run_end
 
     return output
+
+
+def _ornith_padded_dense_continuation(
+    query, key, value, softmax_scale, *, padded_kv=None
+):
+    """Pad both causal tails, then leading Q rows, without exposing fake KV."""
+    if (
+        os.getenv("VLLM_SM70_ORNITH_PADDED_PREFILL", "0") != "1"
+        or query.device.type != "cuda"
+        or key.device != query.device
+        or value.device != query.device
+        or query.dtype != torch.float16
+        or key.dtype != query.dtype
+        or value.dtype != query.dtype
+        or query.shape[1:] != (8, 256)
+        or key.shape[1:] != (1, 256)
+        or key.shape != value.shape
+        or query.shape[0] < 2
+        or key.shape[0] < query.shape[0]
+        or abs(softmax_scale - 0.0625) > 1e-8
+        or _is_cuda_graph_capturing(query)
+    ):
+        return None
+    tail = (-key.shape[0]) % 32
+    leading = (-(query.shape[0] + tail)) % 64
+    q_length = query.shape[0] + leading + tail
+    k_length = key.shape[0] + tail
+    if q_length > 16384 or q_length > k_length:
+        return None
+    capability = current_platform.get_device_capability(query.device.index)
+    if capability is None or (capability.major, capability.minor) != (7, 0):
+        return None
+    h8 = h8_prefill_module() if k_length > q_length and k_length <= 262144 else None
+    if q_length > 8192 and h8 is None:
+        return None
+    operators = None if h8 is not None else _get_sm70_splitd_d256_ops()
+    if h8 is None and operators is None:
+        return None
+    if h8 is not None:
+        operator = h8.prefill
+    else:
+        assert operators is not None
+        operator = operators[0]
+    qpad = torch.zeros(q_length, 8, 256, device=query.device, dtype=query.dtype)
+    qpad[leading : leading + query.shape[0]] = query
+    if tail:
+        if padded_kv is None:
+            kpad = torch.zeros(k_length, 1, 256, device=key.device, dtype=key.dtype)
+            vpad = torch.zeros_like(kpad)
+            kpad[: key.shape[0]], vpad[: value.shape[0]] = key, value
+        else:
+            kpad, vpad = padded_kv
+            # Logical K/V must be contiguous prefix views of these exact buffers.
+            # Keep the original logical lengths for query/causal-tail alignment.
+            for logical, padded in ((key, kpad), (value, vpad)):
+                if (
+                    padded.shape != (k_length, 1, 256)
+                    or padded.dtype != logical.dtype
+                    or padded.device != logical.device
+                    or not padded.is_contiguous()
+                    or not logical.is_contiguous()
+                    or padded.data_ptr() != logical.data_ptr()
+                ):
+                    raise ValueError("Padded KV must share its logical prefix storage")
+                padded[logical.shape[0] :].zero_()
+    else:
+        kpad, vpad = key.contiguous(), value.contiguous()
+    out = torch.empty_like(qpad)
+    operator(
+        qpad.unsqueeze(0),
+        kpad.unsqueeze(0),
+        vpad.unsqueeze(0),
+        out.unsqueeze(0),
+        softmax_scale,
+        True,
+    )
+    return out[leading : leading + query.shape[0]].contiguous()
+
+
+def flash_v100_dense_continuation_prefill(
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    softmax_scale: float,
+    cu_seqlens_q: torch.Tensor,
+    cu_seqlens_k: torch.Tensor,
+    *,
+    padded_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
+) -> torch.Tensor:
+    """Attend a query suffix to full KV with bottom-right causal alignment.
+
+    The native SM70 kernels offset query positions by K_len - Q_len.
+    Independent Q/K lengths are essential here: using the square prefill
+    wrapper would discard the cached prefix. Neither route creates a dense
+    query-by-key attention matrix.
+    """
+    if query.ndim != 3 or key.ndim != 3 or key.shape != value.shape:
+        raise ValueError("continuation prefill expects [T,H,D] Q and matching K/V")
+    if key.shape[0] < query.shape[0]:
+        raise ValueError("continuation KV must include the complete query suffix")
+    padded = _ornith_padded_dense_continuation(
+        query, key, value, softmax_scale, padded_kv=padded_kv
+    )
+    if padded is not None:
+        return padded
+    flash_attn_func, _, _, _, _, _, _, _, _ = _get_flash_ops()
+    if flash_attn_func is None:
+        raise RuntimeError("flash_attn_v100 dense prefill op is unavailable")
+    q_batch, k_batch, v_batch = (tensor.unsqueeze(0) for tensor in (query, key, value))
+    out = torch.empty_like(query)
+    splitd = _try_sm70_fa2_d256_prefill(
+        q_batch,
+        k_batch,
+        v_batch,
+        cu_seqlens_q=cu_seqlens_q,
+        cu_seqlens_k=cu_seqlens_k,
+        max_seqlen_q=query.shape[0],
+        max_seqlen_k=key.shape[0],
+        softmax_scale=softmax_scale,
+        causal=True,
+        window_size=(-1, -1),
+        out=out.unsqueeze(0),
+    )
+    if splitd is not None:
+        return out
+    return flash_attn_func(
+        q_batch, k_batch, v_batch, causal=True, softmax_scale=softmax_scale
+    )[0]
 
 
 # MLA context-chunk prefill needs the LSE that the dense SM70 kernel already

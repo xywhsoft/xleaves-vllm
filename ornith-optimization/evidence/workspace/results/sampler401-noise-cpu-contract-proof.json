@@ -1,0 +1,1640 @@
+{
+  "status": "sampler401_actual_cpu_contracts_passed",
+  "script_sha256": "600091c8059e6918e6f3911f81107900fa726d627b3dcf9b75ce880e0b881a28",
+  "baseline_sha256": "ab2ee9e52cc229ced835e840cb90cea3a1d7ed2d927d86507b670b532a56d52f",
+  "candidate_sha256": "afa1e2cb242649c33c42b58d02709dc3984846d7ea0e89417bd05024148f4322",
+  "unchanged_function_asts": [
+    {
+      "name": "compiled_random_sample",
+      "ast_sha256": "06c8ee2d7655075cd6cd5346094f8c6a86833609a08ecc506d00a8955f1f4d86"
+    },
+    {
+      "name": "apply_top_k_top_p",
+      "ast_sha256": "cddec63280fa092c5c9900fc617e4bf3b6704b1ae9dc07db93ee24f0baac7b96"
+    },
+    {
+      "name": "apply_top_k_top_p_pytorch",
+      "ast_sha256": "9c6cb3d25757d793c5dcaa2c724f0eb4068196b30689d38d83d06ecb28b3d130"
+    },
+    {
+      "name": "apply_top_k_only",
+      "ast_sha256": "bfbbe3cd6874d9a1a6fceee9638198fe79d69f6820b7525dc060e99daa89069f"
+    },
+    {
+      "name": "flashinfer_sample",
+      "ast_sha256": "b08980f3e0a59d7984987628f32d58d2d19513088315f90d98c9e4601360fa5d"
+    },
+    {
+      "name": "_to_tensor_scalar_tuple",
+      "ast_sha256": "0010a8abab12b82d2dcf7547955609dfd921f13ef38dfb037169290281f61f0a"
+    },
+    {
+      "name": "__init__",
+      "ast_sha256": "89ef17fa423a671a8ca97e4013a568387ed8e31d5ed7a628df3f49be7b085638"
+    },
+    {
+      "name": "forward_cuda",
+      "ast_sha256": "d117d6d41b074e4863809fd8fb2f7829c1d195eef155c52d1e5156c454bd8e45"
+    },
+    {
+      "name": "forward_cpu",
+      "ast_sha256": "07f8c5ae7c33857b52c4bb98cf919a8ebe14187ad3afeb7c99368018624085e9"
+    },
+    {
+      "name": "forward_hip",
+      "ast_sha256": "8afdf678c6bd01973ab7eac644f285f2a59e6ef897e6be268b9026ece337085b"
+    },
+    {
+      "name": "aiter_sample",
+      "ast_sha256": "7dfa58dae7c61bb770d1c38596e945b45e1cedabc274b635b26015ff1a985691"
+    },
+    {
+      "name": "forward_xpu",
+      "ast_sha256": "54ec51acc0140faba09bb6caa32b017bcf04258f1d8e9a499c8e4b7628ae89d0"
+    }
+  ],
+  "checks": [
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 1,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 3,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 7,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 16,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 160,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 17,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 17,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 17,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 1024,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 1024,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 1024,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 2048,
+      "generators": "none",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 2048,
+      "generators": "mixed",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": false,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_random_function",
+      "batch": 176,
+      "vocab": 2048,
+      "generators": "all",
+      "supplied_noise": true,
+      "ids_equal": true,
+      "probability_bits_equal": true,
+      "default_and_request_rng_equal": true
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": null,
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": null,
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": "raw_logits",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": "raw_logits",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": "raw_logprobs",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": "raw_logprobs",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": "processed_logits",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": "processed_logits",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": "processed_logprobs",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 1,
+      "logprobs_mode": "processed_logprobs",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": null,
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": null,
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": "raw_logits",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": "raw_logits",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": "raw_logprobs",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": "raw_logprobs",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": "processed_logits",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": "processed_logits",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": "processed_logprobs",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 3,
+      "logprobs_mode": "processed_logprobs",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": null,
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": null,
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": "raw_logits",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": "raw_logits",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": "raw_logprobs",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": "raw_logprobs",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": "processed_logits",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": "processed_logits",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": "processed_logprobs",
+      "dtype": "torch.float16",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    },
+    {
+      "kind": "actual_cpu_forward_without_filter",
+      "batch": 16,
+      "logprobs_mode": "processed_logprobs",
+      "dtype": "torch.float32",
+      "ids_outputs_inputs_rng_equal": true,
+      "scope": "CPU fallback path; filter source AST unchanged. CUDA reuse not exercised here."
+    }
+  ],
+  "metadata_eligibility_fixtures": [
+    {
+      "cuda": false,
+      "returned_logits": false,
+      "dtype": "torch.float16",
+      "contiguous": false,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": false,
+      "dtype": "torch.float16",
+      "contiguous": false,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": false,
+      "dtype": "torch.float16",
+      "contiguous": true,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": false,
+      "dtype": "torch.float16",
+      "contiguous": true,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": false,
+      "dtype": "torch.float32",
+      "contiguous": false,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": false,
+      "dtype": "torch.float32",
+      "contiguous": false,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": false,
+      "dtype": "torch.float32",
+      "contiguous": true,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": false,
+      "dtype": "torch.float32",
+      "contiguous": true,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": true,
+      "dtype": "torch.float16",
+      "contiguous": false,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": true,
+      "dtype": "torch.float16",
+      "contiguous": false,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": true,
+      "dtype": "torch.float16",
+      "contiguous": true,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": true,
+      "dtype": "torch.float16",
+      "contiguous": true,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": true,
+      "dtype": "torch.float32",
+      "contiguous": false,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": true,
+      "dtype": "torch.float32",
+      "contiguous": false,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": true,
+      "dtype": "torch.float32",
+      "contiguous": true,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": false,
+      "returned_logits": true,
+      "dtype": "torch.float32",
+      "contiguous": true,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": false,
+      "dtype": "torch.float16",
+      "contiguous": false,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": false,
+      "dtype": "torch.float16",
+      "contiguous": false,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": false,
+      "dtype": "torch.float16",
+      "contiguous": true,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": false,
+      "dtype": "torch.float16",
+      "contiguous": true,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": false,
+      "dtype": "torch.float32",
+      "contiguous": false,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": false,
+      "dtype": "torch.float32",
+      "contiguous": false,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": false,
+      "dtype": "torch.float32",
+      "contiguous": true,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": false,
+      "dtype": "torch.float32",
+      "contiguous": true,
+      "aligned": true,
+      "selected": true
+    },
+    {
+      "cuda": true,
+      "returned_logits": true,
+      "dtype": "torch.float16",
+      "contiguous": false,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": true,
+      "dtype": "torch.float16",
+      "contiguous": false,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": true,
+      "dtype": "torch.float16",
+      "contiguous": true,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": true,
+      "dtype": "torch.float16",
+      "contiguous": true,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": true,
+      "dtype": "torch.float32",
+      "contiguous": false,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": true,
+      "dtype": "torch.float32",
+      "contiguous": false,
+      "aligned": true,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": true,
+      "dtype": "torch.float32",
+      "contiguous": true,
+      "aligned": false,
+      "selected": false
+    },
+    {
+      "cuda": true,
+      "returned_logits": true,
+      "dtype": "torch.float32",
+      "contiguous": true,
+      "aligned": true,
+      "selected": false
+    }
+  ],
+  "cuda_initialized": false,
+  "serving_source_mutation": false,
+  "actual_cuda_noise_reuse_tested": false,
+  "scope": "138 actual-source CPU random/forward bit and RNG checks plus32 source-AST metadata eligibility fixtures. No CUDA latency, CUDA RNG vectorization, real OOM, whole-model or capacity qualification."
+}

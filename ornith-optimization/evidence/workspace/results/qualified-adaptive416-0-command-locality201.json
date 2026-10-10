@@ -1,0 +1,26 @@
+{
+  "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c160_kv17716740096_b1024_full16_none_graph2048_adaptive393",
+  "profile": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-adaptive416-0-raw.json",
+  "profile_sha256": "5bbd2b6c57cae4cdd7024ba514fa28947f806a84bb0f8abb5231f6df20ca20d1",
+  "validation": {
+    "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_bd200_c160_kv17716740096_b1024_full16_none_graph2048_adaptive393",
+    "minimum_full_contexts": 16,
+    "max_context_per_request": 240128,
+    "verified_files": 79,
+    "source_coverage": {
+      "changed_files": 49,
+      "unbound_source": [],
+      "mismatched_source": [],
+      "source_matches": true
+    },
+    "verified_mixed_active_sequences": 160,
+    "verified_full_contexts": 16,
+    "uncached_full_context_concurrency": 16
+  },
+  "locality": {
+    "enabled": false,
+    "scope": "Measured command has noNUMA binding; no workerlocality claim."
+  },
+  "source_observation": null,
+  "model_requests_sent": 0
+}

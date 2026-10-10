@@ -1,0 +1,251 @@
+{
+  "status": "moe_lifetime165_operator_qualified",
+  "source_sha256": [
+    "7a757986addc7d57787700d6026db9fd73e9b4bda64c69c423721c90c1df017e",
+    "8ba500093f63db25106a692b65731e3ca2275373ab0bda97166f3bd0525d3e5b"
+  ],
+  "benchmark_sha256": "5c4771d6cd5e5562dacb363a40ed6171a44db64de3256d61d3268bc8cdf170e6",
+  "numerical_checks": [
+    {
+      "device": "cuda:0",
+      "m": 16,
+      "bitwise_equal": true,
+      "nondefault_stream_equal": true,
+      "changing_input_graph_replays": 3
+    },
+    {
+      "device": "cuda:0",
+      "m": 64,
+      "bitwise_equal": true,
+      "nondefault_stream_equal": true,
+      "changing_input_graph_replays": 3
+    },
+    {
+      "device": "cuda:0",
+      "m": 128,
+      "bitwise_equal": true,
+      "nondefault_stream_equal": true,
+      "changing_input_graph_replays": 3
+    },
+    {
+      "device": "cuda:0",
+      "m": 8192,
+      "bitwise_equal": true,
+      "nondefault_stream_equal": true,
+      "changing_input_graph_replays": 0
+    },
+    {
+      "device": "cuda:0",
+      "m": 64,
+      "kind": "sort_routing_fallback",
+      "bitwise_equal": true
+    },
+    {
+      "device": "cuda:0",
+      "m": 64,
+      "kind": "expert_map_fallback",
+      "bitwise_equal": true
+    },
+    {
+      "device": "cuda:1",
+      "m": 16,
+      "bitwise_equal": true,
+      "nondefault_stream_equal": true,
+      "changing_input_graph_replays": 3
+    },
+    {
+      "device": "cuda:1",
+      "m": 64,
+      "bitwise_equal": true,
+      "nondefault_stream_equal": true,
+      "changing_input_graph_replays": 3
+    },
+    {
+      "device": "cuda:1",
+      "m": 128,
+      "bitwise_equal": true,
+      "nondefault_stream_equal": true,
+      "changing_input_graph_replays": 3
+    },
+    {
+      "device": "cuda:1",
+      "m": 8192,
+      "bitwise_equal": true,
+      "nondefault_stream_equal": true,
+      "changing_input_graph_replays": 0
+    },
+    {
+      "device": "cuda:1",
+      "m": 64,
+      "kind": "sort_routing_fallback",
+      "bitwise_equal": true
+    },
+    {
+      "device": "cuda:1",
+      "m": 64,
+      "kind": "expert_map_fallback",
+      "bitwise_equal": true
+    }
+  ],
+  "memory_measurements": [
+    {
+      "device": "cuda:0",
+      "m": 16,
+      "paired_peak_bytes": [
+        [
+          1313792,
+          789504
+        ],
+        [
+          1313792,
+          789504
+        ],
+        [
+          1313792,
+          789504
+        ]
+      ],
+      "minimum_saved_bytes": 524288
+    },
+    {
+      "device": "cuda:0",
+      "m": 64,
+      "paired_peak_bytes": [
+        [
+          5250560,
+          3153408
+        ],
+        [
+          5250560,
+          3153408
+        ],
+        [
+          5250560,
+          3153408
+        ]
+      ],
+      "minimum_saved_bytes": 2097152
+    },
+    {
+      "device": "cuda:0",
+      "m": 128,
+      "paired_peak_bytes": [
+        [
+          10499584,
+          6305280
+        ],
+        [
+          10499584,
+          6305280
+        ],
+        [
+          10499584,
+          6305280
+        ]
+      ],
+      "minimum_saved_bytes": 4194304
+    },
+    {
+      "device": "cuda:0",
+      "m": 8192,
+      "paired_peak_bytes": [
+        [
+          671876608,
+          403441152
+        ],
+        [
+          671876608,
+          403441152
+        ],
+        [
+          671876608,
+          403441152
+        ]
+      ],
+      "minimum_saved_bytes": 268435456
+    },
+    {
+      "device": "cuda:1",
+      "m": 16,
+      "paired_peak_bytes": [
+        [
+          1313792,
+          789504
+        ],
+        [
+          1313792,
+          789504
+        ],
+        [
+          1313792,
+          789504
+        ]
+      ],
+      "minimum_saved_bytes": 524288
+    },
+    {
+      "device": "cuda:1",
+      "m": 64,
+      "paired_peak_bytes": [
+        [
+          5250560,
+          3153408
+        ],
+        [
+          5250560,
+          3153408
+        ],
+        [
+          5250560,
+          3153408
+        ]
+      ],
+      "minimum_saved_bytes": 2097152
+    },
+    {
+      "device": "cuda:1",
+      "m": 128,
+      "paired_peak_bytes": [
+        [
+          10499584,
+          6305280
+        ],
+        [
+          10499584,
+          6305280
+        ],
+        [
+          10499584,
+          6305280
+        ]
+      ],
+      "minimum_saved_bytes": 4194304
+    },
+    {
+      "device": "cuda:1",
+      "m": 8192,
+      "paired_peak_bytes": [
+        [
+          671876608,
+          403441152
+        ],
+        [
+          671876608,
+          403441152
+        ],
+        [
+          671876608,
+          403441152
+        ]
+      ],
+      "minimum_saved_bytes": 268435456
+    }
+  ],
+  "inference_mode_controlled": true,
+  "scope": "Actual old/new apply AST with real route/unroute and shape-matched projection fixtures. Quantized projection kernels and full-model TPS are not qualified by this test.",
+  "excluded_branches": [
+    "compact projection",
+    "raw gate/up",
+    "dp4a shortcut"
+  ]
+}

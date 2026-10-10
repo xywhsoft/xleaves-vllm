@@ -1,0 +1,179 @@
+{
+  "status": "sampler260_gpu_operator_checks_passed",
+  "utc": "2026-10-08T21:19:38Z",
+  "script_sha256": "e19fdd53285788669ec97eef37922b2dc9d7b25a0579a5e1f2a515091b4c9f36",
+  "pins": [
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/test_sampler258_gpu.py",
+      "sha256": "cf9c16b6c3500560552332634a549f226f700a40312fa896ee893cd71bb9dcc6"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/topk_topp_reference254_candidate.py",
+      "sha256": "dbd0c827ebb7ca431e9cb26ceff1f8401abe11a396220023da98a61366e70922"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler255-cpu-bitwise-prerequisites.json",
+      "sha256": "57de58f126ca8cd64c6916d100942a33e3b9302288e4b424225f26429de803a8"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/sample/ops/topk_topp_triton.py",
+      "sha256": "35c2aa9437444104df8f23f3c1b6abe2efaa6e6909257e6a7cdebd4aeb8b3dd3"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat-padded-kv140/vllm/v1/sample/ops/topk_topp_sampler.py",
+      "sha256": "ab2ee9e52cc229ced835e840cb90cea3a1d7ed2d927d86507b670b532a56d52f"
+    }
+  ],
+  "terminal_jobs": [
+    {
+      "job": "workspace187",
+      "pid": 825019,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa189",
+      "pid": 847219,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "boundary200",
+      "pid": 879195,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "cache210",
+      "pid": 901473,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "layer216",
+      "pid": 917416,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa223-observer",
+      "pid": 926536,
+      "same_birth": false,
+      "state": "missing"
+    },
+    {
+      "job": "numa226-freezer",
+      "pid": 931031,
+      "same_birth": false,
+      "state": "missing"
+    }
+  ],
+  "restored_runs": [
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_high_and_full_capacity.jsonl",
+      "sha256": "44377ee0016bce6dfa015443c5dbd82478169d85b6bfa0d085c43437fac7502b",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_numa189.jsonl",
+      "sha256": "8fce772119320bd3bdf29a6d2aa3d68252f7a294cc8cc25b193a41548914d68f",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_boundary200.jsonl",
+      "sha256": "20e3473e3e7090624ecb78061f885c518cac8c4b49edba379d8a747e42bffe4b",
+      "run_passed": false
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/scheduler_guard210.jsonl",
+      "sha256": "95955ecc4738b345da217de55b00f0fb0c73d2ef7387feebc06580fb3ea1464a",
+      "run_passed": true
+    },
+    {
+      "journal": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/llama_exact_layer216.jsonl",
+      "sha256": "66c751c11c69a30bc9e34758be87789983bc0b3c3b61560d198f5760e1cf4c6c",
+      "run_passed": true
+    },
+    {
+      "corrected_numa_freezes": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/numa226-frozen-qualification-results.json",
+      "sha256": "b098bfaafd1da25d96fd822be26ee15c6dc2b1ab1ff533aa530c930b2b3099fd"
+    }
+  ],
+  "completed": [
+    {
+      "device": 0,
+      "mode": "numeric",
+      "variant": null,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler260-0-numeric.json",
+      "sha256": "53eb37199cd9667515227615921ce99a3ae0bd474ed62e7a49e2aa2a67493de8",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler260-0-numeric.log",
+      "log_sha256": "0cd973a89ce9fc74a71480de05bbf4cb9d38d8d9f5f299fcc74e005e15340993",
+      "returncode": 0
+    },
+    {
+      "device": 0,
+      "mode": "pressure",
+      "variant": "baseline",
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler260-0-pressure-baseline.json",
+      "sha256": "76e4342dec4d8fb5dfa96358dd4692a561adfa59e8c77243f631c834b3979561",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler260-0-pressure-baseline.log",
+      "log_sha256": "12b1c30cfd06600ff7796b4579e797bb81f18ba5611eca597f899654d0c47a6d",
+      "returncode": 0
+    },
+    {
+      "device": 0,
+      "mode": "pressure",
+      "variant": "candidate",
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler260-0-pressure-candidate.json",
+      "sha256": "75aeeec5b88196dea6c04600560c40f6f27c3420294d76181a62a00640921cce",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler260-0-pressure-candidate.log",
+      "log_sha256": "854fe6d3c1564643e0afdd3a3a7a55a89b217be1d643dcc8d1935ff80b4edefc",
+      "returncode": 0
+    },
+    {
+      "device": 1,
+      "mode": "numeric",
+      "variant": null,
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler260-1-numeric.json",
+      "sha256": "fa38bff2234911557ca2cdd8d832ff81a50535d222f35ef34326e557c9ec81de",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler260-1-numeric.log",
+      "log_sha256": "196d6b3ba4788f9d6ffbcd0ade835dde3247bed6bd9a9dca3a8165c499f0c8f2",
+      "returncode": 0
+    },
+    {
+      "device": 1,
+      "mode": "pressure",
+      "variant": "baseline",
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler260-1-pressure-baseline.json",
+      "sha256": "cd97f53080faa39cd4849585cc988ac13579ff89f5b696bd0298383956b0df98",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler260-1-pressure-baseline.log",
+      "log_sha256": "aa1f57cfaa6f3441662d95d09a5bdd0306ff018d08e3120a675bcfae883e837c",
+      "returncode": 0
+    },
+    {
+      "device": 1,
+      "mode": "pressure",
+      "variant": "candidate",
+      "output": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/sampler260-1-pressure-candidate.json",
+      "sha256": "0bb19d7b38098fb7bd600307fadd730c6725c7d17f0b4ca548ad8bcaac60b54b",
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/sampler260-1-pressure-candidate.log",
+      "log_sha256": "e6eed481bc3c6b2b40d2afc1d0814c3710bf6ed684ba9f0bdcee05d6349a6eac",
+      "returncode": 0
+    }
+  ],
+  "failure": null,
+  "restored": {
+    "pid": 1076648,
+    "startup_s": 9.83298719394952,
+    "verification": {
+      "passed": true,
+      "slots": 16,
+      "context": 240128
+    },
+    "original_command_reused": true,
+    "api_key_preserved": true
+  },
+  "source_mutation_performed": false,
+  "whole_model_qualified": false,
+  "scope": "Two V100 sampler operators at full 248320 vocabulary, strict outputs and RNG checks plus observed memory pressure. No model TPS or whole-service concurrency qualification."
+}

@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "operator_sha256": "576e8ad3bd116caa5a5c8951faf383e338a66243ffc729ed3d43f5118b8cc1dc",
+  "baseline_sha256": "05f4c8d6bd2d3182b1d3c906a025d4cefa718637031fe9332a9a7efff634a98e",
+  "candidate_sha256": "75232a5095410c3a6ec0d56c4d299f1f554e1fd95196ea10f900171ddbc990f9",
+  "attempts": [
+    {
+      "returncode": 0,
+      "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/workspace187-source-hooks-0.log",
+      "sha256": "fb00f3a517ab206cc009774b2903716ef715cc72aef138b66d051571f7a1bb7e"
+    }
+  ]
+}

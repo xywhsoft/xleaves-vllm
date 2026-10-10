@@ -1,0 +1,246 @@
+[
+  {
+    "module": "ornith_tq_adaptive_sm70",
+    "sources": [
+      {
+        "path": "csrc/ornith_tq_adaptive.cu",
+        "sha256": "f25bef00a82233839e88465711249d5e7925f03e58f9e177d190ffef2c4a343f"
+      }
+    ],
+    "cuda_cflags": [
+      "-O3",
+      "--use_fast_math",
+      "-lineinfo"
+    ],
+    "cxx_cflags": [
+      "-O3"
+    ],
+    "cuda_arch": "7.0",
+    "include_paths": [
+      "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/csrc",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/include",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/examples/35_gemm_softmax",
+      "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src/csrc/flash_attn/src"
+    ],
+    "library": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_adaptive_sm70/ornith_tq_adaptive_sm70.so",
+    "elapsed_s": 0.4007773860357702,
+    "library_sha256": "3dd5385146afc33421023bdb279643bf5e7e55aa44dacb93ee8837a8f0ea014c"
+  },
+  {
+    "module": "ornith_tq_gqa_wmma8c_sm70",
+    "sources": [
+      {
+        "path": "csrc/ornith_tq_gqa_wmma8c.cu",
+        "sha256": "9c9e3590a81c849c987c5ca7345c325b8d928d79f02d63411df514cdb1a850f4"
+      }
+    ],
+    "cuda_cflags": [
+      "-O3",
+      "--use_fast_math",
+      "-lineinfo"
+    ],
+    "cxx_cflags": [
+      "-O3"
+    ],
+    "cuda_arch": "7.0",
+    "include_paths": [
+      "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/csrc",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/include",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/examples/35_gemm_softmax",
+      "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src/csrc/flash_attn/src"
+    ],
+    "library": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_gqa_wmma8c_sm70/ornith_tq_gqa_wmma8c_sm70.so",
+    "elapsed_s": 0.02838166616857052,
+    "library_sha256": "131ca056ec69cbdbb8eb7c53e8bebef61a5bf39a88611a4486d101da687dc3a4"
+  },
+  {
+    "module": "ornith_tq_gqa_wmma8u_sm70",
+    "sources": [
+      {
+        "path": "csrc/ornith_tq_gqa_wmma8u.cu",
+        "sha256": "67f84a7ae33ce4fbd4f0de887043d3f4a0ac985c2df38cd8d0ef9e59f1471c52"
+      }
+    ],
+    "cuda_cflags": [
+      "-O3",
+      "--use_fast_math",
+      "-lineinfo"
+    ],
+    "cxx_cflags": [
+      "-O3"
+    ],
+    "cuda_arch": "7.0",
+    "include_paths": [
+      "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/csrc",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/include",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/examples/35_gemm_softmax",
+      "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src/csrc/flash_attn/src"
+    ],
+    "library": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_gqa_wmma8u_sm70/ornith_tq_gqa_wmma8u_sm70.so",
+    "elapsed_s": 0.028367675840854645,
+    "library_sha256": "6865dbd4a569d9f220790cf7321e69ad3d177087111e0aa92f19940690983c5d"
+  },
+  {
+    "module": "ornith_tq_gqa_wmma8halfpre_sm70",
+    "sources": [
+      {
+        "path": "csrc/ornith_tq_gqa_wmma8halfpre.cu",
+        "sha256": "facdce2e0d95ff02511a4784d1a52b44179ba3e95ca1f2fe029e8bebfb1b2f33"
+      }
+    ],
+    "cuda_cflags": [
+      "-O3",
+      "--use_fast_math",
+      "-lineinfo"
+    ],
+    "cxx_cflags": [
+      "-O3"
+    ],
+    "cuda_arch": "7.0",
+    "include_paths": [
+      "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/csrc",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/include",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/examples/35_gemm_softmax",
+      "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src/csrc/flash_attn/src"
+    ],
+    "library": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_gqa_wmma8halfpre_sm70/ornith_tq_gqa_wmma8halfpre_sm70.so",
+    "elapsed_s": 0.02897900016978383,
+    "library_sha256": "8f2ae08baf7f3928db5b4fa93b19e988acb69dcd4e21ea9d67ee289ed59ae928"
+  },
+  {
+    "module": "ornith_tq_gqa_wmma8aliasvalue80_sm70",
+    "sources": [
+      {
+        "path": "csrc/ornith_tq_gqa_wmma8aliasvalue80.cu",
+        "sha256": "b2c0ff65a25ce5706c1336beb11491d5bca62e6e4bbee82d8dbd705f0812709b"
+      }
+    ],
+    "cuda_cflags": [
+      "-O3",
+      "--use_fast_math",
+      "-lineinfo",
+      "--maxrregcount=80"
+    ],
+    "cxx_cflags": [
+      "-O3"
+    ],
+    "cuda_arch": "7.0",
+    "include_paths": [
+      "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/csrc",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/include",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/examples/35_gemm_softmax",
+      "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src/csrc/flash_attn/src"
+    ],
+    "library": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_tq_gqa_wmma8aliasvalue80_sm70/ornith_tq_gqa_wmma8aliasvalue80_sm70.so",
+    "elapsed_s": 75.44341583596542,
+    "library_sha256": "7a4890fda7ad1d5a91f30c1bd1efc02c59ab02007ccd9557ce453afcbbd475d2"
+  },
+  {
+    "module": "ornith_prefill_h8_sm70",
+    "sources": [
+      {
+        "path": "csrc/attention/ornith_h8/bindings.cpp",
+        "sha256": "1eac7b9165d40ea2ff67397e81fd080d92836c205ea75174a279b0acdf62f94b"
+      },
+      {
+        "path": "csrc/attention/ornith_h8/prefill.cu",
+        "sha256": "08dae46a733223eebcf1ac2b6fdf4a1aef8ee5532d5693856f4426d0559ddb1e"
+      },
+      {
+        "path": "csrc/attention/ornith_h8/tail.cu",
+        "sha256": "8f7431036b013d488510528776bacab9b3f848c76cf21b907809cc251f9ec657"
+      }
+    ],
+    "cuda_cflags": [
+      "-O3",
+      "--use_fast_math",
+      "-lineinfo",
+      "-DFLASHATTENTION_DISABLE_BACKWARD"
+    ],
+    "cxx_cflags": [
+      "-O3"
+    ],
+    "cuda_arch": "7.0",
+    "include_paths": [
+      "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/csrc/attention/ornith_h8",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/include",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/examples/35_gemm_softmax",
+      "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src/csrc/flash_attn/src"
+    ],
+    "library": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_prefill_h8_sm70/ornith_prefill_h8_sm70.so",
+    "elapsed_s": 0.031846452970057726,
+    "library_sha256": "7179b68b93848437dfb01b2a4cd10a6e9829eabfcc7b2044441a0a3d3a438a55"
+  },
+  {
+    "module": "ornith_prefill_h8k4_sm70",
+    "sources": [
+      {
+        "path": "csrc/attention/ornith_h8k4/bindings.cpp",
+        "sha256": "00e484fea7294599956b2ad104c0d3ea626b7396db2ea2777f05d773774d5b6c"
+      },
+      {
+        "path": "csrc/attention/ornith_h8k4/prefill.cu",
+        "sha256": "2574ac5504d8135a967c9d763433f44e1bb835c376b2ee7b4624b33774330849"
+      },
+      {
+        "path": "csrc/attention/ornith_h8k4/tail.cu",
+        "sha256": "7f1c4ba38818318d786caec8513b0aa67724b77ab48b00a31e05599a1c08e4a5"
+      }
+    ],
+    "cuda_cflags": [
+      "-O3",
+      "--use_fast_math",
+      "-lineinfo",
+      "-DFLASHATTENTION_DISABLE_BACKWARD"
+    ],
+    "cxx_cflags": [
+      "-O3"
+    ],
+    "cuda_arch": "7.0",
+    "include_paths": [
+      "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/csrc/attention/ornith_h8k4",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/include",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/examples/35_gemm_softmax",
+      "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src/csrc/flash_attn/src"
+    ],
+    "library": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_prefill_h8k4_sm70/ornith_prefill_h8k4_sm70.so",
+    "elapsed_s": 0.029978965874761343,
+    "library_sha256": "963fb3a9f66faf7d0ec3d9916c0e05847f12d6f3ef92e4cb01c6f425e67966a0"
+  },
+  {
+    "module": "ornith_prefill_h8k2_sm70",
+    "sources": [
+      {
+        "path": "csrc/attention/ornith_h8k2/bindings.cpp",
+        "sha256": "304f6d7f2b8eba4b77521b59ac2304349d1a3c7f44f3f1365e0c2105c891c6fe"
+      },
+      {
+        "path": "csrc/attention/ornith_h8k2/prefill.cu",
+        "sha256": "96f05cde6543463061e752ec0cb1607ada5d2142e6d2ccec7eeb91db016985ae"
+      },
+      {
+        "path": "csrc/attention/ornith_h8k2/tail.cu",
+        "sha256": "aed9a17f093b9cba8898641fa8d82df1f6b68fd04e92dbb4964512e1e7ca1fc8"
+      }
+    ],
+    "cuda_cflags": [
+      "-O3",
+      "--use_fast_math",
+      "-lineinfo",
+      "-DFLASHATTENTION_DISABLE_BACKWARD"
+    ],
+    "cxx_cflags": [
+      "-O3"
+    ],
+    "cuda_arch": "7.0",
+    "include_paths": [
+      "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/src/onecat/csrc/attention/ornith_h8k2",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/include",
+      "/home/xs/codex-work/ornith-opt-20261006/src/cutlass-4.4.2/examples/35_gemm_softmax",
+      "/home/xs/codex-work/ornith-opt-20261006/src/onecat/.deps/vllm-flash-attn-src/csrc/flash_attn/src"
+    ],
+    "library": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/build/from-qualified-source60/ornith_prefill_h8k2_sm70/ornith_prefill_h8k2_sm70.so",
+    "elapsed_s": 0.02824724279344082,
+    "library_sha256": "bfede316e8e327d6f9110de21b920e0a17c6d6bbdb506c31522b5351abc62d76"
+  }
+]

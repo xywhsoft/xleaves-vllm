@@ -1,0 +1,1149 @@
+{
+  "status": "strided_gdn178_operator_qualified",
+  "benchmark_sha256": "ed8b281a1721ead2d25067786fb3b39a5666bad55a3621e7c847d3ea3a87da2d",
+  "source": {
+    "passed": true,
+    "baseline_sha256": {
+      "flash_qla/ops/gated_delta_rule/chunk/hopper/fused_fwd.py": "b54ad654518007206c2b21784c6daa87f1299248cef4600fd96fb1a28cee5397",
+      "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py": "1dcc6486047832b3838c6f9fb71f2df61d8ce6c1d251d84503fb16710e5a55c1"
+    },
+    "candidate_sha256": {
+      "flash_qla/ops/gated_delta_rule/chunk/hopper/fused_fwd.py": "4e6a1f326dac6e53a9f7502ea930da1c023c219b4261a9f452b4186a26c82c2c",
+      "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py": "594ff8507248d2e878fee0d2580c4922db9cc03f61ec168d153c4c22fc11db07"
+    },
+    "patch_sha256": "e5ccff948f581963843688ef9b42880237d4f224d8db76c8f59691d1e5bc7131",
+    "attempts": [
+      {
+        "returncode": 0,
+        "log": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/logs/strided-gdn177-hooks-0.log",
+        "sha256": "fb00f3a517ab206cc009774b2903716ef715cc72aef138b66d051571f7a1bb7e"
+      }
+    ],
+    "failure_basis": "Actual176128 and96 blue image failures; indexed wrapper made contiguous copies of noncontiguous paged SSM cache, skipping writeback."
+  },
+  "numerical_checks": [
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 0,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 1,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 0,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 1,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 0,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 1,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 0,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 1,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 0,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 1,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 0,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 1,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 0,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 1,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 0,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 1,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 0,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 1,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 0,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 1,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 0,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 1,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 0,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 1,
+      "stride": [
+        262144,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 0,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 0,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 1,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 0,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 1,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 0,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 1,
+      "stride": [
+        269072,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 0,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 1,
+      "tokens": 257,
+      "iteration": 1,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 0,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 16,
+      "tokens": 1922,
+      "iteration": 1,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 0,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "iteration": 1,
+      "stride": [
+        1076288,
+        16384,
+        128,
+        1
+      ],
+      "storage_offset": 6144,
+      "bitwise_output": true,
+      "bitwise_state": true,
+      "untouched_slots": true,
+      "convolution_and_padding_guards": true,
+      "noncontiguous_indices": true
+    }
+  ],
+  "negative_reproductions": [
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 1,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 16,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 128,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 1,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 16,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 1,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 16,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 128,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 1,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 16,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "old_prefill_output_equal": true,
+      "old_writeback_lost": true,
+      "actual_noncontiguous_cache": true
+    }
+  ],
+  "memory_measurements": [
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "dense_reference",
+      "transient_peak_bytes": [
+        293865984,
+        293865984,
+        293865984
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "strided_indexed_candidate",
+      "transient_peak_bytes": [
+        25430016,
+        25430016,
+        25430016
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "dense_reference",
+      "transient_peak_bytes": [
+        293865984,
+        293865984,
+        293865984
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "strided_indexed_candidate",
+      "transient_peak_bytes": [
+        25430016,
+        25430016,
+        25430016
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "dense_reference",
+      "transient_peak_bytes": [
+        293865984,
+        293865984,
+        293865984
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "strided_indexed_candidate",
+      "transient_peak_bytes": [
+        25430016,
+        25430016,
+        25430016
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "dense_reference",
+      "transient_peak_bytes": [
+        293865984,
+        293865984,
+        293865984
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "strided_indexed_candidate",
+      "transient_peak_bytes": [
+        25430016,
+        25430016,
+        25430016
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "dense_reference",
+      "transient_peak_bytes": [
+        293865984,
+        293865984,
+        293865984
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "strided_indexed_candidate",
+      "transient_peak_bytes": [
+        25430016,
+        25430016,
+        25430016
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "dense_reference",
+      "transient_peak_bytes": [
+        293865984,
+        293865984,
+        293865984
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "tokens": 4096,
+      "mode": "strided_indexed_candidate",
+      "transient_peak_bytes": [
+        25430016,
+        25430016,
+        25430016
+      ]
+    }
+  ],
+  "latency_measurements": [
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 128,
+      "mode": "dense_reference",
+      "median_ms": 3.8510079383850098,
+      "samples_ms": [
+        3.899872064590454,
+        3.8510079383850098,
+        3.846656084060669,
+        3.8583359718322754,
+        3.8497281074523926,
+        3.8454720973968506,
+        3.855839967727661
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "contiguous",
+      "sequences": 128,
+      "mode": "strided_indexed_candidate",
+      "median_ms": 2.98854398727417,
+      "samples_ms": [
+        3.0304958820343018,
+        3.0054399967193604,
+        2.9709761142730713,
+        2.987839937210083,
+        2.9866559505462646,
+        2.99401593208313,
+        2.98854398727417
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 128,
+      "mode": "dense_reference",
+      "median_ms": 3.8504319190979004,
+      "samples_ms": [
+        3.8489599227905273,
+        3.8504319190979004,
+        3.8610239028930664,
+        3.843424081802368,
+        3.8438079357147217,
+        3.8509440422058105,
+        3.8613760471343994
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "paged",
+      "sequences": 128,
+      "mode": "strided_indexed_candidate",
+      "median_ms": 2.9922239780426025,
+      "samples_ms": [
+        3.0220799446105957,
+        2.9922239780426025,
+        2.9934399127960205,
+        2.99072003364563,
+        2.987231969833374,
+        3.0139520168304443,
+        2.9832959175109863
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "mode": "dense_reference",
+      "median_ms": 3.8545279502868652,
+      "samples_ms": [
+        3.861855983734131,
+        3.8608319759368896,
+        3.8545279502868652,
+        3.8512320518493652,
+        3.843616008758545,
+        3.8586559295654297,
+        3.8445119857788086
+      ]
+    },
+    {
+      "device": 0,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "mode": "strided_indexed_candidate",
+      "median_ms": 2.8515520095825195,
+      "samples_ms": [
+        2.854975938796997,
+        2.8557119369506836,
+        2.8515520095825195,
+        2.847615957260132,
+        2.8532800674438477,
+        2.8495359420776367,
+        2.8486080169677734
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 128,
+      "mode": "dense_reference",
+      "median_ms": 3.8392961025238037,
+      "samples_ms": [
+        3.883647918701172,
+        3.8399999141693115,
+        3.838560104370117,
+        3.8392961025238037,
+        3.8328640460968018,
+        3.837696075439453,
+        3.839711904525757
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "contiguous",
+      "sequences": 128,
+      "mode": "strided_indexed_candidate",
+      "median_ms": 2.9660160541534424,
+      "samples_ms": [
+        3.0112640857696533,
+        2.9660160541534424,
+        2.970367908477783,
+        2.9545280933380127,
+        2.9700160026550293,
+        2.957184076309204,
+        2.9456639289855957
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 128,
+      "mode": "dense_reference",
+      "median_ms": 3.841248035430908,
+      "samples_ms": [
+        3.841248035430908,
+        3.831552028656006,
+        3.849951982498169,
+        3.846143960952759,
+        3.8400959968566895,
+        3.8494720458984375,
+        3.8352959156036377
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "paged",
+      "sequences": 128,
+      "mode": "strided_indexed_candidate",
+      "median_ms": 2.9843521118164062,
+      "samples_ms": [
+        3.0295040607452393,
+        2.9843521118164062,
+        2.9940481185913086,
+        2.983743906021118,
+        2.9828479290008545,
+        2.9909439086914062,
+        2.9754559993743896
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "mode": "dense_reference",
+      "median_ms": 3.839871883392334,
+      "samples_ms": [
+        3.8440001010894775,
+        3.8422720432281494,
+        3.8362879753112793,
+        3.834304094314575,
+        3.839871883392334,
+        3.8340160846710205,
+        3.844831943511963
+      ]
+    },
+    {
+      "device": 1,
+      "layout": "grouped_paged",
+      "sequences": 128,
+      "mode": "strided_indexed_candidate",
+      "median_ms": 2.8480958938598633,
+      "samples_ms": [
+        2.8485119342803955,
+        2.8486719131469727,
+        2.8299520015716553,
+        2.8464319705963135,
+        2.847775936126709,
+        2.8537280559539795,
+        2.8480958938598633
+      ]
+    }
+  ],
+  "scope": "Actual original/candidate FlashQLA wrappers and kernels; production1076288-byte paged state with24576-byte convolution header, plus grouped stride. BothV100; no whole-model TPS claim."
+}

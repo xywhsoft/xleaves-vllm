@@ -1,0 +1,250 @@
+{
+  "status": "exact_layer215_inputs_bound_cpu",
+  "utc": "2026-10-08T10:40:34Z",
+  "profile": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/qualified-high201-profile.json",
+  "profile_sha256": "22033477ddebbcda0ea01d8544ceb54d55167950a76afc0165c43d9fb431279d",
+  "validation": {
+    "case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+    "minimum_full_contexts": 16,
+    "max_context_per_request": 240128,
+    "verified_files": 80,
+    "source_coverage": {
+      "changed_files": 48,
+      "unbound_source": [],
+      "mismatched_source": [],
+      "source_matches": true
+    },
+    "verified_mixed_active_sequences": 144,
+    "verified_full_contexts": 16,
+    "uncached_full_context_concurrency": 16
+  },
+  "inputs": [
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/results/workspace187_high_and_full_capacity_short_inputs.json",
+      "bytes": 514830,
+      "sha256": "3f573f1472e278eafc6c2e657524c608618520fbad4a8e03e0c9b9ba46d4bb8e"
+    },
+    {
+      "path": "/home/xs/codex-work/ornith-opt-20261006/onecat-optimization/scripts/long_independent_prompts24.json",
+      "bytes": 27258745,
+      "sha256": "2183e8ede658d6d6ec834205b365d080aa0122c18098d35b4f2efe43b856fc8f"
+    }
+  ],
+  "matched_cohorts": [
+    {
+      "kind": "cohort",
+      "concurrency": 1,
+      "repeat": 0,
+      "input_token_arrays_sha256": "2ac4bf50fea68fbbca8d17c61bb78b90c69e2d3778099559c4eeb13e3c5afa89",
+      "input_tokens_per_request": 512,
+      "output_tokens_per_request": 1024,
+      "matched_qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "passed": true
+    },
+    {
+      "kind": "cohort",
+      "concurrency": 1,
+      "repeat": 1,
+      "input_token_arrays_sha256": "1c88e8e4a1ff96d86bf5c843684090dc694883a149023f892d53a604daf19a80",
+      "input_tokens_per_request": 512,
+      "output_tokens_per_request": 1024,
+      "matched_qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "passed": true
+    },
+    {
+      "kind": "cohort",
+      "concurrency": 16,
+      "repeat": 0,
+      "input_token_arrays_sha256": "49e00593a66bfeee21907fa761ddd1c208119e9fc6472d79e55806b179d78f06",
+      "input_tokens_per_request": 512,
+      "output_tokens_per_request": 1024,
+      "matched_qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "passed": true
+    },
+    {
+      "kind": "cohort",
+      "concurrency": 16,
+      "repeat": 1,
+      "input_token_arrays_sha256": "33d5a70643a6e24f96c742f5fd7df6c45132eeec3ed5a0427887939432d1791c",
+      "input_tokens_per_request": 512,
+      "output_tokens_per_request": 1024,
+      "matched_qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "passed": true
+    },
+    {
+      "kind": "independent_resident_cohort",
+      "concurrency": 1,
+      "repeat": 0,
+      "input_token_arrays_sha256": "19b626b8910a2a6ee934a824b9703e5e80a8ffc6b43974b896e6151d0911a7c4",
+      "input_tokens_per_request": 239104,
+      "output_tokens_per_request": 1024,
+      "matched_qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "passed": true
+    },
+    {
+      "kind": "independent_resident_cohort",
+      "concurrency": 1,
+      "repeat": 1,
+      "input_token_arrays_sha256": "19b626b8910a2a6ee934a824b9703e5e80a8ffc6b43974b896e6151d0911a7c4",
+      "input_tokens_per_request": 239104,
+      "output_tokens_per_request": 1024,
+      "matched_qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "passed": true
+    },
+    {
+      "kind": "independent_resident_cohort",
+      "concurrency": 16,
+      "repeat": 0,
+      "input_token_arrays_sha256": "72129aec994c51ed1a6edbc0fecc3cf731f9b8586db4624f5ef06333f46ef6de",
+      "input_tokens_per_request": 239104,
+      "output_tokens_per_request": 1024,
+      "matched_qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "passed": true
+    },
+    {
+      "kind": "independent_resident_cohort",
+      "concurrency": 16,
+      "repeat": 1,
+      "input_token_arrays_sha256": "72129aec994c51ed1a6edbc0fecc3cf731f9b8586db4624f5ef06333f46ef6de",
+      "input_tokens_per_request": 239104,
+      "output_tokens_per_request": 1024,
+      "matched_qualified_case": "mm_aliasvalue80_acc119_pad135_moe163_str177_ws187_c144_kv17045651456_b2048_full16",
+      "passed": true
+    }
+  ],
+  "slot_states": [
+    {
+      "index": 0,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-00.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355434051891777,
+      "inode": 32376310,
+      "device": 2065
+    },
+    {
+      "index": 1,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-01.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355435250891829,
+      "inode": 32376311,
+      "device": 2065
+    },
+    {
+      "index": 2,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-02.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355436493891882,
+      "inode": 32376312,
+      "device": 2065
+    },
+    {
+      "index": 3,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-03.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355437738891936,
+      "inode": 32376313,
+      "device": 2065
+    },
+    {
+      "index": 4,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-04.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355438978891989,
+      "inode": 32376314,
+      "device": 2065
+    },
+    {
+      "index": 5,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-05.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355440220892042,
+      "inode": 32376315,
+      "device": 2065
+    },
+    {
+      "index": 6,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-06.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355441452892095,
+      "inode": 32376316,
+      "device": 2065
+    },
+    {
+      "index": 7,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-07.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355442668892148,
+      "inode": 32376317,
+      "device": 2065
+    },
+    {
+      "index": 8,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-08.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355443886892200,
+      "inode": 32376318,
+      "device": 2065
+    },
+    {
+      "index": 9,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-09.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355445118892253,
+      "inode": 32376319,
+      "device": 2065
+    },
+    {
+      "index": 10,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-10.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355446343892306,
+      "inode": 32376320,
+      "device": 2065
+    },
+    {
+      "index": 11,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-11.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355447565892359,
+      "inode": 32376321,
+      "device": 2065
+    },
+    {
+      "index": 12,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-12.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355448828892413,
+      "inode": 32376322,
+      "device": 2065
+    },
+    {
+      "index": 13,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-13.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355450071892466,
+      "inode": 32376323,
+      "device": 2065
+    },
+    {
+      "index": 14,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-14.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355451372892522,
+      "inode": 32376324,
+      "device": 2065
+    },
+    {
+      "index": 15,
+      "path": "/data/models/Ornith-1.5-35B-CRACK/.codex-bench/llama-layer-independent-prefix79/prefix-15.bin",
+      "bytes": 1437296636,
+      "mtime_ns": 1791355452683892579,
+      "inode": 32376325,
+      "device": 2065
+    }
+  ],
+  "script_sha256": "6bb77b214b3034a9eebd9090068778351cb86ade5256dd711873af93d477c427",
+  "model_requests_sent": 0,
+  "serving_source_mutation": false,
+  "hardware_changes": false,
+  "scope": "Exactinputarray hashes matched to8 accepted193 cohorts. Existing79slot filemetadata only; freshprivate llama restoration/cache_n/needle/token-accounting gates are required. No baselineTPS orslotcontentsverified yet."
+}

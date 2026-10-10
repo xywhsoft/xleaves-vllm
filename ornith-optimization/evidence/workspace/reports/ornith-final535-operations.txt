@@ -1,0 +1,16 @@
+Qualified runtime and operation notes
+Workspace: /home/xs/codex-work/ornith-opt-20261006/onecat-optimization
+Use src/onecat-padded-kv140/.venv/bin/python; CUDA12.8/Python3.12/Torch2.10cu128.
+Public endpoint: http://222.186.10.53:8096/v1 ; model: ornith-1.5-35b
+API credential remains runtime-only and is not included in this report/package.
+Qualified profiles: results/qualified-adaptive416-0-final.json (160active,16full240128) and -1-final.json (26active,26full240128).
+Stop/switch only when service is idle; manager enforces current request/GPU-process guards.
+Rollback to saved prior server: src/onecat-padded-kv140/.venv/bin/python scripts/manage_onecat71.py --rollback
+Switching directly with manager overwrites its one-step rollback snapshot; keep prior rollback file if needed.
+Exact launch command and environment are in each qualified JSON profile, credentials supplied at runtime.
+Noautomatic systemd/reboot persistence was configured by this optimization task.
+Sampler helper400 passed paired511 GPU numerical/pressure/latency gates. Reversible176 shortscreen530 did not pass all-mode promotion, and restoredBASE. See actual529 proof for outcome.
+PP445 failed graph-workspace OOM; PP491 shrinksKV from16.5GiB to14GiB forworkspace while retainingstartup16minimum. PP491shortscreen alone is not240Kqualification.
+Quality includesbitwise operator contracts, text/natural/needle/MM/capacity gates, notheldoutperplexity.
+The source archive includespatches, changed/untracked sources, native libraries, runtimefreeze, rawstreams and hashes. It doesnotinclude modelweights.
+Original engine/attention binaries reused; fullclean rebuild notqualified. Rerun operator/model gates afterdependency/source changes.

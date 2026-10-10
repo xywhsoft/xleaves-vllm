@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Small-batch expert alignment without a sort or inverse-sort pipeline."""
 
+import os
 from dataclasses import dataclass
 
 import torch
@@ -21,6 +22,10 @@ class Sm70SmallRoutingCapability:
     min_m: int = 1
     max_m: int = 32
 
+    @staticmethod
+    def supports_geometry(hidden_size: int, experts: int) -> bool:
+        return (hidden_size, experts) in ((2560, 512), (2048, 256))
+
     def reason(self, x, ids, experts):
         if not x.is_cuda or not current_platform.is_device_capability(70):
             return "requires_sm70"
@@ -30,7 +35,10 @@ class Sm70SmallRoutingCapability:
             return "invalid_route_geometry"
         if not self.min_m <= x.shape[0] <= self.max_m:
             return "outside_small_batch_band"
-        if x.shape[1] != 2560 or experts != 512 or not 1 <= ids.shape[1] <= 16:
+        if (
+            not self.supports_geometry(x.shape[1], experts)
+            or not 1 <= ids.shape[1] <= 16
+        ):
             return "unmeasured_expert_geometry"
         if not x.is_contiguous() or not ids.is_contiguous() or x.device != ids.device:
             return "requires_contiguous_colocated_routes"
@@ -206,8 +214,16 @@ def _small_unroute(
         down.is_cuda
         and current_platform.is_device_capability(70)
         and down.dtype == torch.float16
-        and 1 <= m <= 32
-        and h == 2560
+        and (
+            1 <= m <= 32
+            or (
+                os.getenv("VLLM_SM70_MOE_STREAM_UNROUTE", "0") == "1"
+                and 1 <= m <= 8192
+                and h == 2048
+                and top_k == 8
+            )
+        )
+        and h in (2048, 2560)
         and 1 <= top_k <= 16
         and down.is_contiguous()
         and inverse.is_contiguous()
